@@ -108,4 +108,12 @@ YYYY.MM.DD HH:MM
         - 전체 모노레포 구조, 백엔드 NestJS 구조, 프론트엔드 React 구조, 공유 패키지, 파일 네이밍 규칙
     - code-style.md 작성 (코딩 컨벤션 5개 섹션)
         - 공통 규칙, TypeScript 규칙, 프론트엔드(React) 규칙, 백엔드(NestJS) 규칙, Git 컨벤션
+    - 프로젝트 초기 설정 완료
+        - .gitignore 작성 (의존성, 빌드, 환경변수, 업로드, IDE, 테스트, Prisma, 캐시 등)
+        - 폴더 구조 생성: backend/, frontend/packages/, packages/types/, uploads/, docs/
+        - pnpm-workspace.yaml 생성 (모노레포 워크스페이스 설정)
+        - 루트 package.json 생성 (워크스페이스 스크립트 정의)
+        - .env.example 생성 (환경 변수 템플릿)
+        - README.md 작성 (프로젝트 개요, 시작 방법, 문서 링크)
+        - structure.md 업데이트: apps/backend → backend 구조 변경
 

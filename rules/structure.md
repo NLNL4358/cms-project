@@ -19,9 +19,8 @@
 프로젝트는 **모노레포(Monorepo)** 구조로 관리한다.
 
 ```
-cms/
-├── apps/
-│   └── backend/              # NestJS 백엔드
+cms-project/
+├── backend/                  # NestJS 백엔드
 │
 ├── frontend/
 │   └── packages/
@@ -60,7 +59,7 @@ cms/
 ```yaml
 # pnpm-workspace.yaml
 packages:
-  - 'apps/*'
+  - 'backend'
   - 'frontend/packages/*'
   - 'packages/*'
 ```
@@ -72,7 +71,7 @@ packages:
 ### 전체 구조
 
 ```
-apps/backend/
+backend/
 ├── src/
 │   ├── main.ts                     # 애플리케이션 진입점
 │   ├── app.module.ts               # 루트 모듈
