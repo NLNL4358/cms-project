@@ -1,0 +1,371 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================
+// 사용자 및 권한
+// =============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  type      UserType @default(ADMIN) // ADMIN or MEMBER
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  roles            UserRole[]
+  createdContents  Content[]       @relation("ContentCreator")
+  updatedContents  Content[]       @relation("ContentUpdater")
+  createdPages     Page[]          @relation("PageCreator")
+  updatedPages     Page[]          @relation("PageUpdater")
+  uploadedMedia    Media[]
+  comments         Comment[]
+  notifications    Notification[]
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+enum UserType {
+  ADMIN  // Admin Panel 사용자
+  MEMBER // Public Site 사용자
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  permissions Json     @default("[]") // 권한 목록 (배열)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// =============================================
+// 콘텐츠 타입 시스템
+// =============================================
+
+model ContentType {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  fields      Json     @default("[]") // FieldDefinition[]
+  options     Json     @default("{}") // 설정 옵션
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  contents Content[]
+
+  @@map("content_types")
+}
+
+// =============================================
+// 콘텐츠
+// =============================================
+
+model Content {
+  id              String        @id @default(cuid())
+  contentTypeId   String
+  title           String
+  slug            String
+  data            Json          @default("{}") // 동적 필드 데이터
+  status          ContentStatus @default(DRAFT)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  createdById     String
+  updatedById     String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime? // Soft delete
+  version         Int           @default(1)
+
+  // Relations
+  contentType     ContentType      @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  createdBy       User             @relation("ContentCreator", fields: [createdById], references: [id])
+  updatedBy       User             @relation("ContentUpdater", fields: [updatedById], references: [id])
+  versions        ContentVersion[]
+  comments        Comment[]
+  workflowActions WorkflowAction[]
+
+  @@unique([contentTypeId, slug])
+  @@index([contentTypeId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("contents")
+}
+
+enum ContentStatus {
+  DRAFT     // 초안
+  REVIEW    // 검토 중
+  APPROVED  // 승인됨
+  PUBLISHED // 발행됨
+  REJECTED  // 반려됨
+  ARCHIVED  // 보관됨
+}
+
+model ContentVersion {
+  id        String   @id @default(cuid())
+  contentId String
+  data      Json
+  version   Int
+  createdAt DateTime @default(now())
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId])
+  @@map("content_versions")
+}
+
+// =============================================
+// 페이지 빌더
+// =============================================
+
+model Page {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  type        PageType   @default(STATIC)
+  components  Json       @default("[]") // ComponentNode[]
+  settings    Json       @default("{}")
+  status      PageStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdById String
+  updatedById String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  createdBy User @relation("PageCreator", fields: [createdById], references: [id])
+  updatedBy User @relation("PageUpdater", fields: [updatedById], references: [id])
+
+  @@index([type])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("pages")
+}
+
+enum PageType {
+  MAIN    // 메인페이지
+  STATIC  // 일반 페이지
+  DYNAMIC // 동적 페이지
+  SYSTEM  // 시스템 페이지
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// =============================================
+// 미디어
+// =============================================
+
+model Media {
+  id           String    @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int // bytes
+  path         String
+  url          String
+  alt          String?
+  caption      String?
+  folderId     String?
+  uploadedById String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  folder     MediaFolder? @relation(fields: [folderId], references: [id])
+  uploadedBy User         @relation(fields: [uploadedById], references: [id])
+
+  @@index([folderId])
+  @@index([mimeType])
+  @@index([deletedAt])
+  @@map("media")
+}
+
+model MediaFolder {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children MediaFolder[] @relation("FolderHierarchy")
+  media    Media[]
+
+  @@index([parentId])
+  @@map("media_folders")
+}
+
+// =============================================
+// 워크플로우
+// =============================================
+
+model WorkflowAction {
+  id        String               @id @default(cuid())
+  contentId String
+  action    WorkflowActionType @default(SUBMIT)
+  comment   String?
+  actorId   String // User who performed the action
+  createdAt DateTime             @default(now())
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId])
+  @@map("workflow_actions")
+}
+
+enum WorkflowActionType {
+  SUBMIT  // 제출
+  APPROVE // 승인
+  REJECT  // 반려
+  PUBLISH // 발행
+}
+
+// =============================================
+// 댓글 (내부 메모)
+// =============================================
+
+model Comment {
+  id        String   @id @default(cuid())
+  contentId String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contentRef Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  author     User    @relation(fields: [authorId], references: [id])
+
+  @@index([contentId])
+  @@map("comments")
+}
+
+// =============================================
+// 알림
+// =============================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  CONTENT_SUBMITTED
+  CONTENT_APPROVED
+  CONTENT_REJECTED
+  CONTENT_PUBLISHED
+  COMMENT_ADDED
+  SYSTEM
+}
+
+// =============================================
+// 감사 로그
+// =============================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entity     String // 테이블명
+  entityId   String
+  oldData    Json?
+  newData    Json?
+  ipAddress  String?
+  userAgent  String?
+  occurredAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([occurredAt])
+  @@map("audit_logs")
+}
+
+// =============================================
+// 시스템 설정
+// =============================================
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// =============================================
+// 웹훅
+// =============================================
+
+model Webhook {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  events    Json     @default("[]") // 이벤트 목록
+  secret    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("webhooks")
+}

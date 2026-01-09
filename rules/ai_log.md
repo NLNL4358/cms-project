@@ -116,4 +116,41 @@ YYYY.MM.DD HH:MM
         - .env.example 생성 (환경 변수 템플릿)
         - README.md 작성 (프로젝트 개요, 시작 방법, 문서 링크)
         - structure.md 업데이트: apps/backend → backend 구조 변경
+    - 백엔드 개발 시작 (1단계 완료)
+        - NestJS 프로젝트 생성 (CLI 사용)
+        - pnpm install 완료 (모노레포 워크스페이스 연동)
+        - 개발 서버 실행 테스트 완료 (pnpm dev:backend)
+        - [미완료] Prisma 설치 - Node.js 버전 이슈 (현재 20.14.0, Prisma 요구 20.19+)
+
+2026.01.09
+    - 백엔드 개발 2단계 완료 (Prisma 설정 및 DB 연결)
+        - Node.js 20.19.0으로 업그레이드
+        - Prisma 7.2.0 설치 및 초기화
+        - PostgreSQL 18.1 설치 및 확인
+        - Prisma 스키마 작성 완료 (15개 모델, 6개 Enum)
+            - User, Role, UserRole, RefreshToken (인증/권한)
+            - ContentType, Content, ContentVersion (콘텐츠)
+            - Page (페이지 빌더)
+            - Media, MediaFolder (미디어 관리)
+            - WorkflowAction (워크플로우)
+            - Comment, Notification, AuditLog (부가 기능)
+            - Setting, Webhook (시스템 설정)
+        - 환경 변수 설정 (backend/.env)
+            - DATABASE_URL 설정
+            - JWT, 파일 업로드, CORS 설정
+        - PostgreSQL cms_db 데이터베이스 생성
+        - Prisma 마이그레이션 실행 (20260109052456_init)
+            - 15개 테이블 생성 완료
+            - 인덱스 및 외래 키 설정 완료
+
+### 다음 작업 (백엔드 개발 3~4단계)
+    - 3단계: 기본 모듈 구조 설정
+        - common/ (decorators, filters, guards, interceptors, pipes, utils)
+        - config/ (database, jwt, upload 설정)
+        - Prisma 모듈 NestJS 연동
+    - 4단계: 인증 모듈 구현
+        - JWT 인증 (Access Token + Refresh Token)
+        - 로그인/로그아웃/회원가입 API
+        - 비밀번호 해싱 (bcrypt)
+        - 인증 가드 및 데코레이터
 
