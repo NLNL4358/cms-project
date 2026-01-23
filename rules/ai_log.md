@@ -142,12 +142,46 @@ YYYY.MM.DD HH:MM
         - Prisma 마이그레이션 실행 (20260109052456_init)
             - 15개 테이블 생성 완료
             - 인덱스 및 외래 키 설정 완료
+    - Prisma 학습 문서 작성 (prisma_study.md)
+        - Prisma 개념, DBMS 역할, 사용법 등 종합 가이드
+        - 마이그레이션, Enum, 테이블, 인덱스, 외래키 설명
+        - Prisma 명령어, 한계점, 작업 후 체크리스트
+        - Prisma 문법 및 작성 방법 (8개 섹션)
+    - 백엔드 개발 3단계 완료 (기본 모듈 구조 설정)
+        - Prisma Client 생성 완료 (npx prisma generate)
+        - 기본 폴더 구조 생성 완료
+            - src/common/ (decorators, filters, guards, interceptors, pipes, utils)
+            - src/config/
+            - src/prisma/
+        - Prisma 서비스 및 모듈 생성 완료
+            - PrismaService: DB 연결/해제 관리 (Prisma 7.x adapter 방식)
+            - PrismaModule: Global 모듈로 설정
+        - 환경 설정 모듈 작성 완료
+            - @nestjs/config 패키지 설치
+            - configuration.ts: 환경 변수 구조화
+            - env.validation.ts: 환경 변수 검증 (class-validator)
+            - ConfigModule을 AppModule에 Global 설정
+        - 전역 예외 필터 작성 완료
+            - AllExceptionsFilter: HTTP 예외 처리
+            - 개발/프로덕션 환경별 에러 로그 분기
+        - AppModule 설정 완료
+            - ConfigModule 통합 (isGlobal: true)
+            - PrismaModule 통합
+            - Validation Pipe 전역 설정
+            - CORS 설정 (Admin/Public URL)
+        - main.ts 설정 완료
+            - ValidationPipe 전역 적용 (whitelist, transform)
+            - AllExceptionsFilter 전역 적용
+            - CORS 활성화
+        - Prisma 7.x 대응 완료
+            - @prisma/adapter-pg, pg, @types/pg 설치
+            - PrismaPg adapter 연동
+            - schema.prisma에서 datasource url 제거
+        - 개발 서버 실행 테스트 성공
+            - Database 연결 확인 (✅ Database connected)
+            - http://localhost:3000 실행 확인
 
-### 다음 작업 (백엔드 개발 3~4단계)
-    - 3단계: 기본 모듈 구조 설정
-        - common/ (decorators, filters, guards, interceptors, pipes, utils)
-        - config/ (database, jwt, upload 설정)
-        - Prisma 모듈 NestJS 연동
+### 다음 작업 (백엔드 개발 4단계)
     - 4단계: 인증 모듈 구현
         - JWT 인증 (Access Token + Refresh Token)
         - 로그인/로그아웃/회원가입 API
