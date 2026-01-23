@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
 
@@ -17,6 +18,8 @@ import { validate } from './config/env.validation';
     }),
     // Prisma 모듈
     PrismaModule,
+    // 인증 모듈
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

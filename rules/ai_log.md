@@ -181,10 +181,48 @@ YYYY.MM.DD HH:MM
             - Database 연결 확인 (✅ Database connected)
             - http://localhost:3000 실행 확인
 
-### 다음 작업 (백엔드 개발 4단계)
-    - 4단계: 인증 모듈 구현
-        - JWT 인증 (Access Token + Refresh Token)
-        - 로그인/로그아웃/회원가입 API
-        - 비밀번호 해싱 (bcrypt)
-        - 인증 가드 및 데코레이터
+2026.01.23
+    - 백엔드 개발 4단계 완료 (인증 모듈 구현)
+        - JWT 및 인증 패키지 설치 완료
+            - @nestjs/jwt, @nestjs/passport 설치
+            - passport, passport-jwt 설치
+            - bcrypt, @types/bcrypt, @types/passport-jwt 설치
+        - Auth 모듈 구조 생성 완료
+            - src/auth/dto/ (DTO)
+            - src/auth/guards/ (가드)
+            - src/auth/strategies/ (전략)
+            - src/auth/decorators/ (데코레이터)
+        - DTO 작성 완료
+            - RegisterDto: 회원가입 요청 검증
+            - LoginDto: 로그인 요청 검증
+        - Auth Service 작성 완료
+            - register(): 회원가입 (이메일 중복 확인, 비밀번호 해싱)
+            - login(): 로그인 (비밀번호 검증, JWT 토큰 발급)
+            - logout(): 로그아웃 (Refresh Token 삭제)
+            - generateTokens(): Access/Refresh Token 생성
+            - validateUser(): 사용자 유효성 검증
+        - Auth Controller 작성 완료
+            - POST /auth/register: 회원가입
+            - POST /auth/login: 로그인
+            - POST /auth/logout: 로그아웃 (인증 필요)
+            - GET /auth/me: 현재 사용자 정보 (인증 필요)
+        - JWT Strategy 구현 완료
+            - passport-jwt 전략 구현
+            - Access Token 검증
+        - JWT Auth Guard 구현 완료
+            - 인증이 필요한 엔드포인트 보호
+        - CurrentUser 데코레이터 구현 완료
+            - 요청에서 현재 사용자 정보 추출
+        - AuthModule 작성 및 AppModule 통합 완료
+        - API 테스트 완료
+            - ✅ 회원가입: POST /auth/register
+            - ✅ 로그인: POST /auth/login (토큰 발급 확인)
+            - ✅ 사용자 정보: GET /auth/me (인증 확인)
+            - ✅ 로그아웃: POST /auth/logout
+
+### 다음 작업 (백엔드 개발 5단계)
+    - 5단계: 콘텐츠 타입 모듈 구현
+        - ContentType CRUD API
+        - 필드 스키마 관리
+        - 권한 기반 접근 제어
 
