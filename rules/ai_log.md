@@ -220,9 +220,40 @@ YYYY.MM.DD HH:MM
             - ✅ 사용자 정보: GET /auth/me (인증 확인)
             - ✅ 로그아웃: POST /auth/logout
 
-### 다음 작업 (백엔드 개발 5단계)
-    - 5단계: 콘텐츠 타입 모듈 구현
-        - ContentType CRUD API
-        - 필드 스키마 관리
+    - 백엔드 개발 5단계 완료 (콘텐츠 타입 모듈 구현)
+        - @nestjs/mapped-types 패키지 설치 완료
+        - ContentType 모듈 구조 생성 완료
+            - src/content-type/dto/ (DTO)
+            - src/content-type/content-type.service.ts
+            - src/content-type/content-type.controller.ts
+            - src/content-type/content-type.module.ts
+        - DTO 작성 완료
+            - CreateContentTypeDto: 콘텐츠 타입 생성 검증
+                - name, slug, description, fields, options 필드
+                - slug 정규식 검증 (/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+            - UpdateContentTypeDto: PartialType 사용
+        - ContentType Service 작성 완료
+            - create(): 콘텐츠 타입 생성 (slug 중복 확인)
+            - findAll(): 전체 목록 조회 (생성일 기준 내림차순)
+            - findOne(): 단일 조회 (ID 기준)
+            - findBySlug(): 단일 조회 (slug 기준)
+            - update(): 콘텐츠 타입 수정 (slug 중복 확인)
+            - remove(): 콘텐츠 타입 삭제 (참조 무결성 확인)
+        - ContentType Controller 작성 완료
+            - POST /content-types: 생성 (인증 필요)
+            - GET /content-types: 목록 조회 (인증 필요)
+            - GET /content-types/:id: 단일 조회 (인증 필요)
+            - PATCH /content-types/:id: 수정 (인증 필요)
+            - DELETE /content-types/:id: 삭제 (인증 필요)
+        - ContentTypeModule 작성 및 AppModule 통합 완료
+        - API 테스트 완료
+            - ✅ 콘텐츠 타입 생성: POST /content-types
+            - ✅ 콘텐츠 타입 목록: GET /content-types
+        - [수정 사항] CreateContentTypeDto에서 icon 필드를 options로 변경 (Prisma 스키마와 일치)
+
+### 다음 작업 (백엔드 개발 6단계)
+    - 6단계: 콘텐츠 모듈 구현
+        - Content CRUD API
+        - 버전 관리 시스템
         - 권한 기반 접근 제어
 

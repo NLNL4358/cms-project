@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { ContentTypeModule } from './content-type/content-type.module';
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
 
@@ -20,6 +21,8 @@ import { validate } from './config/env.validation';
     PrismaModule,
     // 인증 모듈
     AuthModule,
+    // 콘텐츠 타입 모듈
+    ContentTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
