@@ -251,6 +251,41 @@ YYYY.MM.DD HH:MM
             - ✅ 콘텐츠 타입 목록: GET /content-types
         - [수정 사항] CreateContentTypeDto에서 icon 필드를 options로 변경 (Prisma 스키마와 일치)
 
+    - API 문서화 및 아키텍처 문서 작성 (2026.01.23)
+        - Swagger 설정 완료
+            - @nestjs/swagger 패키지 설치
+            - main.ts에 Swagger 설정 추가
+                - DocumentBuilder로 API 문서 메타데이터 설정
+                - Bearer JWT 인증 설정 추가
+                - API 태그 정의 (Auth, Content Types)
+                - Swagger UI 경로: http://localhost:3000/api-docs
+            - persistAuthorization 옵션 활성화 (토큰 자동 저장)
+        - Auth API Swagger 데코레이터 추가
+            - RegisterDto, LoginDto에 @ApiProperty 추가
+            - AuthController에 @ApiTags, @ApiOperation, @ApiResponse 추가
+            - 각 API별 요청/응답 예시 및 설명 작성
+        - ContentType API Swagger 데코레이터 추가
+            - CreateContentTypeDto에 @ApiProperty 추가
+            - ContentTypeController에 @ApiTags, @ApiOperation, @ApiResponse 추가
+            - 모든 엔드포인트에 인증 설명 (@ApiBearerAuth)
+        - architecture.md 아키텍처 문서 작성 완료
+            - 시스템 개요 및 핵심 아키텍처 패턴 설명
+            - 기술 스택 상세 정리 (버전, 용도)
+            - 폴더 구조 및 모듈 설명
+            - 데이터베이스 설계 다이어그램 (ER 다이어그램)
+            - 인증 및 권한 시스템 플로우 차트
+            - API 구조 및 예시 (Auth, ContentType)
+            - 모듈 의존성 그래프
+            - 전역 설정 (Validation, Exception Filter, CORS)
+            - 보안 고려사항 (비밀번호, JWT, SQL Injection, XSS)
+            - 향후 개발 예정 기능 목록
+            - 개발 가이드 (새 모듈 추가 체크리스트, Swagger 작성법)
+        - 프론트엔드 개발자를 위한 문서화 완료
+            - Swagger UI로 모든 API를 브라우저에서 테스트 가능
+            - 요청/응답 형식, 예시 자동 생성
+            - JWT 인증 테스트 지원
+        - [중요] 앞으로 새 API 개발 시 반드시 Swagger 데코레이터 추가 필수
+
 ### 다음 작업 (백엔드 개발 6단계)
     - 6단계: 콘텐츠 모듈 구현
         - Content CRUD API
