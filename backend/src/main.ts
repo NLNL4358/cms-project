@@ -2,11 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
   // 전역 파이프 설정 (validation)
@@ -24,10 +25,16 @@ async function bootstrap() {
   // CORS 설정
   app.enableCors({
     origin: [
-      configService.get('cors.adminUrl'),
-      configService.get('cors.publicUrl'),
+      configService.get('cors.adminUrl') || 'http://localhost:5173',
+      configService.get('cors.publicUrl') || 'http://localhost:5174',
     ],
     credentials: true,
+  });
+
+  // Static file serving (업로드된 파일 접근)
+  const uploadPath = configService.get('upload.path') || './uploads';
+  app.useStaticAssets(uploadPath, {
+    prefix: '/uploads/',
   });
 
   // Swagger 설정
@@ -49,6 +56,8 @@ async function bootstrap() {
     .addTag('Auth', '인증 관련 API')
     .addTag('Content Types', '콘텐츠 타입 관리 API')
     .addTag('Contents', '콘텐츠 관리 API')
+    .addTag('Media', '미디어 파일 관리 API')
+    .addTag('Media Folders', '미디어 폴더 관리 API')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

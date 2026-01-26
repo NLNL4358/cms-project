@@ -341,6 +341,21 @@ YYYY.MM.DD HH:MM
             - 사용자 추적 (createdBy, updatedBy)
             - 페이지네이션 및 필터링 (status, contentTypeId, search)
         - [수정 사항] Prisma JsonValue 타입 이슈 해결 (as any 타입 캐스팅)
+    - 데이터베이스 시드 설정
+        - backend/prisma/seed.ts 작성 (역할 데이터 초기화)
+            - 4개의 기본 역할 생성 (슈퍼 관리자, 관리자, 편집자, 뷰어)
+            - 중복 방지 로직 (slug 기준 확인 후 생성)
+            - Prisma 7.x 호환 (PrismaPg adapter 사용)
+        - backend/package.json에 "db:seed" 스크립트 추가
+        - backend/check-db.js 업데이트
+            - PrismaPg adapter 적용
+            - 역할 확인 로직 추가
+        - [개념 정리] 시드 데이터 vs 테스트 데이터
+            - 시드 데이터: 선택적 초기 데이터 (역할, 기본 설정 등)
+            - 테스트 데이터: 개발/테스트용 데이터 (로컬에만 존재)
+            - Git에는 스키마 정의와 마이그레이션만 포함
+            - 새 설치 시 빈 테이블 생성 (blank canvas 원칙 유지)
+        - 실행 방법: `pnpm --filter backend db:seed`
 
 ### 다음 작업 (백엔드 개발 7단계)
     - 7단계: 미디어 모듈 구현
