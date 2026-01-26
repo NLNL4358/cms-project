@@ -48,6 +48,7 @@ async function bootstrap() {
     )
     .addTag('Auth', '인증 관련 API')
     .addTag('Content Types', '콘텐츠 타입 관리 API')
+    .addTag('Contents', '콘텐츠 관리 API')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

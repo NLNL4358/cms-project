@@ -286,9 +286,66 @@ YYYY.MM.DD HH:MM
             - JWT 인증 테스트 지원
         - [중요] 앞으로 새 API 개발 시 반드시 Swagger 데코레이터 추가 필수
 
-### 다음 작업 (백엔드 개발 6단계)
-    - 6단계: 콘텐츠 모듈 구현
-        - Content CRUD API
-        - 버전 관리 시스템
-        - 권한 기반 접근 제어
+    - 백엔드 개발 6단계 완료 (콘텐츠 모듈 구현) (2026.01.26)
+        - Content 모듈 구조 생성 완료
+            - src/content/dto/ (DTO)
+            - src/content/content.service.ts
+            - src/content/content.controller.ts
+            - src/content/content.module.ts
+        - DTO 작성 완료
+            - CreateContentDto: 콘텐츠 생성 검증
+                - contentTypeId, title, slug, data, status, scheduledAt 필드
+                - slug 정규식 검증 (/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+                - data는 ContentType의 fields 정의에 따라 동적 구성
+            - UpdateContentDto: PartialType 사용
+        - Content Service 작성 완료 (10개 메서드)
+            - create(): 콘텐츠 생성 (ContentType 존재 확인, slug 중복 확인, 초기 버전 히스토리 생성)
+            - findAll(): 전체 목록 조회 (필터링, 검색, 페이지네이션 지원)
+            - findOne(): 단일 조회 (ID 기준)
+            - findBySlug(): 단일 조회 (contentTypeId + slug)
+            - update(): 콘텐츠 수정 (slug 중복 확인, 버전 증가, 히스토리 저장)
+            - remove(): 콘텐츠 삭제 (소프트 삭제 - deletedAt)
+            - publish(): 콘텐츠 발행 (status → PUBLISHED, publishedAt 기록)
+            - unpublish(): 콘텐츠 미발행 (status → DRAFT)
+            - getVersions(): 버전 히스토리 조회
+            - restoreVersion(): 특정 버전으로 복원 (복원도 새 버전으로 기록)
+        - Content Controller 작성 완료 (10개 엔드포인트)
+            - POST /contents: 생성 (인증 필요)
+            - GET /contents: 목록 조회 (쿼리: contentTypeId, status, search, page, limit)
+            - GET /contents/:id: 단일 조회 (인증 필요)
+            - GET /contents/:contentTypeId/slug/:slug: slug로 조회 (인증 필요)
+            - PATCH /contents/:id: 수정 (인증 필요)
+            - DELETE /contents/:id: 삭제 (인증 필요)
+            - POST /contents/:id/publish: 발행 (인증 필요)
+            - POST /contents/:id/unpublish: 미발행 (인증 필요)
+            - GET /contents/:id/versions: 버전 히스토리 (인증 필요)
+            - POST /contents/:id/versions/:version/restore: 버전 복원 (인증 필요)
+        - ContentModule 작성 및 AppModule 통합 완료
+        - main.ts에 Swagger 태그 추가 (Contents)
+        - Swagger 데코레이터 추가 완료
+            - CreateContentDto에 @ApiProperty 추가
+            - ContentController에 @ApiTags, @ApiOperation, @ApiResponse, @ApiQuery 추가
+            - 모든 엔드포인트에 인증 설명 (@ApiBearerAuth)
+        - API 테스트 완료
+            - ✅ 콘텐츠 생성: POST /contents (초기 버전 1 자동 생성)
+            - ✅ 콘텐츠 목록: GET /contents (필터링, 페이지네이션 작동)
+            - ✅ 콘텐츠 수정: PATCH /contents/:id (버전 2 생성)
+            - ✅ 버전 히스토리: GET /contents/:id/versions (버전 1, 2 기록 확인)
+            - ✅ 콘텐츠 발행: POST /contents/:id/publish (status → PUBLISHED)
+            - ✅ 버전 복원: POST /contents/:id/versions/1/restore (버전 3 생성)
+        - 주요 기능 구현 완료
+            - 버전 관리 시스템 (create/update 시 자동 저장, 복원 시 새 버전 생성)
+            - 예약 발행 (scheduledAt 필드)
+            - 소프트 삭제 (deletedAt 필드)
+            - ContentType 관계 (외래키 제약)
+            - 사용자 추적 (createdBy, updatedBy)
+            - 페이지네이션 및 필터링 (status, contentTypeId, search)
+        - [수정 사항] Prisma JsonValue 타입 이슈 해결 (as any 타입 캐스팅)
+
+### 다음 작업 (백엔드 개발 7단계)
+    - 7단계: 미디어 모듈 구현
+        - Media CRUD API
+        - 파일 업로드/다운로드
+        - 폴더 구조 관리
+        - 썸네일 자동 생성
 
