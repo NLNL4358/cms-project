@@ -16,6 +16,7 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
@@ -71,6 +72,32 @@ export class AuthController {
   @ApiResponse({ status: 401, description: '인증 실패' })
   async logout(@CurrentUser('id') userId: string) {
     return this.authService.logout(userId);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '토큰 갱신',
+    description: 'Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '토큰 갱신 성공',
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: 'cm...',
+          email: 'user@example.com',
+          name: '홍길동',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '유효하지 않은 Refresh Token' })
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refresh(refreshTokenDto.refreshToken);
   }
 
   @Get('me')

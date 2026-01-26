@@ -34,10 +34,17 @@ export class ContentTypeService {
     });
   }
 
-  async findOne(id: string) {
-    const contentType = await this.prisma.contentType.findUnique({
-      where: { id },
-    });
+  async findOne(idOrSlug: string) {
+    // CUID 형식 확인 (c로 시작하고 25자 정도)
+    const isCuid = /^c[a-z0-9]{24,25}$/i.test(idOrSlug);
+
+    const contentType = isCuid
+      ? await this.prisma.contentType.findUnique({
+          where: { id: idOrSlug },
+        })
+      : await this.prisma.contentType.findUnique({
+          where: { slug: idOrSlug },
+        });
 
     if (!contentType) {
       throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
@@ -58,16 +65,16 @@ export class ContentTypeService {
     return contentType;
   }
 
-  async update(id: string, updateContentTypeDto: UpdateContentTypeDto) {
-    // 존재 여부 확인
-    await this.findOne(id);
+  async update(idOrSlug: string, updateContentTypeDto: UpdateContentTypeDto) {
+    // 존재 여부 확인 및 실제 ID 가져오기
+    const contentType = await this.findOne(idOrSlug);
 
     // slug 변경 시 중복 확인
     if (updateContentTypeDto.slug) {
       const existing = await this.prisma.contentType.findFirst({
         where: {
           slug: updateContentTypeDto.slug,
-          NOT: { id },
+          NOT: { id: contentType.id },
         },
       });
 
@@ -77,18 +84,18 @@ export class ContentTypeService {
     }
 
     return this.prisma.contentType.update({
-      where: { id },
+      where: { id: contentType.id },
       data: updateContentTypeDto,
     });
   }
 
-  async remove(id: string) {
-    // 존재 여부 확인
-    await this.findOne(id);
+  async remove(idOrSlug: string) {
+    // 존재 여부 확인 및 실제 ID 가져오기
+    const contentType = await this.findOne(idOrSlug);
 
     // 이 콘텐츠 타입을 사용하는 콘텐츠가 있는지 확인
     const contentsCount = await this.prisma.content.count({
-      where: { contentTypeId: id },
+      where: { contentTypeId: contentType.id },
     });
 
     if (contentsCount > 0) {
@@ -98,7 +105,7 @@ export class ContentTypeService {
     }
 
     await this.prisma.contentType.delete({
-      where: { id },
+      where: { id: contentType.id },
     });
 
     return { message: '콘텐츠 타입이 삭제되었습니다' };

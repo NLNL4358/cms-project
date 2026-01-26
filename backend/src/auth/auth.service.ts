@@ -100,6 +100,80 @@ export class AuthService {
     return { message: '로그아웃되었습니다' };
   }
 
+  async refresh(refreshTokenString: string) {
+    try {
+      // Refresh Token 검증
+      const payload = await this.jwtService.verifyAsync(refreshTokenString, {
+        secret: this.configService.get('jwt.refreshSecret'),
+      });
+
+      const userId = payload.sub;
+
+      // DB에서 저장된 Refresh Token 조회
+      const storedTokens = await this.prisma.refreshToken.findMany({
+        where: {
+          userId,
+          expiresAt: { gt: new Date() },
+        },
+      });
+
+      // 저장된 토큰 중 하나라도 일치하는지 확인
+      let isValidToken = false;
+      for (const storedToken of storedTokens) {
+        const isMatch = await bcrypt.compare(
+          refreshTokenString,
+          storedToken.token,
+        );
+        if (isMatch) {
+          isValidToken = true;
+          // 사용된 토큰 삭제 (Refresh Token Rotation)
+          await this.prisma.refreshToken.delete({
+            where: { id: storedToken.id },
+          });
+          break;
+        }
+      }
+
+      if (!isValidToken) {
+        throw new UnauthorizedException('유효하지 않은 Refresh Token입니다');
+      }
+
+      // 사용자 조회
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('사용자를 찾을 수 없습니다');
+      }
+
+      // 새로운 토큰 발급
+      const tokens = await this.generateTokens(user.id, user.email);
+
+      // 새로운 Refresh Token을 DB에 저장
+      const hashedRefreshToken = await bcrypt.hash(tokens.refreshToken, 10);
+      const refreshExpiresIn = this.configService.get<string>('jwt.refreshExpiresIn') || '7d';
+      await this.prisma.refreshToken.create({
+        data: {
+          token: hashedRefreshToken,
+          userId: user.id,
+          expiresAt: new Date(
+            Date.now() + this.parseExpiration(refreshExpiresIn),
+          ),
+        },
+      });
+
+      const { password: _, ...userWithoutPassword } = user;
+
+      return {
+        user: userWithoutPassword,
+        ...tokens,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('유효하지 않은 Refresh Token입니다');
+    }
+  }
+
   async generateTokens(userId: string, email: string) {
     const payload = { sub: userId, email };
 
