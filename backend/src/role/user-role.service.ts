@@ -52,6 +52,39 @@ export class UserRoleService {
       throw new ConflictException('이미 해당 역할에 대한 요청이 대기 중입니다');
     }
 
+    // 거절된 요청이 있으면 다시 요청 가능 (상태 초기화)
+    const existingRejectedRequest = await this.prisma.userRole.findFirst({
+      where: {
+        userId,
+        roleId,
+        status: 'REJECTED',
+      },
+    });
+
+    if (existingRejectedRequest) {
+      const userRole = await this.prisma.userRole.update({
+        where: { id: existingRejectedRequest.id },
+        data: {
+          status: 'PENDING',
+          rejectedAt: null,
+          rejectedBy: null,
+          requestedAt: new Date(),
+        },
+        include: {
+          role: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      return userRole;
+    }
+
     // 역할 요청 생성
     const userRole = await this.prisma.userRole.create({
       data: {
