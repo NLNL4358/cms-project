@@ -54,6 +54,8 @@ async function bootstrap() {
       'access-token',
     )
     .addTag('Auth', '인증 관련 API')
+    .addTag('Roles', '역할 관리 API')
+    .addTag('User Roles', '사용자 역할 요청 및 관리 API')
     .addTag('Content Types', '콘텐츠 타입 관리 API')
     .addTag('Contents', '콘텐츠 관리 API')
     .addTag('Media', '미디어 파일 관리 API')

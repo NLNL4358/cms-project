@@ -30,16 +30,19 @@ import { UpdateMediaDto } from './dto/update-media.dto';
 import { UploadMediaDto } from './dto/upload-media.dto';
 import { MediaFilterDto } from './dto/media-filter.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../role/guards/permissions.guard';
+import { Permissions } from '../role/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Media')
 @Controller('media')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @ApiBearerAuth('access-token')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
   @Post('upload')
+  @Permissions('media:create', 'media:*', '*')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: '단일 파일 업로드',
@@ -77,6 +80,7 @@ export class MediaController {
   })
   @ApiResponse({ status: 404, description: '폴더를 찾을 수 없음' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadSingle(
     @UploadedFile() file: Express.Multer.File,
@@ -97,6 +101,7 @@ export class MediaController {
   }
 
   @Post('upload/multiple')
+  @Permissions('media:create', 'media:*', '*')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: '다중 파일 업로드',
@@ -128,6 +133,7 @@ export class MediaController {
     description: '잘못된 파일 형식 또는 크기 초과',
   })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   @UseInterceptors(FilesInterceptor('files', 10)) // 최대 10개 파일
   async uploadMultiple(
     @UploadedFiles() files: Express.Multer.File[],
@@ -142,6 +148,7 @@ export class MediaController {
   }
 
   @Get()
+  @Permissions('media:read', 'media:*', '*')
   @ApiOperation({
     summary: '미디어 목록 조회',
     description: '미디어 파일 목록을 조회합니다 (필터링, 페이지네이션 지원)',
@@ -171,11 +178,13 @@ export class MediaController {
   })
   @ApiResponse({ status: 200, description: '조회 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   findAll(@Query() filters: MediaFilterDto) {
     return this.mediaService.findAll(filters);
   }
 
   @Get(':id')
+  @Permissions('media:read', 'media:*', '*')
   @ApiOperation({
     summary: '미디어 단일 조회',
     description: 'ID로 특정 미디어를 조회합니다',
@@ -183,11 +192,13 @@ export class MediaController {
   @ApiResponse({ status: 200, description: '조회 성공' })
   @ApiResponse({ status: 404, description: '미디어를 찾을 수 없음' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   findOne(@Param('id') id: string) {
     return this.mediaService.findOne(id);
   }
 
   @Patch(':id')
+  @Permissions('media:update', 'media:*', '*')
   @ApiOperation({
     summary: '미디어 메타데이터 수정',
     description: '미디어의 alt, caption, 폴더를 수정합니다',
@@ -198,11 +209,13 @@ export class MediaController {
     description: '미디어 또는 폴더를 찾을 수 없음',
   })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   update(@Param('id') id: string, @Body() updateMediaDto: UpdateMediaDto) {
     return this.mediaService.update(id, updateMediaDto);
   }
 
   @Delete(':id')
+  @Permissions('media:delete', 'media:*', '*')
   @ApiOperation({
     summary: '미디어 삭제 (소프트 삭제)',
     description: '미디어를 소프트 삭제합니다 (파일은 유지)',
@@ -210,11 +223,13 @@ export class MediaController {
   @ApiResponse({ status: 200, description: '삭제 성공' })
   @ApiResponse({ status: 404, description: '미디어를 찾을 수 없음' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   remove(@Param('id') id: string) {
     return this.mediaService.remove(id);
   }
 
   @Delete(':id/hard')
+  @Permissions('media:delete', 'media:*', '*')
   @ApiOperation({
     summary: '미디어 영구 삭제',
     description: '미디어를 DB와 디스크에서 완전히 삭제합니다',
@@ -222,6 +237,7 @@ export class MediaController {
   @ApiResponse({ status: 200, description: '삭제 성공' })
   @ApiResponse({ status: 404, description: '미디어를 찾을 수 없음' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '권한 없음' })
   hardDelete(@Param('id') id: string) {
     return this.mediaService.hardDelete(id);
   }

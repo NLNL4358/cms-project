@@ -9,6 +9,7 @@ import { ContentModule } from './content/content.module';
 import { MediaModule } from './media/media.module';
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { validate } from './config/env.validation';
     ContentModule,
     // 미디어 모듈
     MediaModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -5,11 +5,15 @@ import { MediaService } from './media.service';
 import { MediaController } from './media.controller';
 import { FolderService } from './folder.service';
 import { FolderController } from './folder.controller';
+import { PrismaModule } from '../prisma/prisma.module';
+import { RoleModule } from '../role/role.module';
 import { diskStorage } from 'multer';
 import { getStorageConfig } from './utils/storage.config';
 
 @Module({
   imports: [
+    PrismaModule,
+    RoleModule,
     // Multer 파일 업로드 설정
     MulterModule.registerAsync({
       imports: [ConfigModule],

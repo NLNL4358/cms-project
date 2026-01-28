@@ -24,7 +24,9 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  roles            UserRole[]
+  roles            UserRole[]      @relation("UserRoles")
+  approvedRoles    UserRole[]      @relation("RoleApprover")
+  rejectedRoles    UserRole[]      @relation("RoleRejecter")
   createdContents  Content[]       @relation("ContentCreator")
   updatedContents  Content[]       @relation("ContentUpdater")
   createdPages     Page[]          @relation("PageCreator")
@@ -58,15 +60,30 @@ model Role {
 }
 
 model UserRole {
-  id     String @id @default(cuid())
-  userId String
-  roleId String
+  id          String     @id @default(cuid())
+  userId      String
+  roleId      String
+  status      RoleStatus @default(PENDING)
+  requestedAt DateTime   @default(now())
+  approvedAt  DateTime?
+  approvedBy  String?
+  rejectedAt  DateTime?
+  rejectedBy  String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user     User  @relation("UserRoles", fields: [userId], references: [id], onDelete: Cascade)
+  role     Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  approver User? @relation("RoleApprover", fields: [approvedBy], references: [id])
+  rejecter User? @relation("RoleRejecter", fields: [rejectedBy], references: [id])
 
   @@unique([userId, roleId])
+  @@index([status])
   @@map("user_roles")
+}
+
+enum RoleStatus {
+  PENDING  // 승인 대기
+  ACTIVE   // 활성화됨
+  REJECTED // 거절됨
 }
 
 model RefreshToken {
