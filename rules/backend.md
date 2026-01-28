@@ -70,12 +70,93 @@
 
 ### 1.6 권한 검증 (NestJS Guard)
 
-```typescript
-// 권한 검증 순서
-1. JwtAuthGuard    → 토큰 유효성 검사
-2. RolesGuard      → 역할(Role) 확인
-3. PermissionGuard → 세부 권한 확인 (선택)
 ```
+권한 검증 순서
+1. JwtAuthGuard      → 토큰 유효성 검사 및 사용자 컨텍스트 주입
+2. PermissionsGuard  → 사용자의 역할 권한 확인 (OR 기반)
+```
+
+#### 권한 형식
+
+`resource:action` 패턴을 사용한다. 와일드카드 지원:
+
+| 형식 | 예시 | 의미 |
+|------|------|------|
+| `*` | `*` | 모든 리소스, 모든 액션 |
+| `resource:*` | `content:*` | 특정 리소스의 모든 액션 |
+| `resource:action` | `content:read` | 특정 리소스의 특정 액션 |
+
+#### 권한 확인 방식 (OR 기반)
+
+사용자가 가진 역할 중 **하나라도** 필요한 권한을 포함하면 접근 허용된다.
+
+```typescript
+// 예: @Permissions('role:create', '*')
+// → 사용자의 역할 중 role:create 또는 * 권한을 가진 역할이 있으면 통과
+```
+
+#### 기본 역할 및 권한
+
+| 역할 | 권한 |
+|------|------|
+| **super-admin** | `*` (모든 권한) |
+| **admin** | `content-type:*`, `content:*`, `media:*`, `user:read`, `role:read` |
+| **editor** | `content:read`, `content:create`, `content:update`, `content-type:read`, `media:read`, `media:create`, `media:update` |
+| **viewer** | `content:read`, `content-type:read`, `media:read` |
+
+#### 엔드포인트별 필요 권한
+
+| 영역 | 엔드포인트 | 필요 권한 |
+|------|-----------|-----------|
+| **Roles** | POST /roles | `role:create`, `*` |
+| | GET /roles | `role:read`, `role:*`, `*` |
+| | PATCH /roles/:id | `role:update`, `role:*`, `*` |
+| | DELETE /roles/:id | `role:delete`, `role:*`, `*` |
+| **User Roles** | POST /user-roles/request | 인증 사용자 전원 |
+| | GET /user-roles/requests/pending | `role:assign`, `*` |
+| | POST /user-roles/requests/:id/approve | `role:assign`, `*` |
+| | POST /user-roles/requests/:id/reject | `role:assign`, `*` |
+| | GET /user-roles/users/:id/roles | `user:read`, `*` |
+| | DELETE /user-roles/users/:id/roles/:roleId | `role:assign`, `*` |
+| **Content Types** | POST /content-types | `content-type:create`, `content-type:*`, `*` |
+| | GET /content-types | `content-type:read`, `content-type:*`, `*` |
+| | PATCH /content-types/:id | `content-type:update`, `content-type:*`, `*` |
+| | DELETE /content-types/:id | `content-type:delete`, `content-type:*`, `*` |
+| **Contents** | POST /contents | `content:create`, `content:*`, `*` |
+| | GET /contents | `content:read`, `content:*`, `*` |
+| | PATCH /contents/:id | `content:update`, `content:*`, `*` |
+| | DELETE /contents/:id | `content:delete`, `content:*`, `*` |
+| **Media** | POST /media/upload | `media:create`, `media:*`, `*` |
+| | GET /media | `media:read`, `media:*`, `*` |
+| | PATCH /media/:id | `media:update`, `media:*`, `*` |
+| | DELETE /media/:id | `media:delete`, `media:*`, `*` |
+| **Media Folders** | POST /media/folders | `media:create`, `media:*`, `*` |
+| | GET /media/folders | `media:read`, `media:*`, `*` |
+| | PATCH /media/folders/:id | `media:update`, `media:*`, `*` |
+| | DELETE /media/folders/:id | `media:delete`, `media:*`, `*` |
+
+#### 역할 요청 워크플로
+
+```
+사용자                          관리자(role:assign)
+  │                                  │
+  │  POST /user-roles/request        │
+  │  {"roleId": "..."}               │
+  │ ──────────────────────────►      │
+  │          PENDING                 │
+  │                                  │
+  │                    GET /requests/pending
+  │                                  │
+  │          POST /requests/:id/approve  │
+  │          └─ status → ACTIVE          │
+  │          POST /requests/:id/reject   │
+  │          └─ status → REJECTED        │
+  │                                  │
+```
+
+- REJECTED 상태의 역할은 다시 요청 가능 (기존 레코드를 PENDING으로 초기화)
+- ACTIVE 중인 역할은 중복 요청 불가 (409)
+- 대기 중인 요청이 있으면 중복 요청 불가 (409)
 
 ---
 
