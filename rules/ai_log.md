@@ -357,8 +357,99 @@ YYYY.MM.DD HH:MM
             - 새 설치 시 빈 테이블 생성 (blank canvas 원칙 유지)
         - 실행 방법: `pnpm --filter backend db:seed`
 
-### 다음 작업 (백엔드 개발 7단계)
-    - 7단계: 미디어 모듈 구현
+2026.01.29
+    - Admin Panel 프론트엔드 기본 아키텍처 구현 완료 (1단계)
+        - React 프로젝트 초기화
+            - JavaScript 사용 (TypeScript 미사용)
+            - Vite 7.x, React 19.2.x (최신 버전)
+            - React Compiler 설정 (babel-plugin-react-compiler)
+            - Tailwind CSS 미사용 결정
+        - Context Provider 패턴 구현 (Zustand 대신)
+            - APIProvider: Axios 인스턴스 + 인터셉터 (tokenRef 패턴)
+                - 모듈 레벨에서 axios 인스턴스 생성
+                - 요청 인터셉터: tokenRef에서 accessToken 읽어서 첨부
+                - 응답 인터셉터: 401 시 자동 토큰 갱신 후 재시도
+                - useAPI() 훅으로 axios 인스턴스 제공
+            - UserProvider: 인증 상태 관리 (useState + localStorage)
+                - accessToken: 메모리만 유지 (보안)
+                - refreshToken, user: localStorage 저장 (새로고침 시 복원)
+                - login, logout, refresh 함수 제공
+                - tokenRef.current 업데이트 (APIProvider와 연동)
+                - useAPI() 사용하여 APIProvider의 axios 인스턴스로 요청
+            - GlobalProvider: 전역 서버 데이터 캐싱 (TanStack Query)
+                - contentTypes 목록 캐싱
+                - enabled: !!user (로그인 시에만 fetch)
+                - useAPI() + useUser() 사용
+        - tokenRef 패턴으로 순환 의존성 해결
+            - 문제: UserProvider는 APIProvider의 axios 필요, APIProvider 인터셉터는 UserProvider의 토큰 필요
+            - 해결: 모듈 레벨 ref (tokenRef)로 두 Provider 간 브릿지
+            - APIProvider는 tokenRef에서 토큰 읽기
+            - UserProvider는 tokenRef 업데이트
+        - Provider 중첩 구조 구현
+            - QueryClientProvider > BrowserRouter > APIProvider > UserProvider > GlobalProvider
+            - 의존성 순서에 따른 중첩 (하위 Provider가 상위 Provider 사용)
+        - TanStack Query 클라이언트 설정
+            - staleTime: 5분, gcTime: 30분
+            - retry: 1, refetchOnWindowFocus: false
+            - 상세 주석 추가 (각 옵션 의미 설명)
+        - 패키지 설치 완료
+            - react-router-dom, @tanstack/react-query, axios
+            - react-hook-form, zod, lucide-react, sonner
+            - babel-plugin-react-compiler (React Compiler)
+        - [중요] 모든 API 요청은 APIProvider를 통해서만 수행
+            - 컴포넌트/훅에서 useAPI() 사용
+            - 정적 import로 axios 가져오기 금지
+        - [중요] useMemo, useCallback, React.memo 사용 금지
+            - React Compiler가 자동 최적화 수행
+            - 일반적인 방식으로 컴포넌트 작성
+    - frontend.md 문서 대폭 업데이트
+        - 핵심 아키텍처 결정사항 섹션 추가 (최상단)
+            - React Compiler 사용 (수동 메모이제이션 금지)
+            - Context Provider 패턴 (Zustand 사용 안 함)
+            - tokenRef 패턴 (순환 의존성 해결)
+            - 모든 API 요청은 APIProvider 경유
+            - JavaScript 사용 (TypeScript 아님)
+            - Tailwind CSS 사용 안 함
+        - Section 1 (기술 스택) 업데이트
+            - Tailwind CSS, shadcn/ui 제거
+        - Section 2 (프로젝트 구조) 업데이트
+            - shared 폴더 현재 사용 안 함 명시
+            - main.jsx Provider 중첩 구조 상세 설명 추가
+            - 각 Provider의 의존성 관계 문서화
+        - Section 3 (상태 관리) 전면 재작성
+            - Zustand 관련 내용 제거
+            - Provider 중첩 구조 및 순서 이유 설명
+            - UserContext 전체 구현 코드 추가
+            - GlobalContext 구현 코드 추가
+            - localStorage persistence 전략 설명
+        - Section 4 (API 통신) 전면 재작성
+            - tokenRef 패턴 상세 설명 추가
+            - 순환 의존성 문제 및 해결 방법 문서화
+            - API 함수 사용 패턴 2가지 방법 제시
+            - useAPI() 훅 사용 패턴 강조
+        - Section 5 (인증 처리) 전면 재작성
+            - Zustand 기반 코드 제거
+            - UserContext 기반 인증 처리 설명
+            - 자동 토큰 갱신 흐름 문서화
+            - AuthGuard, LoginPage, 로그아웃 예시 코드 추가
+        - Section 11 (성능 최적화) 강화
+            - React Compiler 사용 시 주의사항 강조
+            - 잘못된 방식(수동 메모이제이션) vs 올바른 방식 비교
+            - Context Provider value 메모이제이션 불필요 명시
+        - 실제 구현된 코드와 문서 완전 일치 달성
+
+### 다음 작업 (프론트엔드 개발 2단계)
+    - 2단계: 로그인 페이지 및 라우팅 구현
+        - AuthGuard 컴포넌트 작성
+        - 로그인 페이지 UI 및 폼 구현 (React Hook Form + Zod)
+        - 라우터 설정 (공개 라우트 + 보호 라우트)
+        - App.jsx 라우팅 구조 구현
+    - 3단계: 레이아웃 및 대시보드
+        - AdminLayout (Sidebar + Header + 메인 영역)
+        - Sidebar 메뉴 구조 (동적 콘텐츠 타입 포함)
+        - Header (사용자 정보, 로그아웃)
+        - 대시보드 기본 페이지
+    - 백엔드 개발 7단계: 미디어 모듈 구현
         - Media CRUD API
         - 파일 업로드/다운로드
         - 폴더 구조 관리
