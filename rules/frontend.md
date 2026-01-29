@@ -117,7 +117,7 @@ frontend/
 ```
 admin/
 ├── src/
-│   ├── App.jsx                 # 루트 컴포넌트
+│   ├── App.jsx                 # 루트 컴포넌트 (라우팅 설정)
 │   ├── main.jsx                # 앱 진입점 (Provider 중첩: Query > Router > API > User > Global)
 │   │
 │   ├── lib/                    # 유틸리티 모듈
@@ -130,29 +130,77 @@ admin/
 │   │
 │   ├── hooks/                  # 커스텀 훅 (TanStack Query 래퍼)
 │   │
-│   ├── pages/                  # 페이지 컴포넌트
-│   │   ├── login/
-│   │   ├── dashboard/
-│   │   ├── content-type/
-│   │   ├── content/
-│   │   ├── media/
-│   │   └── role/
+│   ├── Pages/                  # 페이지 컴포넌트
+│   │   ├── System/             # 시스템 필수 페이지
+│   │   │   └── Login.jsx       # 로그인 페이지
+│   │   ├── Dashboard/          # 대시보드 (예정)
+│   │   ├── ContentType/        # 콘텐츠 타입 관리 (예정)
+│   │   ├── Content/            # 콘텐츠 관리 (예정)
+│   │   ├── Media/              # 미디어 관리 (예정)
+│   │   └── Role/               # 역할/권한 관리 (예정)
 │   │
-│   ├── features/               # 기능별 모듈
-│   │   ├── auth/               # AuthGuard
-│   │   ├── content-type/       # 콘텐츠 타입 CRUD
-│   │   ├── content/            # 콘텐츠 동적 폼
-│   │   ├── media/              # 미디어 관리
-│   │   └── role/               # 역할/권한 관리
+│   ├── Components/             # 공통 컴포넌트
+│   │   ├── features/           # 기능 컴포넌트
+│   │   │   └── AuthGuard.jsx   # 인증 가드 (라우트 보호)
+│   │   ├── layout/             # 레이아웃 컴포넌트 (예정)
+│   │   ├── ui/                 # UI 기본 컴포넌트 (Input, Select 등, 예정)
+│   │   └── common/             # 공통 컴포넌트 (예정)
 │   │
-│   └── components/             # 공통 컴포넌트
-│       ├── layout/             # AdminLayout, Sidebar, Header
-│       └── common/             # DataTable, Pagination, ConfirmDialog
+│   ├── Assets/                 # 정적 리소스
+│   │   ├── images/             # 이미지 파일
+│   │   └── icons/              # 아이콘 파일
+│   │
+│   └── CSS/                    # 스타일시트
+│       └── reset.css           # CSS 리셋
 │
 ├── index.html
-├── vite.config.js
+├── vite.config.js              # Vite 설정 (alias 포함)
 └── package.json
 ```
+
+### Vite 절대경로 설정
+
+상대경로 대신 절대경로를 사용하여 import 경로를 간결하게 유지합니다.
+
+**vite.config.js:**
+
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [
+    react({
+      babel: {
+        plugins: ['react-compiler'],
+      },
+    }),
+  ],
+  resolve: {
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, 'src') },
+      { find: '@pages', replacement: path.resolve(__dirname, 'src/Pages') },
+    ],
+  },
+})
+```
+
+**사용 예시:**
+
+```javascript
+// ❌ 상대경로 (사용하지 않음)
+import { AuthGuard } from '../../Components/features/AuthGuard.jsx';
+import Login from '../../Pages/System/Login.jsx';
+
+// ✅ 절대경로 (권장)
+import { AuthGuard } from '@/Components/features/AuthGuard.jsx';
+import Login from '@pages/System/Login.jsx';
+```
+
+**Alias 규칙:**
+- `@/` → `src/` (모든 src 하위 경로)
+- `@pages/` → `src/Pages/` (Pages 폴더 전용)
 
 ### main.jsx 구현 (Provider 중첩)
 
@@ -619,10 +667,12 @@ APIProvider의 응답 인터셉터가 401 에러 시 자동으로 토큰 갱신 
 
 ### 인증 가드
 
+**실제 구현된 코드:**
+
 ```javascript
-// src/features/auth/AuthGuard.jsx
-import { Navigate, useLocation } from "react-router-dom";
-import { useUser } from "../../Providers/UserContext";
+// src/Components/features/AuthGuard.jsx
+import { Navigate, useLocation } from 'react-router-dom';
+import { useUser } from '@/Providers/UserContext.jsx';
 
 export function AuthGuard({ children }) {
   const { user } = useUser();
@@ -630,13 +680,18 @@ export function AuthGuard({ children }) {
 
   if (!user) {
     // 로그인하지 않은 경우 /login으로 리다이렉트
-    // 리다이렉트 전 경로를 state로 전달 (로그인 후 복귀용)
+    // 리다이렉트 전 경로를 state로 전달 (로그인 후 원래 페이지로 복귀)
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
 }
 ```
+
+**핵심 포인트:**
+- `useUser()`로 로그인 상태 확인
+- 비로그인 시 `/login`으로 리다이렉트
+- 현재 경로를 `state`로 전달하여 로그인 후 복귀 가능
 
 ### 로그인 페이지 예시
 
@@ -701,73 +756,66 @@ export function Header() {
 
 ## 6. 라우팅
 
-### 라우터 설정
+### 라우터 설정 (실제 구현)
 
-```typescript
-// src/app/router.tsx
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { AuthGuard } from '@/components/auth/AuthGuard';
-import { AdminLayout } from '@/components/layout/AdminLayout';
+**App.jsx:**
 
-// 레이지 로딩
-const Dashboard = lazy(() => import('@/pages/dashboard/DashboardPage'));
-const ContentList = lazy(() => import('@/pages/content/ContentListPage'));
-const ContentEdit = lazy(() => import('@/pages/content/ContentEditPage'));
+```javascript
+// src/App.jsx
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AuthGuard } from "@/Components/features/AuthGuard.jsx";
+import Login from "@pages/System/Login.jsx";
 
-const router = createBrowserRouter([
-  // 인증 불필요
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
+function App() {
+  return (
+    <Routes>
+      {/* 공개 라우트 */}
+      <Route path="/login" element={<Login />} />
 
-  // Admin Panel (인증 필요)
-  {
-    path: '/',
-    element: (
-      <AuthGuard>
-        <AdminLayout />
-      </AuthGuard>
-    ),
-    children: [
-      {
-        index: true,
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Dashboard />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'content/:contentType',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ContentList />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'content/:contentType/:id',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ContentEdit />
-          </Suspense>
-        ),
-      },
-      // ... 기타 라우트
-    ],
-  },
+      {/* 보호된 라우트 - 로그인 필요 */}
+      <Route
+        path="/"
+        element={
+          <AuthGuard>
+            <div className="inner">대시보드 (로그인 성공!)</div>
+          </AuthGuard>
+        }
+      />
 
-  // 404
-  {
-    path: '*',
-    element: <NotFoundPage />,
-  },
-]);
-
-export function AppRouter() {
-  return <RouterProvider router={router} />;
+      {/* 기본 리다이렉트 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
+
+export default App;
+```
+
+**라우팅 구조:**
+1. **공개 라우트**: `/login` - 로그인 페이지 (누구나 접근 가능)
+2. **보호된 라우트**: `/` - AuthGuard로 보호 (로그인 필수)
+3. **Catch-all**: `*` - 기타 모든 경로는 `/`로 리다이렉트
+
+**AuthGuard 동작 방식:**
+- `useUser()` 훅으로 로그인 상태 확인
+- 비로그인 시 `/login`으로 자동 리다이렉트
+- 로그인 시 자식 컴포넌트 렌더링
+
+**향후 확장 예정:**
+```javascript
+<Routes>
+  <Route path="/login" element={<Login />} />
+
+  <Route element={<AuthGuard><AdminLayout /></AuthGuard>}>
+    <Route path="/" element={<Dashboard />} />
+    <Route path="/content-types" element={<ContentTypeList />} />
+    <Route path="/contents/:type" element={<ContentList />} />
+    <Route path="/media" element={<MediaManager />} />
+    <Route path="/roles" element={<RoleManager />} />
+  </Route>
+
+  <Route path="*" element={<NotFoundPage />} />
+</Routes>
 ```
 
 ### URL 상태 관리
