@@ -2,3 +2,420 @@
 *   @description
 *   reset.css는 프로젝트의 글꼴, primary color 등의 전역 CSS를 담당합니다
 */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Noto+Sans+KR:wght@100..900&display=swap');
+/* Noto Sans KR */
+
+* {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+    text-decoration: none;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-sizing: border-box;
+
+    font-weight: normal;
+    /* pointer-events: auto; */
+    white-space: nowrap;
+
+    /* 중요! print시 배경색을 브라우저가 빼버리는데 아래의 CSS가 있다면 적용시켜줄 수 있다. */
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+}
+
+a,
+abbr,
+acronym,
+address,
+applet,
+b,
+big,
+blockquote,
+button,
+caption,
+center,
+cite,
+code,
+dd,
+del,
+dfn,
+div,
+dl,
+dt,
+em,
+fieldset,
+font,
+footer,
+form,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+header,
+i,
+iframe,
+img,
+ins,
+kbd,
+label,
+legend,
+li,
+nav,
+object,
+ol,
+p,
+pre,
+q,
+s,
+samp,
+section,
+small,
+span,
+strike,
+strong,
+sub,
+sup,
+table,
+tbody,
+td,
+tfoot,
+th,
+thead,
+title,
+tr,
+tt,
+u,
+ul,
+var {
+    background: transparent;
+    border: 0px;
+    margin: 0px;
+    outline: 0px;
+    padding: 0px;
+    vertical-align: baseline;
+}
+
+/* 라이트 모드 컬러 */
+.sl-theme-light {
+}
+
+/* 다크 모드 컬러 */
+.sl-theme-dark {
+}
+
+/* 실제 적용되는 부분 */
+body {
+    background-color: var(--background-white-color);
+    color: var(--text-basic-color);
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+html {
+    font-size: 16px;
+    /* 기본 폰트 크기 설정 */
+    scroll-behavior: smooth;
+    /* 스크롤 부드럽게 */
+}
+
+:root {
+    /* padding */
+    --padding-size-60: clamp(1rem, calc((100vw - 1800px) / 2), 60px);
+    --padding-size-190: clamp(1rem, calc((100vw - 1540px) / 2), 190px);
+
+    --inner-min-width: 400px;
+
+    /* size - html 기본값 15px 기준*/
+    --h1-size: 3.375rem;
+    /* 54px; */
+    --h2-size: 3rem;
+    /* 48px */
+    --h3-size: 1.75rem;
+    /* 28px */
+    --h4-size: 1.5rem;
+    /* 24px */
+    --h5-size: 1.25rem;
+    /* 20px */
+    --h6-size: 1.125rem;
+    /* 18px */
+    --p-size: 1.125rem;
+    /* 18px */
+    --strong-size: 1.125rem;
+    /* 18px */
+    --span-size: 1rem;
+    /* 16px */
+    --small-size: 0.9375rem;
+    /* 15px */
+    --label-size: 0.875rem;
+    /* 14px */
+
+    /* font-color */
+    --text-basic-color: #1a1a1a;
+    --text-sub1-color: #4d4d4d;
+    --text-sub2-color: #777777;
+    --text-disabled-color: #b3b3b3;
+    --text-inverse-color: #ffffff;
+
+    /* border color */
+    --border-black-color: #4d4d4d;
+    --border-black-80-color: #2e2e2e;
+    --border-dark-color: #b3b3b3;
+    --border-sub-color: #d0d0d0;
+    --border-basic-color: #e5e5e5;
+
+    /* icon color */
+    --icon-basic-color: #1a1a1a;
+    --icon-sub1-color: #4d4d4d;
+    --icon-sub2-color: #777777;
+    --icon-disabled-color: #b3b3b3;
+    --icon-white-color: #ffffff;
+
+    /* background color */
+    --background-gray90-color: #1a1a1a;
+    --background-gray20-color: #e5e5e5;
+    --background-gray10-color: #f5f5f5;
+    --background-white-color: #ffffff;
+    --background-primary-10-color: #dae6f5;
+    --background-primary-5-color: #ecf2fa;
+
+    /* primary color */
+    --primary-base-color: #256ef4;
+    --primary-text-color: #0b50d0;
+    --primary-surface-color: #ecf2fe;
+
+    /* secondary color */
+
+    /* button color */
+    --button-primary-color: #0086cd;
+    --button-secondary-color: #1a1a1a;
+    --button-tertiary-color: #e5e5e5;
+    --button-primary-hover-color: #186aa0;
+    --button-outline-hover-color: #ecf2fa;
+    --button-secondary-hover-color: #2e2e2e;
+    --button-tertiary-hover-color: #d0d0d0;
+    --button-disabled-color: #f5f5f5;
+    --button-primary-outline-color: #0086cd;
+    --button-secondary-outline-color: #2e2e2e;
+    --button-secondary-outline-hover-color: #f5f5f5;
+    --button-tertiary-outline-color: #e5e5e5;
+    --button-tertiary-outline-hover-color: #f5f5f5;
+
+    /* other color */
+    --gray-30-color: #d0d0d0;
+    --gray-60-color: #616161;
+    --gray-80-color: #2e2e2e;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+p,
+span,
+small,
+div {
+    color: var(--text-basic-color);
+}
+
+h1 {
+    font-size: var(--h1-size);
+    line-height: 4.375rem;
+    font-weight: bold;
+    letter-spacing: -0.02rem;
+}
+
+h2 {
+    font-size: var(--h2-size);
+    line-height: 3.875rem;
+    font-weight: bold;
+    letter-spacing: -0.02rem;
+}
+
+h3 {
+    font-size: var(--h3-size);
+    line-height: 2.5rem;
+    font-weight: bold;
+    letter-spacing: -0.01rem;
+}
+
+h4 {
+    font-size: var(--h4-size);
+    line-height: 2.125rem;
+    font-weight: 500;
+    letter-spacing: -0.01rem;
+}
+
+h5 {
+    font-size: var(--h5-size);
+    line-height: 1.875rem;
+    font-weight: 500;
+    letter-spacing: -0.01rem;
+}
+
+h6 {
+    font-size: var(--h6-size);
+    line-height: 1.75rem;
+    font-weight: 500;
+    letter-spacing: -0.01rem;
+}
+
+p {
+    font-size: var(--p-size);
+    line-height: 1.875rem;
+    font-weight: 400;
+}
+
+span {
+    font-size: var(--span-size);
+    line-height: 1.75rem;
+    font-weight: 400;
+}
+
+body {
+    font-size: var(--span-size);
+    line-height: 1.75rem;
+    font-weight: 400;
+}
+
+small {
+    font-size: var(--small-size);
+    line-height: 1.5rem;
+    font-weight: 400;
+}
+
+strong {
+    font-size: var(--strong-size);
+    line-height: 1.875rem;
+    font-weight: bold;
+}
+
+a {
+    font-size: var(--p-size);
+    line-height: 1.75rem;
+    font-weight: 500;
+}
+
+label {
+    font-size: var(--label-size);
+    line-height: 1.25rem;
+    font-weight: 500;
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* mobile */
+@media screen and (max-width: 768px) {
+    :root {
+        --h1-size: 2.25rem;
+        /* 36px */
+        --h2-size: 2rem;
+        /* 32px */
+        --h3-size: 1.375rem;
+        /* 24px */
+        --h4-size: 1.25rem;
+        /* 20px */
+        --h5-size: 1.125rem;
+        /* 18px */
+        --h6-size: 1rem;
+        /* 16px */
+        --p-size: 1rem;
+        /* 16px */
+        --strong-size: 1rem;
+        /* 16px */
+        --span-size: 1rem;
+        /* 16px */
+        --small-size: 0.9375rem;
+        /* 15px */
+        --label-size: 0.875rem;
+        /* 14px */
+
+        /* header */
+        --header-height: 64px;
+    }
+
+    h1 {
+        line-height: 3.25rem;
+        letter-spacing: -0.01rem;
+    }
+
+    h2 {
+        line-height: 2.75rem;
+        letter-spacing: -0.01rem;
+    }
+
+    h3 {
+        line-height: 1.875rem;
+        letter-spacing: -0.01rem;
+    }
+
+    h4 {
+        line-height: 1.75rem;
+        letter-spacing: 0rem;
+    }
+
+    h5 {
+        line-height: 1.75rem;
+        letter-spacing: 0rem;
+    }
+
+    h6 {
+        line-height: 1.625rem;
+        letter-spacing: 0rem;
+    }
+
+    p {
+        line-height: 1.75rem;
+    }
+
+    span {
+        line-height: 1.625rem;
+    }
+
+    body {
+        line-height: 1.625rem;
+    }
+
+    small {
+        line-height: 1.625rem;
+    }
+
+    strong {
+        line-height: 1.75rem;
+    }
+
+    a {
+        line-height: 1.5rem;
+    }
+
+    label {
+        line-height: 1.25rem;
+    }
+}
+
+/* 스크롤바 */
+div::-webkit-scrollbar {
+    /* width: 10px; */
+    /* height: 10px; */
+}
+
+div::-webkit-scrollbar-thumb {
+    /* width: 10px; */
+    /* border-radius: 20px; */
+    /* background-color: var(--highlight-blue); */
+}
+
+div::-webkit-scrollbar-track-piece {
+    /* background-color: transparent; */
+    /* border: 10px; */
+}

@@ -70,7 +70,7 @@ export function UserProvider({ children }) {
   // tokenRef 동기화 — APIProvider의 인터셉터가 참조
   useEffect(() => {
     tokenRef.current = { accessToken, refresh, logout };
-  }, [accessToken]);
+  }, [accessToken, refresh, logout]);
 
   return (
     <UserContext.Provider value={{ user, accessToken, login, logout, refresh }}>

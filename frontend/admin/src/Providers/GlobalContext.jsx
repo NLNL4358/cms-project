@@ -12,12 +12,12 @@ const GlobalContext = createContext();
 
 export function GlobalProvider({ children }) {
   const api = useAPI();
-  const { user } = useUser();
+  const { user, accessToken } = useUser();
 
   const { data: contentTypes = [] } = useQuery({
     queryKey: ["content-types"],
     queryFn: () => api.get("/content-types").then((r) => r.data),
-    enabled: !!user, // 로그인된 사용자가 있을 때만 실행
+    enabled: !!user && !!accessToken, // 로그인된 사용자 AND accessToken이 있을 때만 실행
   });
 
   return (
