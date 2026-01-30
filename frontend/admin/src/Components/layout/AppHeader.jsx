@@ -1,29 +1,19 @@
 /**
  * @description
  * 관리자 헤더 컴포넌트
- * 사이드바 토글 버튼, 브레드크럼, 사용자 드롭다운을 포함합니다.
+ * 브레드크럼과 사용자 드롭다운을 포함합니다.
  */
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useUser } from '@/Providers/UserContext.jsx';
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
-import { SidebarTrigger } from '@/Components/ui/sidebar.jsx';
-import { Separator } from '@/Components/ui/separator.jsx';
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from '@/Components/ui/breadcrumb.jsx';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu.jsx';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, ChevronRight, Menu } from 'lucide-react';
 
 /** 경로 → 브레드크럼 라벨 매핑 */
 const pathLabels = {
@@ -35,7 +25,7 @@ const pathLabels = {
 
 function AppHeader() {
     const { user, logout } = useUser();
-    const { contentTypes } = useGlobal();
+    const { contentTypes, isMobile, setSidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -76,51 +66,41 @@ function AppHeader() {
     const breadcrumbs = buildBreadcrumbs();
 
     return (
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 !h-4" />
-
+        <header className="adminHeader">
             {/* 브레드크럼 */}
-            <Breadcrumb className="flex-1">
-                <BreadcrumbList>
-                    {breadcrumbs.map((crumb, i) => (
-                        <span key={i} className="contents">
-                            {i > 0 && <BreadcrumbSeparator />}
-                            <BreadcrumbItem>
-                                {crumb.path ? (
-                                    <BreadcrumbLink
-                                        href={crumb.path}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            navigate(crumb.path);
-                                        }}
-                                    >
-                                        {crumb.label}
-                                    </BreadcrumbLink>
-                                ) : (
-                                    <BreadcrumbPage>
-                                        {crumb.label}
-                                    </BreadcrumbPage>
-                                )}
-                            </BreadcrumbItem>
-                        </span>
-                    ))}
-                </BreadcrumbList>
-            </Breadcrumb>
+            <div className="breadcrumb">
+                {breadcrumbs.map((crumb, i) => (
+                    <span key={i} className="breadcrumbSegment">
+                        {i > 0 && <ChevronRight className="breadcrumbSep" />}
+                        {crumb.path ? (
+                            <a
+                                href={crumb.path}
+                                className="breadcrumbLink"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    navigate(crumb.path);
+                                }}
+                            >
+                                {crumb.label}
+                            </a>
+                        ) : (
+                            <span className="breadcrumbCurrent">
+                                {crumb.label}
+                            </span>
+                        )}
+                    </span>
+                ))}
+            </div>
 
-            {/* 사용자 드롭다운 */}
-            <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 rounded-md px-2 py-1 text-sm hover:bg-accent">
-                    <User className="h-4 w-4" />
-                    <span>{user?.name || user?.email}</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        로그아웃
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {/* 모바일: 햄버거 메뉴 버튼 */}
+            {isMobile && (
+                <button
+                    className="hamburgerBtn"
+                    onClick={() => setSidebarOpen((v) => !v)}
+                >
+                    <Menu className="hamburgerIcon" />
+                </button>
+            )}
         </header>
     );
 }

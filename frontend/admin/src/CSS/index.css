@@ -100,3 +100,321 @@
 .loginCard {
     padding: 20px;
 }
+
+/* ===== Admin Layout ===== */
+.adminLayout {
+    display: flex;
+    flex-direction: column;
+}
+
+.adminMain {
+    flex: 1;
+    display: flex;
+}
+.adminMain.mobile {
+    flex-direction: row-reverse;
+}
+
+.adminContent {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+    background-color: var(--background-gray10-color);
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+    width: 240px;
+    min-width: 240px;
+    height: 100%;
+    min-height: calc(100vh - var(--header-height));
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-gray90-color);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    color: var(--text-inverse-color);
+    z-index: +1;
+    transition: 0.2s;
+}
+.mobile .sidebar {
+    position: fixed;
+    right: 0px;
+    top: var(--header-height);
+    width: 0px;
+    max-width: 0px;
+    min-width: 0px;
+    max-height: calc(100vh - var(--header-height));
+    overflow: auto;
+    opacity: 0;
+}
+.mobile .sidebar.true {
+    max-width: 100vw;
+    width: 100vw;
+    opacity: 1;
+}
+
+.sidebar * {
+    color: white;
+}
+
+.sidebarLogo {
+    font-size: var(--h5-size);
+    font-weight: 700;
+    color: var(--text-inverse-color);
+}
+
+.sidebarMenu {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.menuList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--small-size);
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+    width: 100%;
+}
+
+.menuItem:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-inverse-color);
+}
+
+.menuItem.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-inverse-color);
+    font-weight: 500;
+}
+
+.menuIcon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.menuDivider {
+    height: 1px;
+    margin: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menuGroup {
+    padding: 0 8px;
+}
+
+.menuGroupTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--small-size);
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+}
+
+.menuGroupTitle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-inverse-color);
+}
+
+.menuChevron {
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    transition: transform 0.2s;
+}
+
+.menuChevron.open {
+    transform: rotate(180deg);
+}
+
+.menuSubList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0 4px 16px;
+}
+
+.menuSubItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: var(--label-size);
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+}
+
+.menuSubItem:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-inverse-color);
+}
+
+.menuSubItem.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-inverse-color);
+    font-weight: 500;
+}
+
+.sidebarFooter {
+    padding: 12px 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Admin Header ===== */
+.adminHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 0 24px;
+    background-color: var(--background-white-color);
+    border-bottom: 1px solid var(--border-basic-color);
+    z-index: 100;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.breadcrumbSegment {
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumbSep {
+    width: 16px;
+    height: 16px;
+    margin: 0 4px;
+    color: var(--text-disabled-color);
+}
+
+.breadcrumbLink {
+    font-size: var(--small-size);
+    color: var(--text-sub2-color);
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.breadcrumbLink:hover {
+    color: var(--primary-text-color);
+}
+
+.breadcrumbCurrent {
+    font-size: var(--small-size);
+    font-weight: 600;
+    color: var(--text-basic-color);
+}
+
+.headerUser {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    font-size: var(--small-size);
+    color: var(--text-sub1-color);
+}
+
+.headerUser:hover {
+    background-color: var(--background-gray10-color);
+}
+
+.headerUserIcon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Radix 드롭다운 포퍼 z-index */
+[data-radix-popper-content-wrapper] {
+    z-index: +100 !important;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    border-radius: 1rem;
+    box-shadow:
+        2px 3px 5px rgba(0, 0, 0, 0.24),
+        1px 1px 5px rgba(0, 0, 0, 0.1) inset;
+    transition: box-shadow 0.2s;
+}
+[data-radix-popper-content-wrapper] * {
+    box-shadow: none !important;
+}
+
+/* ===== 모바일 드로어 (오른쪽 슬라이드) ===== */
+.drawerOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background-color: rgba(0, 0, 0, 0);
+    pointer-events: none;
+    transition: background-color 0.3s;
+}
+
+.drawerOverlay.open {
+    background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+}
+
+.drawerPanel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawerPanel.open {
+    transform: translateX(0);
+}
+
+.drawerPanel .sidebar {
+    height: 100vh;
+    min-height: 100vh;
+}
+
+/* ===== 햄버거 버튼 ===== */
+.hamburgerBtn {
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.15s;
+}
+
+.hamburgerBtn:hover {
+    background-color: var(--background-gray10-color);
+}
+
+.hamburgerIcon {
+    width: 24px;
+    height: 24px;
+    color: var(--text-basic-color);
+}
