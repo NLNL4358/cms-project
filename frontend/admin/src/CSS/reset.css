@@ -128,7 +128,7 @@ html {
     --padding-size-60: clamp(1rem, calc((100vw - 1800px) / 2), 60px);
     --padding-size-190: clamp(1rem, calc((100vw - 1540px) / 2), 190px);
 
-    --inner-min-width: 400px;
+    --inner-min-width: 500px;
 
     /* size - html 기본값 15px 기준*/
     --h1-size: 3.375rem;

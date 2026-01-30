@@ -60,17 +60,14 @@ export function PopupProvider({ children }) {
                 className={`popupOuter ${popupSwitch || progressPopupSwitch ? 'true' : ''}`}
             >
                 <div className="relativeInner">
-                    {progressPopupSwitch && (
-                        <div className="progressInner">
-                            <img
-                                className="progress"
-                                src={progressImg}
-                                alt=""
-                            />
-                        </div>
-                    )}
-
-                    <div className="popupInner">{popupContext}</div>
+                    <div
+                        className={`progressInner ${progressPopupSwitch ? 'true' : ''}`}
+                    >
+                        <img className="progress" src={progressImg} alt="" />
+                    </div>
+                    <div className={`popupInner ${popupSwitch ? 'true' : ''}`}>
+                        {popupContext}
+                    </div>
                 </div>
             </div>
         </PopupContext.Provider>
