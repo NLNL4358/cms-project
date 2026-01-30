@@ -14,6 +14,7 @@
 ### 2. Context Provider 패턴 (Zustand 사용 안 함)
 - **상태 관리:** Context API + useState + localStorage
 - **Provider 구조:**
+  - `PopupProvider`: 팝업/로딩 스피너 전역 상태 관리
   - `APIProvider`: Axios 인스턴스 제공 (모든 API 요청의 단일 진입점)
   - `UserProvider`: 인증 상태 관리 (useState + localStorage)
   - `GlobalProvider`: 전역 서버 데이터 캐싱 (TanStack Query)
@@ -33,9 +34,15 @@
 - 프로젝트 전체를 JavaScript로 작성
 - TypeScript는 사용하지 않습니다.
 
-### 6. Tailwind CSS 사용 안 함
-- Tailwind CSS 및 shadcn/ui는 사용하지 않습니다.
-- 다른 스타일링 방법 사용
+### 6. Tailwind CSS + Shadcn/ui 사용
+- Tailwind CSS v4 + Shadcn/ui 기반 UI 컴포넌트 시스템
+- Shadcn/ui 컴포넌트는 `src/components/ui/`에 복사되어 프로젝트 코드로 관리
+- 기존 CSS 변수 시스템 (reset.css)과 Tailwind/Shadcn CSS 변수가 공존
+
+### 7. PopupContext + popupRef 패턴 (자동 로딩 스피너)
+- PopupProvider: 팝업/로딩 스피너 전역 상태 관리
+- popupRef: tokenRef와 동일한 패턴으로 APIProvider 인터셉터에서 참조
+- 모든 API 요청 시 자동으로 로딩 스피너 표시/숨김
 
 ---
 
@@ -80,10 +87,12 @@
 
 | 라이브러리       | 용도                        |
 | ---------------- | --------------------------- |
+| **Tailwind CSS** | 유틸리티 CSS 프레임워크 (v4) |
+| **Shadcn/ui**    | Radix 기반 UI 컴포넌트 (코드 소유) |
 | **Lucide React** | 아이콘                      |
 | **Sonner**       | 토스트 알림                 |
 
-> Tailwind CSS 및 shadcn/ui는 사용하지 않습니다. 필요시 다른 UI 라이브러리 고려.
+> Shadcn/ui 컴포넌트는 node_modules가 아닌 프로젝트 코드(`src/components/ui/`)로 관리됩니다.
 
 ### 페이지 빌더 관련
 
@@ -124,7 +133,8 @@ admin/
 │   │   └── query-client.js     # TanStack Query 클라이언트 설정
 │   │
 │   ├── Providers/              # Context Providers (useState 기반)
-│   │   ├── APIContext.jsx      # Axios 인스턴스 + 인터셉터 (tokenRef 패턴)
+│   │   ├── PopupContext.jsx   # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
+│   │   ├── APIContext.jsx      # Axios 인스턴스 + 인터셉터 (tokenRef + popupRef 패턴)
 │   │   ├── UserContext.jsx     # 인증 상태 (login, logout, refresh, localStorage persist)
 │   │   └── GlobalContext.jsx   # 전역 서버 데이터 (useQuery로 contentTypes 캐싱)
 │   │
@@ -139,11 +149,18 @@ admin/
 │   │   ├── Media/              # 미디어 관리 (예정)
 │   │   └── Role/               # 역할/권한 관리 (예정)
 │   │
+│   ├── hooks/                  # 커스텀 훅
+│   │   └── use-mobile.js      # 모바일 감지 (Shadcn Sidebar 의존)
+│   │
+│   ├── lib/                    # 유틸리티 모듈
+│   │   ├── query-client.js     # TanStack Query 클라이언트 설정
+│   │   └── utils.js            # cn() 유틸리티 (Shadcn/ui)
+│   │
 │   ├── Components/             # 공통 컴포넌트
 │   │   ├── features/           # 기능 컴포넌트
 │   │   │   └── AuthGuard.jsx   # 인증 가드 (라우트 보호)
 │   │   ├── layout/             # 레이아웃 컴포넌트 (예정)
-│   │   ├── ui/                 # UI 기본 컴포넌트 (Input, Select 등, 예정)
+│   │   ├── ui/                 # Shadcn/ui 컴포넌트 (25개)
 │   │   └── common/             # 공통 컴포넌트 (예정)
 │   │
 │   ├── Assets/                 # 정적 리소스
@@ -151,10 +168,13 @@ admin/
 │   │   └── icons/              # 아이콘 파일
 │   │
 │   └── CSS/                    # 스타일시트
+│       ├── index.css           # Tailwind + Shadcn CSS 변수 + 공통 스타일
 │       └── reset.css           # CSS 리셋
 │
 ├── index.html
-├── vite.config.js              # Vite 설정 (alias 포함)
+├── vite.config.js              # Vite 설정 (alias + Tailwind 플러그인)
+├── jsconfig.json               # import alias 설정 (Shadcn/ui 필수)
+├── components.json             # Shadcn/ui 설정
 └── package.json
 ```
 
@@ -208,29 +228,32 @@ import Login from '@pages/System/Login.jsx';
 
 ```javascript
 // src/main.jsx
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 
-import { queryClient } from "./lib/query-client.js";
-import { UserProvider } from "./Providers/UserContext.jsx";
-import { APIProvider } from "./Providers/APIContext.jsx";
-import { GlobalProvider } from "./Providers/GlobalContext.jsx";
+import { queryClient } from '@/lib/query-client.js';
+import { UserProvider } from '@/Providers/UserContext.jsx';
+import { APIProvider } from '@/Providers/APIContext.jsx';
+import { GlobalProvider } from '@/Providers/GlobalContext.jsx';
+import { PopupProvider } from '@/Providers/PopupContext.jsx';
 
-import App from "./App.jsx";
+import App from './App.jsx';
 
-createRoot(document.getElementById("root")).render(
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <APIProvider>
-        <UserProvider>
-          <GlobalProvider>
-            <App />
-          </GlobalProvider>
-        </UserProvider>
-      </APIProvider>
-    </BrowserRouter>
-  </QueryClientProvider>,
+createRoot(document.getElementById('root')).render(
+    <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+            <PopupProvider>
+                <APIProvider>
+                    <UserProvider>
+                        <GlobalProvider>
+                            <App />
+                        </GlobalProvider>
+                    </UserProvider>
+                </APIProvider>
+            </PopupProvider>
+        </BrowserRouter>
+    </QueryClientProvider>,
 );
 ```
 
@@ -246,22 +269,28 @@ createRoot(document.getElementById("root")).render(
    - 모든 라우팅 관련 훅 (`useNavigate`, `useLocation` 등) 사용 가능하게 함
    - 의존성: 없음
 
-3. **APIProvider**
+3. **PopupProvider**
+   - 팝업/로딩 스피너 전역 상태 관리
+   - `usePopup()` 훅으로 makePopup, closePopup, makeProgressPopup, closeProgressPopup 제공
+   - 의존성: 없음
+
+4. **APIProvider**
    - Axios 인스턴스 생성 및 제공
    - `useAPI()` 훅으로 axios 인스턴스 접근 가능
-   - 인터셉터가 `tokenRef`를 참조하여 토큰 첨부 및 401 처리
-   - 의존성: 없음 (모듈 레벨에서 인스턴스 생성)
+   - `usePopup()` 사용 → PopupProvider에 의존 (popupRef 동기화)
+   - 인터셉터가 `tokenRef`로 토큰 첨부, `popupRef`로 로딩 스피너 자동 표시
+   - 의존성: PopupProvider
 
-4. **UserProvider**
+5. **UserProvider**
    - 인증 상태 관리 (user, accessToken, refreshToken)
    - `useAPI()` 사용 → APIProvider에 의존
    - `tokenRef.current` 업데이트
    - 의존성: APIProvider
 
-5. **GlobalProvider** (최하위)
+6. **GlobalProvider** (최하위)
    - 전역 서버 데이터 캐싱 (contentTypes 등)
    - `useAPI()` + `useUser()` 사용 → APIProvider, UserProvider에 의존
-   - `enabled: !!user`로 로그인 시에만 데이터 fetch
+   - `enabled: !!user && !!accessToken`로 로그인 + 토큰 보유 시에만 데이터 fetch
    - 의존성: APIProvider, UserProvider
 
 ### Feature 모듈 구조 (권장)
@@ -307,13 +336,15 @@ features/content/
 // src/main.jsx
 <QueryClientProvider client={queryClient}>  {/* TanStack Query 필수 */}
   <BrowserRouter>                           {/* React Router */}
-    <APIProvider>                           {/* Axios 인스턴스 생성 */}
-      <UserProvider>                        {/* useAPI() 사용, tokenRef 업데이트 */}
-        <GlobalProvider>                    {/* useAPI() + useUser() 사용 */}
-          <App />
-        </GlobalProvider>
-      </UserProvider>
-    </APIProvider>
+    <PopupProvider>                         {/* 팝업/로딩 스피너 상태 */}
+      <APIProvider>                         {/* Axios + popupRef 동기화 */}
+        <UserProvider>                      {/* useAPI() 사용, tokenRef 업데이트 */}
+          <GlobalProvider>                  {/* useAPI() + useUser() 사용 */}
+            <App />
+          </GlobalProvider>
+        </UserProvider>
+      </APIProvider>
+    </PopupProvider>
   </BrowserRouter>
 </QueryClientProvider>
 ```
@@ -321,9 +352,10 @@ features/content/
 **중첩 순서 이유:**
 1. **QueryClientProvider**: `useQuery`, `useMutation` 사용을 위해 최상위 필수
 2. **BrowserRouter**: 라우팅 컨텍스트 제공
-3. **APIProvider**: axios 인스턴스 생성 (다른 Provider가 `useAPI()` 사용)
-4. **UserProvider**: `useAPI()`를 사용하므로 APIProvider 하위에 위치
-5. **GlobalProvider**: `useAPI()`와 `useUser()`를 모두 사용하므로 가장 하위
+3. **PopupProvider**: 팝업/스피너 상태 제공 (APIProvider가 `usePopup()` 사용)
+4. **APIProvider**: axios 인스턴스 생성 + `usePopup()`으로 popupRef 동기화
+5. **UserProvider**: `useAPI()`를 사용하므로 APIProvider 하위에 위치
+6. **GlobalProvider**: `useAPI()`와 `useUser()`를 모두 사용하므로 가장 하위
 
 ### TanStack Query 설정
 
@@ -429,7 +461,7 @@ export function UserProvider({ children }) {
   // APIProvider 인터셉터가 참조할 수 있도록 tokenRef 동기화
   useEffect(() => {
     tokenRef.current = { accessToken, refresh, logout };
-  }, [accessToken]);
+  }, [accessToken, refresh, logout]);
 
   return (
     <UserContext.Provider value={{ user, accessToken, login, logout, refresh }}>
@@ -462,13 +494,13 @@ const GlobalContext = createContext();
 
 export function GlobalProvider({ children }) {
   const api = useAPI();
-  const { user } = useUser();
+  const { user, accessToken } = useUser();
 
-  // 로그인된 사용자만 콘텐츠 타입 목록 조회
+  // 로그인된 사용자 + accessToken이 있을 때만 콘텐츠 타입 목록 조회
   const { data: contentTypes = [] } = useQuery({
     queryKey: ["content-types"],
     queryFn: () => api.get("/content-types").then((r) => r.data),
-    enabled: !!user,  // user가 있을 때만 실행
+    enabled: !!user && !!accessToken,
   });
 
   return (
@@ -485,7 +517,7 @@ export function useGlobal() {
 
 **핵심 포인트:**
 - `useQuery`로 서버 데이터 캐싱
-- `enabled: !!user`: 로그인 전에는 API 호출 방지
+- `enabled: !!user && !!accessToken`: user가 localStorage에 있어도 accessToken(메모리)이 없으면 API 호출 방지 → 새로고침 직후 401 에러 방지
 - `useAPI()`, `useUser()` 사용: APIProvider와 UserProvider에 의존
 
 ---
@@ -500,14 +532,19 @@ export function useGlobal() {
 
 ```javascript
 // src/Providers/APIContext.jsx
-import React, { createContext, useContext, createRef } from "react";
+import React, { createContext, useContext, useEffect, createRef } from "react";
 import axios from "axios";
+import { usePopup } from "./PopupContext";
 
 const APIContext = createContext();
 
 // 모듈 레벨 ref — UserProvider에서 업데이트
 export const tokenRef = createRef();
 tokenRef.current = { accessToken: null, refresh: null, logout: null };
+
+// 모듈 레벨 ref — PopupProvider에서 업데이트
+export const popupRef = createRef();
+popupRef.current = { makeProgressPopup: null, closeProgressPopup: null };
 
 // 모듈 레벨에서 인스턴스를 한 번만 생성
 const instance = axios.create({
@@ -516,37 +553,60 @@ const instance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// 요청 인터셉터 — accessToken 첨부
+// 요청 인터셉터 — 로딩 스피너 표시 + accessToken 첨부
 instance.interceptors.request.use((config) => {
+  if (popupRef.current?.makeProgressPopup) {
+    popupRef.current.makeProgressPopup();
+  }
   if (tokenRef.current.accessToken) {
     config.headers.Authorization = `Bearer ${tokenRef.current.accessToken}`;
   }
   return config;
 });
 
-// 응답 인터셉터 — 401 시 토큰 갱신 후 재시도
+// 응답 인터셉터 — 로딩 스피너 숨김 + 401 시 토큰 갱신 후 재시도
 instance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (popupRef.current?.closeProgressPopup) {
+      popupRef.current.closeProgressPopup();
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        await tokenRef.current.refresh();
-        originalRequest.headers.Authorization = `Bearer ${tokenRef.current.accessToken}`;
-        return instance(originalRequest);
-      } catch {
-        tokenRef.current.logout();
+      if (tokenRef.current?.refresh && typeof tokenRef.current.refresh === 'function') {
+        try {
+          await tokenRef.current.refresh();
+          originalRequest.headers.Authorization = `Bearer ${tokenRef.current.accessToken}`;
+          return instance(originalRequest);
+        } catch {
+          if (tokenRef.current?.logout) tokenRef.current.logout();
+          if (popupRef.current?.closeProgressPopup) popupRef.current.closeProgressPopup();
+          window.location.href = "/login";
+          return Promise.reject(error);
+        }
+      } else {
+        if (popupRef.current?.closeProgressPopup) popupRef.current.closeProgressPopup();
         window.location.href = "/login";
+        return Promise.reject(error);
       }
     }
 
+    if (popupRef.current?.closeProgressPopup) popupRef.current.closeProgressPopup();
     return Promise.reject(error);
   },
 );
 
 export function APIProvider({ children }) {
+  const { makeProgressPopup, closeProgressPopup } = usePopup();
+
+  useEffect(() => {
+    popupRef.current = { makeProgressPopup, closeProgressPopup };
+  }, [makeProgressPopup, closeProgressPopup]);
+
   return <APIContext.Provider value={instance}>{children}</APIContext.Provider>;
 }
 
@@ -555,19 +615,22 @@ export function useAPI() {
 }
 ```
 
-**tokenRef 패턴 설명:**
+**tokenRef + popupRef 패턴 설명:**
 
-문제: UserContext는 APIProvider의 axios 인스턴스를 사용해야 하고, APIProvider의 인터셉터는 UserContext의 accessToken을 읽어야 함 → 순환 의존성
+문제 1: UserContext는 APIProvider의 axios 인스턴스를 사용해야 하고, APIProvider의 인터셉터는 UserContext의 accessToken을 읽어야 함 → 순환 의존성
+문제 2: API 요청 시 자동으로 로딩 스피너를 표시/숨김하려면, 인터셉터가 PopupContext에 접근해야 함
 
 해결:
-1. **APIProvider**: 모듈 레벨에서 axios 인스턴스 생성, `tokenRef`에서 토큰 읽기
-2. **UserProvider**: `useAPI()`로 axios 인스턴스 사용, `tokenRef.current` 업데이트
-3. **tokenRef**: 모듈 레벨 ref로 두 Provider 간 데이터 브릿지 역할
+1. **tokenRef**: 모듈 레벨 ref로 APIProvider 인터셉터와 UserProvider 간 브릿지
+2. **popupRef**: 동일한 패턴으로 APIProvider 인터셉터와 PopupProvider 간 브릿지
+3. **APIProvider**: `usePopup()` 훅으로 popupRef 동기화 (useEffect)
+4. **UserProvider**: `useAPI()`로 axios 인스턴스 사용, `tokenRef.current` 업데이트
 
 **장점:**
 - 순환 의존성 회피
 - 모든 API 요청이 APIProvider를 거치도록 강제
-- UserContext는 axios 인스턴스를 직접 생성하지 않음
+- 모든 API 요청에 자동 로딩 스피너 적용
+- 인터셉터에서 null-safe 접근 (초기 렌더링 시 함수 미등록 대비)
 
 ### API 함수 사용 패턴
 

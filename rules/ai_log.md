@@ -438,20 +438,62 @@ YYYY.MM.DD HH:MM
             - Context Provider value 메모이제이션 불필요 명시
         - 실제 구현된 코드와 문서 완전 일치 달성
 
-### 다음 작업 (프론트엔드 개발 2단계)
-    - 2단계: 로그인 페이지 및 라우팅 구현
-        - AuthGuard 컴포넌트 작성
-        - 로그인 페이지 UI 및 폼 구현 (React Hook Form + Zod)
-        - 라우터 설정 (공개 라우트 + 보호 라우트)
+2026.01.30
+    - 프론트엔드 라우팅 및 인증 가드 구현 (2단계 일부)
+        - AuthGuard 컴포넌트 작성 완료
+            - 비로그인 시 /login으로 리다이렉트
+            - 현재 경로를 state로 전달 (로그인 후 복귀)
         - App.jsx 라우팅 구조 구현
-    - 3단계: 레이아웃 및 대시보드
-        - AdminLayout (Sidebar + Header + 메인 영역)
-        - Sidebar 메뉴 구조 (동적 콘텐츠 타입 포함)
-        - Header (사용자 정보, 로그아웃)
-        - 대시보드 기본 페이지
+            - /login (공개), / (보호, AuthGuard), * (리다이렉트)
+        - Auth 흐름 버그 수정
+            - GlobalContext enabled 조건: `!!user` → `!!user && !!accessToken`
+                - 새로고침 직후 user는 localStorage에 있지만 accessToken은 메모리라 null
+                - 이로 인해 토큰 없이 API 호출 → 401 에러 발생
+            - UserContext tokenRef 의존성 배열 수정: `[accessToken]` → `[accessToken, refresh, logout]`
+            - APIContext 인터셉터 null-safe 처리: tokenRef.current.refresh/logout 존재 확인 후 호출
+    - PopupContext + 자동 로딩 스피너 시스템 구현
+        - PopupContext.jsx (사용자 작성, AI 코드 리뷰 후 버그 수정)
+            - makePopup/closePopup: 커스텀 팝업 표시/숨김
+            - makeProgressPopup/closeProgressPopup: 로딩 스피너 표시/숨김
+        - popupRef 패턴 (tokenRef와 동일)
+            - APIContext.jsx에 popupRef 추가
+            - 요청 인터셉터: makeProgressPopup() 자동 호출
+            - 응답 인터셉터: closeProgressPopup() 자동 호출 (성공/에러/401 모든 경로)
+        - Provider 중첩 순서 변경
+            - 기존: Query > Router > API > User > Global
+            - 변경: Query > Router > Popup > API > User > Global
+            - APIProvider가 usePopup() 사용하므로 PopupProvider가 상위에 위치
+    - Tailwind CSS v4 + Shadcn/ui 설정 및 UI 컴포넌트 추가
+        - Tailwind CSS v4 설치 (Vite 플러그인 방식: @tailwindcss/vite)
+        - Shadcn/ui 초기화 및 설정
+            - jsconfig.json 생성 (@/* 경로 alias, Shadcn 필수)
+            - components.json 생성
+            - src/lib/utils.js 생성 (cn() 유틸리티)
+            - src/hooks/use-mobile.js 생성 (Sidebar 의존, 모바일 감지)
+        - index.css에 Tailwind + Shadcn CSS 변수 통합 (light/dark 모드)
+        - vite.config.js에 tailwindcss 플러그인 추가
+        - Shadcn/ui 컴포넌트 25개 추가 (src/Components/ui/)
+            - 폼: form, input, label, select, textarea, checkbox, switch
+            - 레이아웃: card, separator, sheet, sidebar, tabs
+            - 데이터: table, badge, avatar, skeleton
+            - 피드백: alert, alert-dialog, dialog, dropdown-menu, sonner, tooltip
+            - 네비게이션: breadcrumb, button
+        - [참고] npm 대신 pnpm 사용 필수 (모노레포 workspace 구조)
+    - frontend.md 업데이트
+        - 핵심 결정사항 Section 6: Tailwind CSS + Shadcn/ui 사용으로 변경
+        - 핵심 결정사항 Section 7: PopupContext + popupRef 패턴 추가
+        - UI 라이브러리 테이블: Tailwind CSS, Shadcn/ui 추가
+        - Provider 구조: PopupProvider 추가 반영 (중첩 순서, 설명)
+        - main.jsx 코드: PopupProvider 포함으로 업데이트
+        - APIContext 코드: popupRef 패턴 반영
+        - GlobalContext 코드: enabled 조건 `!!user && !!accessToken` 반영
+        - UserContext 코드: tokenRef 의존성 배열 수정 반영
+        - 프로젝트 구조: hooks/, lib/, Components/ui/ 파일 목록 업데이트
+
+### 다음 작업
+    - Admin 페이지 구조 설계 (고정 페이지 vs 동적 페이지)
+    - 로그인 페이지 구현 (React Hook Form + Zod + Shadcn/ui)
+    - AdminLayout (Sidebar + Header + 메인 영역)
+    - 대시보드 기본 페이지
     - 백엔드 개발 7단계: 미디어 모듈 구현
-        - Media CRUD API
-        - 파일 업로드/다운로드
-        - 폴더 구조 관리
-        - 썸네일 자동 생성
 
