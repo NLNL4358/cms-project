@@ -119,6 +119,8 @@ html {
     /* 기본 폰트 크기 설정 */
     scroll-behavior: smooth;
     /* 스크롤 부드럽게 */
+    color-scheme: light;
+    /* Tailwind v4 preflight가 color-scheme: light dark를 설정하므로, 강제로 light 지정 */
 }
 
 :root {

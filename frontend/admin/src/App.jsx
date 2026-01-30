@@ -5,6 +5,7 @@ import Login from '@pages/System/Login.jsx';
 /* CSS */
 import '@/CSS/reset.css';
 import '@/CSS/index.css';
+import '@/CSS/component.css';
 
 function App() {
     return (
