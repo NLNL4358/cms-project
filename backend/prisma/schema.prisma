@@ -230,6 +230,9 @@ model Media {
   url          String
   alt          String?
   caption      String?
+  thumbnails   Json?     // 썸네일 경로들 { sm, md, lg, webp }
+  width        Int?      // 이미지 원본 너비
+  height       Int?      // 이미지 원본 높이
   folderId     String?
   uploadedById String
   createdAt    DateTime  @default(now())

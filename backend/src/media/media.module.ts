@@ -5,6 +5,7 @@ import { MediaService } from './media.service';
 import { MediaController } from './media.controller';
 import { FolderService } from './folder.service';
 import { FolderController } from './folder.controller';
+import { ImageProcessorService } from './services/image-processor.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RoleModule } from '../role/role.module';
 import { diskStorage } from 'multer';
@@ -29,7 +30,7 @@ import { getStorageConfig } from './utils/storage.config';
     }),
   ],
   controllers: [FolderController, MediaController],
-  providers: [MediaService, FolderService],
-  exports: [MediaService, FolderService], // 다른 모듈에서 사용 가능
+  providers: [MediaService, FolderService, ImageProcessorService],
+  exports: [MediaService, FolderService, ImageProcessorService],
 })
 export class MediaModule {}

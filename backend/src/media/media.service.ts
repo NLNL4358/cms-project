@@ -1,10 +1,12 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { ImageProcessorService } from './services/image-processor.service';
 import { UpdateMediaDto } from './dto/update-media.dto';
 import { MediaFilterDto, MediaTypeFilter } from './dto/media-filter.dto';
 import { generateFileUrl, validateMimeType } from './utils/file.utils';
@@ -12,9 +14,12 @@ import * as fs from 'fs';
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private imageProcessor: ImageProcessorService,
   ) {}
 
   /**
@@ -51,6 +56,32 @@ export class MediaService {
     // Generate URL
     const url = generateFileUrl(file.filename);
 
+    // 이미지 처리 (Sharp 파이프라인)
+    let imageData: {
+      thumbnails?: object;
+      width?: number;
+      height?: number;
+    } = {};
+
+    if (this.imageProcessor.isProcessableImage(file.mimetype)) {
+      try {
+        const result = await this.imageProcessor.processImage(
+          file.path,
+          file.filename,
+        );
+        imageData = {
+          thumbnails: result.thumbnails,
+          width: result.width,
+          height: result.height,
+        };
+      } catch (error) {
+        // 이미지 처리 실패 시에도 원본 업로드는 유지
+        this.logger.warn(
+          `이미지 처리 실패 (${file.filename}): ${error.message}`,
+        );
+      }
+    }
+
     // Create media record
     return this.prisma.media.create({
       data: {
@@ -62,6 +93,7 @@ export class MediaService {
         url,
         alt: alt || null,
         caption: caption || null,
+        ...imageData,
         folderId: folderId || null,
         uploadedById: userId,
       },
@@ -255,6 +287,11 @@ export class MediaService {
     // Delete file from disk
     if (fs.existsSync(media.path)) {
       fs.unlinkSync(media.path);
+    }
+
+    // 썸네일 및 WebP 파일 삭제
+    if (this.imageProcessor.isProcessableImage(media.mimeType)) {
+      await this.imageProcessor.deleteProcessedFiles(media.filename);
     }
 
     // Delete from database

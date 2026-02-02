@@ -567,9 +567,43 @@ YYYY.MM.DD HH:MM
             - architecture.md: 기술 스택 테이블에 Sharp, BullMQ, @nestjs/schedule, @nestjs/throttler, isomorphic-dompurify, MeiliSearch 추가
     - 사내 발표용 기획 문서 작성 (기획내용.md)
 
+2026.02.02 (계속 2)
+    - 백엔드 라이브러리 통합 완료 (Sharp, @nestjs/throttler, @nestjs/schedule)
+        - 패키지 설치: sharp 0.34.5, @nestjs/throttler 6.5.0, @nestjs/schedule 6.1.0
+        - @nestjs/throttler 통합
+            - AppModule에 ThrottlerModule 글로벌 설정 (기본 300 요청/분)
+            - ThrottlerGuard를 APP_GUARD로 등록 (모든 엔드포인트 자동 적용)
+            - 로그인 엔드포인트에 @Throttle({ default: { ttl: 60000, limit: 5 } }) 적용 (5회/분)
+            - API 테스트 완료: X-RateLimit-Limit, X-RateLimit-Remaining 헤더 확인
+        - @nestjs/schedule 통합
+            - AppModule에 ScheduleModule.forRoot() 등록
+            - TasksModule + TasksService 신규 생성 (src/tasks/)
+            - 크론 작업 3개 구현
+                - 예약 발행 체크 (매분): scheduledAt이 지난 DRAFT 콘텐츠 자동 PUBLISHED 전환
+                - 휴지통 자동 비우기 (매일 03:00): 30일 이상 소프트삭제 미디어/콘텐츠 영구 삭제
+                - 임시 파일 정리 (매일 04:00): 24시간 이상 경과 temp 파일 삭제
+        - Sharp 이미지 처리 통합
+            - Prisma 스키마 업데이트: Media 모델에 thumbnails(Json?), width(Int?), height(Int?) 필드 추가
+            - Prisma 마이그레이션 적용 (20260202052028_add_media_image_fields)
+            - ImageProcessorService 신규 생성 (src/media/services/)
+                - 썸네일 생성: sm(150x150), md(300x300), lg(600x600)
+                - WebP 변환 (quality: 80)
+                - 원본 메타데이터 추출 (width, height)
+                - 디렉토리 자동 생성 (thumbnails/sm,md,lg, webp, temp)
+            - MediaModule에 ImageProcessorService 등록 및 export
+            - MediaService 업데이트
+                - create(): 이미지 업로드 시 Sharp 파이프라인 자동 실행, 처리 실패해도 원본 업로드 유지
+                - hardDelete(): 원본 + 썸네일 + WebP 파일 일괄 삭제
+        - API 테스트 전체 통과
+            - ✅ POST /auth/login: Rate Limiting 헤더 확인 (X-RateLimit-Limit: 5)
+            - ✅ GET /roles: 기본 Rate Limiting 확인 (X-RateLimit-Limit: 300)
+            - ✅ POST /media/upload: Sharp 처리 확인 (width: 800, height: 600, thumbnails 4종)
+            - ✅ DELETE /media/:id/hard: 원본 + 썸네일 + WebP 파일 삭제 확인
+            - ✅ GET /content-types, POST /contents, GET /auth/me: 기존 기능 정상 동작 확인
+
 ### 다음 작업
     - Phase A (Starter) 핵심 기능 구현 계속
-        - 즉시 통합: Sharp (Media 모듈), @nestjs/throttler, @nestjs/schedule, isomorphic-dompurify
+        - isomorphic-dompurify 통합 (richtext 필드 저장 시 XSS 방지)
         - 프론트: @tanstack/react-table, date-fns 설치 후 목록 페이지 구현
         - 콘텐츠 타입 관리 페이지 구현 (목록/생성/수정/삭제)
         - 콘텐츠 관리 페이지 구현 (동적 폼 + TipTap richtext)
