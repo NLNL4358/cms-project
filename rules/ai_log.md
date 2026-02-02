@@ -629,11 +629,55 @@ YYYY.MM.DD HH:MM
         - Contents 테이블: createdById/updatedById(authorId 아님), publishedAt, scheduledAt, version, deletedAt
         - 에러 응답: statusCode, timestamp, path, method, message (error 필드 없음)
 
+2026.02.02 (계속 4)
+    - isomorphic-dompurify 통합 (백엔드 XSS 방지)
+        - isomorphic-dompurify 패키지 설치
+        - sanitize.util.ts 신규 생성 (backend/src/common/utils/)
+            - sanitizeContentData(): ContentType fields에서 richtext 타입 필드만 추출하여 DOMPurify.sanitize() 적용
+            - ALLOWED_TAGS: p, br, strong, em, a, ul, ol, li, blockquote, h1-h6, code, pre, img, table 등 30개
+            - ALLOWED_ATTR: href, target, src, alt, class, style, colspan, rowspan 등 12개
+        - content.service.ts 수정
+            - create(): DB 저장 전 sanitizeContentData() 호출
+            - update(): DB 저장 전 sanitizeContentData() 호출
+    - 프론트엔드 라이브러리 설치
+        - @tanstack/react-table, date-fns 설치 완료
+    - 공통 컴포넌트 생성
+        - DataTable.jsx (Components/common/)
+            - @tanstack/react-table 기반 재사용 가능한 테이블 컴포넌트
+            - Props: columns, data, isLoading, emptyMessage, onRowClick
+            - Shadcn/ui Table + Skeleton 사용
+        - DeleteDialog.jsx (Components/common/)
+            - Shadcn/ui AlertDialog 기반 삭제 확인 다이얼로그
+            - Props: open, onOpenChange, title, description, onConfirm, isLoading
+    - 콘텐츠 타입 관리 페이지 구현 (목록/생성/수정/삭제)
+        - App.jsx 라우트 추가: /content-types/new, /content-types/:id/edit
+        - ContentTypeList.jsx 재작성 (플레이스홀더 → 완전 구현)
+            - useQuery로 /content-types API 조회
+            - DataTable 컬럼: 이름, 슬러그(Badge), 필드 수, 생성일(date-fns 한국어), 액션(편집/삭제)
+            - useMutation으로 삭제 + DeleteDialog 확인
+            - 행 클릭 시 수정 페이지 이동
+        - ContentTypeForm.jsx 신규 생성 (생성/수정 폼)
+            - React Hook Form + Zod 검증
+            - 기본 정보: 이름(필수), 슬러그(필수, 이름에서 자동 생성), 설명(선택)
+            - 필드 정의: useFieldArray로 동적 필드 행 추가/삭제
+            - 각 필드: name(영문), label(한글), type(Select 드롭다운, 17종), required(Checkbox)
+            - 수정 모드: URL :id 파라미터 시 기존 데이터 로드 (useQuery + useEffect reset)
+            - 저장: POST /content-types (생성) 또는 PATCH /content-types/:id (수정)
+            - 저장 후: 목록 페이지 이동 + content-types 캐시 무효화
+    - 백엔드 DTO 수정 (fields 배열 형식 표준화)
+        - CreateContentTypeDto: fields 타입 변경 (Record<string, any> → any[], @IsObject → @IsArray)
+        - Swagger 예시 업데이트: 배열 형식으로 변경
+        - Prisma 스키마 기본값 `@default("[]")`과 일치
+    - 빌드 테스트 통과 (백엔드 + 프론트엔드 모두 성공)
+    - 통합 테스트 수행 (16개 시나리오 전체 통과)
+        - 백엔드 API 테스트 (7개): 콘텐츠 타입 생성/조회/수정/삭제, slug 중복 검증, 필수 필드 검증, 인증 차단
+        - XSS sanitize 테스트 (3개): richtext 필드 script/onerror/javascript: 제거 확인, text/textarea 필드는 미처리 확인
+        - 프론트엔드 정적 분석: 모든 import 해결, TanStack Query v5 패턴 준수, Radix UI Controller 래핑 정상
+        - 빌드 & dev 서버: 백엔드/프론트엔드 모두 에러 없이 기동
+    - [참고] 기존 콘텐츠 타입 2개(blog-post, product)의 fields가 구 포맷(객체)이라 프론트엔드 목록에서 "필드 수"가 0으로 표시됨 → 마이그레이션 필요
+
 ### 다음 작업
     - 1단계 (Starter) 핵심 기능 구현 계속
-        - isomorphic-dompurify 통합 (richtext 필드 저장 시 XSS 방지)
-        - 프론트: @tanstack/react-table, date-fns 설치 후 목록 페이지 구현
-        - 콘텐츠 타입 관리 페이지 구현 (목록/생성/수정/삭제)
         - 콘텐츠 관리 페이지 구현 (동적 폼 + TipTap richtext)
         - 미디어 관리 페이지 구현
         - 대시보드 페이지 실제 구현

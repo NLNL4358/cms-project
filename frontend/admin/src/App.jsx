@@ -6,6 +6,7 @@ import AdminLayout from '@/Components/layout/AdminLayout.jsx';
 import Login from '@pages/System/Login.jsx';
 import Dashboard from '@pages/Dashboard/Dashboard.jsx';
 import ContentTypeList from '@pages/ContentType/ContentTypeList.jsx';
+import ContentTypeForm from '@pages/ContentType/ContentTypeForm.jsx';
 import ContentList from '@pages/Content/ContentList.jsx';
 import MediaList from '@pages/Media/MediaList.jsx';
 import RoleList from '@pages/Role/RoleList.jsx';
@@ -40,6 +41,8 @@ function App() {
 
                 <Route path="content-types" element={<ContentTypeRouter />}>
                     <Route index element={<ContentTypeList />} />
+                    <Route path="new" element={<ContentTypeForm />} />
+                    <Route path=":id/edit" element={<ContentTypeForm />} />
                 </Route>
 
                 <Route

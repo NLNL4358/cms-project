@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateContentDto } from './dto/create-content.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
 import { ContentStatus } from '@prisma/client';
+import { sanitizeContentData } from '../common/utils/sanitize.util';
 
 @Injectable()
 export class ContentService {
@@ -44,10 +45,19 @@ export class ContentService {
       );
     }
 
+    // richtext 필드 XSS sanitize 처리
+    const sanitizedRest = { ...rest };
+    if (sanitizedRest.data && contentType.fields) {
+      sanitizedRest.data = sanitizeContentData(
+        sanitizedRest.data as Record<string, any>,
+        contentType.fields as any[],
+      );
+    }
+
     // 콘텐츠 생성
     const content = await this.prisma.content.create({
       data: {
-        ...rest,
+        ...sanitizedRest,
         contentTypeId,
         slug,
         status: status || ContentStatus.DRAFT,
@@ -213,11 +223,25 @@ export class ContentService {
       throw new BadRequestException('콘텐츠 타입은 변경할 수 없습니다');
     }
 
+    // richtext 필드 XSS sanitize 처리
+    const sanitizedRest = { ...rest };
+    if (sanitizedRest.data) {
+      const contentType = await this.prisma.contentType.findUnique({
+        where: { id: existing.contentTypeId },
+      });
+      if (contentType?.fields) {
+        sanitizedRest.data = sanitizeContentData(
+          sanitizedRest.data as Record<string, any>,
+          contentType.fields as any[],
+        );
+      }
+    }
+
     // 콘텐츠 업데이트
     const updated = await this.prisma.content.update({
       where: { id },
       data: {
-        ...rest,
+        ...sanitizedRest,
         slug: slug || existing.slug,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : existing.scheduledAt,
         updatedById: userId,

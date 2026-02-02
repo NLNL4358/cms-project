@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsObject,
+  IsArray,
   Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -38,16 +39,16 @@ export class CreateContentTypeDto {
   description?: string;
 
   @ApiProperty({
-    example: {
-      title: { type: 'string', required: true },
-      content: { type: 'text', required: true },
-      thumbnail: { type: 'image', required: false },
-    },
-    description: '콘텐츠 타입의 필드 정의',
+    example: [
+      { name: 'title', type: 'text', label: '제목', required: true },
+      { name: 'content', type: 'richtext', label: '내용', required: true },
+      { name: 'thumbnail', type: 'image', label: '썸네일', required: false },
+    ],
+    description: '콘텐츠 타입의 필드 정의 (배열)',
   })
-  @IsObject()
+  @IsArray()
   @IsNotEmpty()
-  fields: Record<string, any>;
+  fields: any[];
 
   @ApiProperty({
     example: { icon: 'article', color: '#3b82f6' },
