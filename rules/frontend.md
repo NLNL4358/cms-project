@@ -1653,4 +1653,4 @@ VITE_PUBLIC_URL=http://localhost:5173
 - [dnd-kit](https://dndkit.com/)
 - [TipTap Editor](https://tiptap.dev/)
 - [프로젝트 기획서](./project.md)
-- [백엔드 아키텍처](./architecture.md)
+- [백엔드 명세](./backend.md)

@@ -34,7 +34,6 @@ cms-project/
 │
 ├── rules/                    # 프로젝트 규칙/기획 문서
 │   ├── project.md            # 프로젝트 기획 (에디션 전략 포함)
-│   ├── architecture.md       # 백엔드 아키텍처
 │   ├── backend.md            # 백엔드 기술 명세
 │   ├── frontend.md           # 프론트엔드 기술 명세
 │   ├── structure.md          # 폴더 구조 (이 파일)
@@ -274,7 +273,7 @@ frontend/admin/
 
 ### Public Site (User Site) `[Business+]` — 미구현
 
-> Business 에디션 이상에서만 제공. Phase A의 Business 에디션 개발 시 구현 예정.
+> Business 에디션 이상에서만 제공. 1단계의 Business 에디션 개발 시 구현 예정.
 
 ```
 frontend/user/

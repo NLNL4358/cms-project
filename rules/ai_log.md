@@ -17,7 +17,7 @@ AI 에이전트가 새 채팅을 시작할 때 프로젝트를 빠르게 이해�
   - **Starter**: API + Admin Panel (Headless CMS)
   - **Business**: + User Site + Page Builder
   - **Enterprise**: + Workflow, SSO, MultiSite 등
-- **개발 순서**: Phase A (완성형 웹사이트 빌더) → Phase A+C (Enterprise) → Phase B (버티컬 SaaS)
+- **개발 순서**: 1단계 (완성형 웹사이트 빌더) → 2단계 (Enterprise) → 3단계 (버티컬 SaaS)
 
 ### 2. 핵심 문서
 
@@ -38,9 +38,9 @@ project.md
 ├── 프로젝트 개요
 │   ├── 프로젝트 목표
 │   ├── 제품 전략 (에디션 & 개발 로드맵)
-│   │   ├── Phase A — 완성형 웹사이트 빌더 (Starter / Business)
-│   │   ├── Phase A+C — Enterprise 에디션
-│   │   └── Phase B — 버티컬 SaaS
+│   │   ├── 1단계 — 완성형 웹사이트 빌더 (Starter / Business)
+│   │   ├── 2단계 — Enterprise 에디션
+│   │   └── 3단계 — 버티컬 SaaS
 │   ├── 핵심 컨셉 (20+ 기능, 에디션 태그 포함)
 │   └── 프로젝트 배경
 ├── 플랫폼 구조
@@ -528,13 +528,13 @@ YYYY.MM.DD HH:MM
 2026.02.02
     - 제품 전략 논의 및 에디션 구조 확정
         - v1/v2/v3 버전 방식 → 에디션(Starter/Business/Enterprise) 기반으로 전환
-        - 개발 순서 확정: Phase A → Phase A+C → Phase B
-            - Phase A: 완성형 웹사이트 빌더 (Starter: Headless CMS, Business: + User Site + Page Builder)
-            - Phase A+C: Enterprise (+ 승인 워크플로우, 감사 로그 대시보드, SSO, 멀티사이트 등)
-            - Phase B: 버티컬 SaaS (Phase A 완성 후 산업 1개 선택하여 깊이 개발)
+        - 개발 순서 확정: 1단계 → 2단계 → 3단계
+            - 1단계: 완성형 웹사이트 빌더 (Starter: Headless CMS, Business: + User Site + Page Builder)
+            - 2단계: Enterprise (+ 승인 워크플로우, 감사 로그 대시보드, SSO, 멀티사이트 등)
+            - 3단계: 버티컬 SaaS (1단계 완성 후 산업 1개 선택하여 깊이 개발)
         - Headless CMS 단독 가치 논의: API + Admin Panel만으로 개발팀 대상 제품 가능
         - 그룹웨어(HR/결재) 추가 논의: CMS 정체성 유지를 위해 CMS 네이티브 기능(워크플로우, 감사로그)으로 한정
-        - 버티컬 SaaS 후보: 프랜차이즈, 부동산, 교육, 의료 → Phase A 완성 후 결정
+        - 버티컬 SaaS 후보: 프랜차이즈, 부동산, 교육, 의료 → 1단계 완성 후 결정
     - 기획 문서 전체 업데이트 (에디션 전략 반영)
         - project.md: 제품 전략 섹션 추가, 에디션별 기능 분류, 핵심 컨셉에 에디션 태그 추가
         - architecture.md: 에디션별 모듈 구성표, CMS_EDITION 환경변수, Phase별 개발 예정 목록
@@ -601,8 +601,36 @@ YYYY.MM.DD HH:MM
             - ✅ DELETE /media/:id/hard: 원본 + 썸네일 + WebP 파일 삭제 확인
             - ✅ GET /content-types, POST /contents, GET /auth/me: 기존 기능 정상 동작 확인
 
+2026.02.02 (계속 3)
+    - 기획내용정리.md 빈칸 완성
+        - Section 9 핵심 정리 테이블 5행 (제품/기술/수익/현재 상태/차별점) 채움
+        - Section 6 다음 단계: 항목 1 (백엔드 라이브러리 통합) 완료 표시
+    - rules/ 문서 교차 검증 및 정합성 작업
+        - 기획내용정리.md 기준으로 rules/ 문서 비교 → architecture.md에 누락된 모듈/API/DB 필드 확인
+        - architecture.md 업데이트: 폴더 구조, DB 다이어그램, API 목록(~43개), 모듈 의존성 그래프, 향후 개발 예정
+        - 5개 rules 파일 간 교차 검증 수행 → 15개 불일치 항목 발견 (기존 문제, 현재 편집으로 발생한 것 아님)
+    - Phase 용어 통일 (Phase A/B/C → 1단계/2단계/3단계)
+        - project.md (12개소), architecture.md (3개소), structure.md (1개소), ai_log.md (8개소), 기획내용정리.md (2개소) 일괄 변경
+        - Phase A → 1단계 (Starter/Business, 핵심 CMS 기능)
+        - Phase A+C → 2단계 (Enterprise, 조직 관리 기능)
+        - Phase B → 3단계 (Professional, 산업 특화 솔루션)
+    - architecture.md 삭제 결정 및 실행
+        - 사유: project.md, backend.md, frontend.md, structure.md와 내용 대부분 중복 → 동기화 유지 비용이 가치보다 큼
+        - architecture.md 파일 삭제
+        - 참조 제거: structure.md (rules/ 폴더 목록), frontend.md (참고 문서 링크)
+        - ai_log.md 과거 작업 기록은 이력이므로 유지
+    - [참고] 삭제 전 architecture.md에서 실제 코드 기준으로 수정한 사항들 (backend.md에 반영 필요 시 참고):
+        - UserType: ADMIN, MEMBER (EDITOR/VIEWER 아님)
+        - ContentStatus: DRAFT, REVIEW, APPROVED, PUBLISHED, REJECTED, ARCHIVED (6개)
+        - PageStatus: DRAFT, PUBLISHED (ARCHIVED 없음)
+        - PageType: MAIN, STATIC, DYNAMIC, SYSTEM
+        - RoleStatus: PENDING, ACTIVE, REJECTED
+        - Pages 테이블: slug(path 아님), type, components(blocks 아님), settings, publishedAt, createdById, updatedById, deletedAt
+        - Contents 테이블: createdById/updatedById(authorId 아님), publishedAt, scheduledAt, version, deletedAt
+        - 에러 응답: statusCode, timestamp, path, method, message (error 필드 없음)
+
 ### 다음 작업
-    - Phase A (Starter) 핵심 기능 구현 계속
+    - 1단계 (Starter) 핵심 기능 구현 계속
         - isomorphic-dompurify 통합 (richtext 필드 저장 시 XSS 방지)
         - 프론트: @tanstack/react-table, date-fns 설치 후 목록 페이지 구현
         - 콘텐츠 타입 관리 페이지 구현 (목록/생성/수정/삭제)
