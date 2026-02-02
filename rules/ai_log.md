@@ -8,11 +8,16 @@ AI 에이전트가 새 채팅을 시작할 때 프로젝트를 빠르게 이해�
 
 ### 1. 프로젝트 개요
 
-이 프로젝트는 **범용 CMS 플랫폼**을 구축하는 프로젝트이다.
+이 프로젝트는 **에디션 기반 범용 CMS 플랫폼**을 구축하는 프로젝트이다.
 
 - **컨셉**: "빈 도화지" CMS - 초기 상태에서 아무 구조 없이 시작, 사용자가 자유롭게 설계
 - **용도**: SI 회사에서 활용할 솔루션, 외부 사업 수주 시 어필 포인트
-- **기술 스택**: NestJS (백엔드) + React (프론트엔드) + PostgreSQL + Prisma
+- **기술 스택**: NestJS (백엔드) + React (프론트엔드, JavaScript) + PostgreSQL + Prisma
+- **에디션 전략**: 단일 코드베이스에서 `CMS_EDITION` 환경변수로 기능 범위 제어
+  - **Starter**: API + Admin Panel (Headless CMS)
+  - **Business**: + User Site + Page Builder
+  - **Enterprise**: + Workflow, SSO, MultiSite 등
+- **개발 순서**: Phase A (완성형 웹사이트 빌더) → Phase A+C (Enterprise) → Phase B (버티컬 SaaS)
 
 ### 2. 핵심 문서
 
@@ -32,7 +37,11 @@ AI 에이전트가 새 채팅을 시작할 때 프로젝트를 빠르게 이해�
 project.md
 ├── 프로젝트 개요
 │   ├── 프로젝트 목표
-│   ├── 핵심 컨셉 (20+ 기능)
+│   ├── 제품 전략 (에디션 & 개발 로드맵)
+│   │   ├── Phase A — 완성형 웹사이트 빌더 (Starter / Business)
+│   │   ├── Phase A+C — Enterprise 에디션
+│   │   └── Phase B — 버티컬 SaaS
+│   ├── 핵심 컨셉 (20+ 기능, 에디션 태그 포함)
 │   └── 프로젝트 배경
 ├── 플랫폼 구조
 │   ├── 1. 관리자 페이지 (Admin Panel)
@@ -490,10 +499,80 @@ YYYY.MM.DD HH:MM
         - UserContext 코드: tokenRef 의존성 배열 수정 반영
         - 프로젝트 구조: hooks/, lib/, Components/ui/ 파일 목록 업데이트
 
+2026.01.31
+    - 로그인 페이지 구현 완료
+        - React Hook Form + Zod + Shadcn/ui Card 컴포넌트 사용
+        - 로그인 성공 시 state.from으로 원래 경로 복귀
+    - Admin Panel 레이아웃 구현 완료
+        - AdminLayout.jsx: Header + (Sidebar | Main Content) 구조
+        - AppSidebar.jsx: 고정 메뉴(대시보드/콘텐츠타입/미디어/역할) + 동적 콘텐츠 메뉴(GlobalContext contentTypes)
+        - AppHeader.jsx: 브레드크럼(경로 기반 동적 생성) + 모바일 햄버거 메뉴
+    - 모바일 반응형 사이드바 구현
+        - GlobalContext에 isMobile/sidebarOpen/setSidebarOpen 상태 추가
+        - MOBILE_BREAKPOINT=768, resize 이벤트 기반 감지
+        - 모바일: 사이드바가 오른쪽 오버레이로 표시 (0→100vw 슬라이드)
+        - 데스크톱 전환 시 자동 닫힘
+        - Shadcn/ui Sidebar 대신 순수 CSS + 클래스 토글 방식 채택
+    - 라우팅 구조 구현
+        - App.jsx: nested routes (AuthGuard > AdminLayout > 섹션별 라우터 > 페이지)
+        - Router 컴포넌트: ContentTypeRouter, ContentRouter, MediaRouter, RoleRouter (Outlet 래퍼)
+        - 플레이스홀더 페이지: Dashboard, ContentTypeList, ContentList, MediaList, RoleList
+    - index.css 스타일 작성
+        - 레이아웃: adminLayout, adminMain, adminContent
+        - 사이드바: sidebar (240px, dark bg, box-shadow), 모바일 오버레이 방식
+        - 헤더: adminHeader, breadcrumb, headerUser
+        - 메뉴: menuItem, menuGroup, menuSubItem, 활성 상태
+        - 팝업: popupOuter, popupInner, progressInner, progressRoll 애니메이션
+        - Radix 드롭다운: glassmorphism 스타일
+
+2026.02.02
+    - 제품 전략 논의 및 에디션 구조 확정
+        - v1/v2/v3 버전 방식 → 에디션(Starter/Business/Enterprise) 기반으로 전환
+        - 개발 순서 확정: Phase A → Phase A+C → Phase B
+            - Phase A: 완성형 웹사이트 빌더 (Starter: Headless CMS, Business: + User Site + Page Builder)
+            - Phase A+C: Enterprise (+ 승인 워크플로우, 감사 로그 대시보드, SSO, 멀티사이트 등)
+            - Phase B: 버티컬 SaaS (Phase A 완성 후 산업 1개 선택하여 깊이 개발)
+        - Headless CMS 단독 가치 논의: API + Admin Panel만으로 개발팀 대상 제품 가능
+        - 그룹웨어(HR/결재) 추가 논의: CMS 정체성 유지를 위해 CMS 네이티브 기능(워크플로우, 감사로그)으로 한정
+        - 버티컬 SaaS 후보: 프랜차이즈, 부동산, 교육, 의료 → Phase A 완성 후 결정
+    - 기획 문서 전체 업데이트 (에디션 전략 반영)
+        - project.md: 제품 전략 섹션 추가, 에디션별 기능 분류, 핵심 컨셉에 에디션 태그 추가
+        - architecture.md: 에디션별 모듈 구성표, CMS_EDITION 환경변수, Phase별 개발 예정 목록
+        - backend.md: CMS_EDITION 환경변수 추가, 에디션별 모듈 분기(AppModule 조건부 import), 모듈 에디션 태그
+        - frontend.md: 현재 구현 상태 반영(AdminLayout, GlobalContext isMobile/sidebarOpen), 에디션 기반 라우트 제어 설명, 라우팅 코드 업데이트
+        - structure.md: 실제 경로 수정(frontend/packages/ → frontend/), .tsx → .jsx, Zustand → Context Provider, Admin Panel 현재 구현 구조 반영, 백엔드 모듈 에디션 태그
+        - ai_log.md: 전략 논의 및 문서 변경 내용 기록 (이 항목)
+
+2026.02.02 (계속)
+    - 오픈소스 라이브러리 전략 확정 및 문서 반영
+        - 핵심 라이브러리 4개 확정
+            - Craft.js (페이지 빌더, MIT, Business 에디션)
+            - TipTap (리치 텍스트 에디터, MIT Core, Starter+)
+            - MeiliSearch (검색 엔진, MIT Community, Starter+)
+            - Sharp (이미지 처리, Apache-2.0, Starter+)
+        - 보조 라이브러리 확정
+            - 백엔드: BullMQ, @nestjs/schedule, @nestjs/throttler, isomorphic-dompurify, Nodemailer, SheetJS, archiver
+            - 프론트: @tanstack/react-table, date-fns, @dnd-kit, react-resizable-panels
+        - MeiliSearch 교체 가능성 분석 완료
+            - SearchEngine 인터페이스 패턴으로 설계 → 자체 검색엔진으로 100% 교체 가능
+        - 라이브러리 호환성 조사 완료
+            - Craft.js: React 19 지원 확인 (peer dep ^16.8 || ^17 || ^18 || ^19)
+            - TipTap: v3.15.x, React 19 Core 지원 확인
+            - Sharp: v0.34.x, Node.js 20.3.0+ 호환 확인
+            - @nestjs/throttler: v6.5.0, NestJS 11 호환 확인
+        - 문서 업데이트 완료
+            - project.md: 오픈소스 라이브러리 전략 섹션 추가 (핵심/보조 라이브러리, 통합 타이밍, MeiliSearch 교체 전략)
+            - backend.md: Section 6 오픈소스 라이브러리 섹션 추가 (Sharp, BullMQ, @nestjs/schedule, @nestjs/throttler, isomorphic-dompurify, MeiliSearch)
+            - frontend.md: 데이터/유틸리티 라이브러리 섹션 추가, 페이지 빌더 섹션에 Craft.js 추가, TipTap 섹션 분리
+            - architecture.md: 기술 스택 테이블에 Sharp, BullMQ, @nestjs/schedule, @nestjs/throttler, isomorphic-dompurify, MeiliSearch 추가
+    - 사내 발표용 기획 문서 작성 (기획내용.md)
+
 ### 다음 작업
-    - Admin 페이지 구조 설계 (고정 페이지 vs 동적 페이지)
-    - 로그인 페이지 구현 (React Hook Form + Zod + Shadcn/ui)
-    - AdminLayout (Sidebar + Header + 메인 영역)
-    - 대시보드 기본 페이지
-    - 백엔드 개발 7단계: 미디어 모듈 구현
+    - Phase A (Starter) 핵심 기능 구현 계속
+        - 즉시 통합: Sharp (Media 모듈), @nestjs/throttler, @nestjs/schedule, isomorphic-dompurify
+        - 프론트: @tanstack/react-table, date-fns 설치 후 목록 페이지 구현
+        - 콘텐츠 타입 관리 페이지 구현 (목록/생성/수정/삭제)
+        - 콘텐츠 관리 페이지 구현 (동적 폼 + TipTap richtext)
+        - 미디어 관리 페이지 구현
+        - 대시보드 페이지 실제 구현
 

@@ -19,6 +19,18 @@
 - **Layered Architecture**: Controller → Service → Repository (Prisma)
 - **Dependency Injection**: NestJS IoC 컨테이너 활용
 - **Module-based Design**: 기능별 독립 모듈
+- **Edition-aware Architecture**: 환경변수 `CMS_EDITION`(`starter`|`business`|`enterprise`)에 따라 모듈 활성화/비활성화
+
+### 에디션별 모듈 구성
+
+| 모듈 | Starter | Business | Enterprise |
+|------|:-------:|:--------:|:----------:|
+| Auth, ContentType, Content, Media, Role | ✅ | ✅ | ✅ |
+| Page, Template, Component (페이지 빌더) | ❌ | ✅ | ✅ |
+| Workflow, InternalComment | ❌ | ❌ | ✅ |
+| AuditLog Dashboard, SSO, MultiSite | ❌ | ❌ | ✅ |
+
+에디션별 모듈 분기는 `AppModule`에서 `CMS_EDITION` 값을 확인하여 조건부로 import 합니다.
 
 ---
 
@@ -35,6 +47,12 @@
 | **비밀번호 암호화** | bcrypt | - | 해시 암호화 |
 | **검증** | class-validator | - | DTO 검증 |
 | **문서화** | Swagger | 11.x | API 문서 자동 생성 |
+| **이미지 처리** | Sharp | 0.34.x | 리사이즈, WebP 변환, 썸네일 |
+| **작업 큐** | BullMQ | 11.x | 비동기 작업 (Redis 필요) |
+| **크론** | @nestjs/schedule | 6.x | 예약 발행, 자동 정리 |
+| **Rate Limit** | @nestjs/throttler | 6.5.x | API 요청 제한 |
+| **HTML 정제** | isomorphic-dompurify | 2.x | XSS 방지 |
+| **검색** | MeiliSearch | 1.19.x | 콘텐츠 검색 (교체 가능) |
 
 ---
 
@@ -372,6 +390,7 @@ AppModule (루트)
   - `.env` 파일 로드
   - 환경 변수 타입 검증
   - 구조화된 설정 제공
+  - `CMS_EDITION` 환경변수 관리 (에디션별 기능 분기의 기준)
 
 #### 2. PrismaModule
 - **역할**: 데이터베이스 연결 관리
@@ -457,17 +476,33 @@ origin: [
 
 ---
 
-## 향후 개발 예정 (Stage 6+)
+## 향후 개발 예정 (Phase별)
 
-- [ ] Content 모듈 (실제 콘텐츠 CRUD)
-- [ ] Media 모듈 (파일 업로드/관리)
-- [ ] Page 모듈 (페이지 빌더)
-- [ ] Role & Permission 모듈 (세밀한 권한 관리)
-- [ ] Workflow 모듈 (승인 시스템)
-- [ ] Notification 모듈 (알림)
-- [ ] Search 모듈 (검색)
-- [ ] Audit Log 모듈 (감사 로그)
-- [ ] GraphQL API (REST API와 병행)
+### Phase A — Starter/Business 핵심 기능
+
+- [ ] Content 모듈 (실제 콘텐츠 CRUD) `[Starter+]`
+- [ ] Media 모듈 (파일 업로드/관리) `[Starter+]`
+- [ ] Role & Permission 모듈 (세밀한 권한 관리) `[Starter+]`
+- [ ] Notification 모듈 (알림) `[Starter+]`
+- [ ] Search 모듈 (검색) `[Starter+]`
+- [ ] Page 모듈 (페이지 빌더) `[Business]`
+- [ ] Template 모듈 (페이지/콘텐츠 템플릿) `[Business]`
+- [ ] Component 모듈 (커스텀 컴포넌트) `[Business]`
+- [ ] GraphQL API (REST API와 병행) `[Starter+]`
+
+### Phase A+C — Enterprise 기능
+
+- [ ] Workflow 모듈 (콘텐츠 승인 시스템) `[Enterprise]`
+- [ ] InternalComment 모듈 (편집자 간 피드백) `[Enterprise]`
+- [ ] Audit Log Dashboard (감사 로그 강화) `[Enterprise]`
+- [ ] SSO 모듈 (SAML/OIDC 연동) `[Enterprise]`
+- [ ] MultiSite 모듈 (멀티사이트 운영) `[Enterprise]`
+- [ ] FieldPermission 모듈 (필드 레벨 권한) `[Enterprise]`
+- [ ] API Analytics 모듈 (API 사용량 분석) `[Enterprise]`
+
+### Phase B — 버티컬 SaaS (Phase A 완성 후 결정)
+
+- [ ] 산업 특화 모듈 (프랜차이즈/부동산/교육/의료 중 1개 선택)
 
 ---
 

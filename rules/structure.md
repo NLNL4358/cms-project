@@ -23,29 +23,28 @@ cms-project/
 ├── backend/                  # NestJS 백엔드
 │
 ├── frontend/
-│   └── packages/
-│       ├── admin/            # Admin Panel (React)
-│       ├── public/           # Public Site (React)
-│       └── shared/           # 프론트엔드 공유 코드
+│   ├── admin/                # Admin Panel (React, JavaScript)
+│   ├── user/                 # Public Site (React, 미구현) [Business+]
+│   └── shared/               # 프론트엔드 공유 코드 (현재 비어있음)
 │
 ├── packages/
 │   └── types/                # 백엔드-프론트엔드 공유 타입
 │
 ├── uploads/                  # 업로드 파일 저장소 (gitignore)
 │
-├── docs/                     # 추가 문서
+├── rules/                    # 프로젝트 규칙/기획 문서
+│   ├── project.md            # 프로젝트 기획 (에디션 전략 포함)
+│   ├── architecture.md       # 백엔드 아키텍처
+│   ├── backend.md            # 백엔드 기술 명세
+│   ├── frontend.md           # 프론트엔드 기술 명세
+│   ├── structure.md          # 폴더 구조 (이 파일)
+│   ├── code-style.md         # 코드 스타일 가이드
+│   ├── glossary.md           # 용어 정의
+│   ├── scenarios.md          # 시나리오
+│   ├── rules.md              # 개발 규칙
+│   ├── requirement.md        # 요구사항
+│   └── ai_log.md             # AI 작업 로그
 │
-├── rules/                    # 프로젝트 규칙 문서
-│   ├── project.md
-│   ├── glossary.md
-│   ├── scenarios.md
-│   ├── backend.md
-│   ├── frontend.md
-│   ├── structure.md
-│   ├── code-style.md
-│   └── ai_log.md
-│
-├── .env.example              # 환경 변수 예시
 ├── .gitignore
 ├── package.json              # 루트 package.json (워크스페이스)
 ├── pnpm-workspace.yaml       # pnpm 워크스페이스 설정
@@ -60,7 +59,7 @@ cms-project/
 # pnpm-workspace.yaml
 packages:
   - 'backend'
-  - 'frontend/packages/*'
+  - 'frontend/*'
   - 'packages/*'
 ```
 
@@ -91,25 +90,28 @@ backend/
 │   │   └── upload.config.ts
 │   │
 │   ├── modules/                    # 기능 모듈
-│   │   ├── auth/                   # 인증
-│   │   ├── users/                  # 사용자 (관리자 + 회원)
-│   │   ├── roles/                  # 역할/권한
-│   │   ├── content-types/          # 콘텐츠 타입 정의
-│   │   ├── contents/               # 콘텐츠 CRUD
-│   │   ├── pages/                  # 페이지 관리
-│   │   ├── media/                  # 미디어 관리
-│   │   ├── templates/              # 템플릿 관리
-│   │   ├── components/             # 컴포넌트 관리
-│   │   ├── workflow/               # 워크플로우
-│   │   ├── notifications/          # 알림
-│   │   ├── comments/               # 내부 댓글
-│   │   ├── audit-log/              # 감사 로그
-│   │   ├── backup/                 # 백업/복원
-│   │   ├── import-export/          # 가져오기/내보내기
-│   │   ├── trash/                  # 휴지통
-│   │   ├── search/                 # 검색
-│   │   ├── settings/               # 시스템 설정
-│   │   └── webhooks/               # 웹훅
+│   │   ├── auth/                   # 인증 [Starter+]
+│   │   ├── users/                  # 사용자 (관리자 + 회원) [Starter+]
+│   │   ├── roles/                  # 역할/권한 [Starter+]
+│   │   ├── content-types/          # 콘텐츠 타입 정의 [Starter+]
+│   │   ├── contents/               # 콘텐츠 CRUD [Starter+]
+│   │   ├── media/                  # 미디어 관리 [Starter+]
+│   │   ├── notifications/          # 알림 [Starter+]
+│   │   ├── audit-log/              # 감사 로그 (기본) [Starter+]
+│   │   ├── backup/                 # 백업/복원 [Starter+]
+│   │   ├── import-export/          # 가져오기/내보내기 [Starter+]
+│   │   ├── trash/                  # 휴지통 [Starter+]
+│   │   ├── search/                 # 검색 [Starter+]
+│   │   ├── settings/               # 시스템 설정 [Starter+]
+│   │   ├── webhooks/               # 웹훅 [Starter+]
+│   │   ├── pages/                  # 페이지 관리 [Business]
+│   │   ├── templates/              # 템플릿 관리 [Business]
+│   │   ├── components/             # 컴포넌트 관리 [Business]
+│   │   ├── workflow/               # 승인 워크플로우 [Enterprise]
+│   │   ├── internal-comment/       # 내부 댓글/메모 [Enterprise]
+│   │   ├── sso/                    # SSO 연동 [Enterprise]
+│   │   ├── multi-site/             # 멀티사이트 [Enterprise]
+│   │   └── api-analytics/          # API 분석 [Enterprise]
 │   │
 │   └── database/                   # 데이터베이스
 │       └── prisma/
@@ -199,236 +201,116 @@ modules/content-types/
 
 ## 3. 프론트엔드 구조
 
-### Admin Panel
+### Admin Panel (현재 구현 상태 반영)
+
+> JavaScript 사용 (.jsx), TypeScript 아님. React Compiler + Context Provider 패턴.
 
 ```
-frontend/packages/admin/
+frontend/admin/
 ├── src/
-│   ├── main.tsx                    # 진입점
-│   ├── App.tsx                     # 루트 컴포넌트
+│   ├── main.jsx                    # 진입점 (Provider 중첩: Query > Router > Popup > API > User > Global)
+│   ├── App.jsx                     # 루트 컴포넌트 (라우팅 설정)
 │   │
-│   ├── app/                        # 앱 설정
-│   │   ├── router.tsx              # 라우터 설정
-│   │   └── providers.tsx           # Provider 래퍼
+│   ├── Providers/                  # Context Providers (useState 기반)
+│   │   ├── PopupContext.jsx        # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
+│   │   ├── APIContext.jsx          # Axios 인스턴스 + 인터셉터 (tokenRef + popupRef 패턴)
+│   │   ├── UserContext.jsx         # 인증 상태 (login, logout, refresh, localStorage persist)
+│   │   └── GlobalContext.jsx       # 전역 서버 데이터 (contentTypes, isMobile, sidebarOpen)
 │   │
-│   ├── pages/                      # 페이지 컴포넌트
-│   │   ├── auth/
-│   │   │   ├── LoginPage.tsx
-│   │   │   └── ForgotPasswordPage.tsx
-│   │   ├── dashboard/
-│   │   │   └── DashboardPage.tsx
-│   │   ├── content/
-│   │   │   ├── ContentListPage.tsx
-│   │   │   └── ContentEditPage.tsx
-│   │   ├── content-type/
-│   │   │   ├── ContentTypeListPage.tsx
-│   │   │   └── ContentTypeEditPage.tsx
-│   │   ├── page-builder/
-│   │   │   └── PageBuilderPage.tsx
-│   │   ├── media/
-│   │   │   └── MediaPage.tsx
-│   │   ├── members/
-│   │   │   └── MemberListPage.tsx
-│   │   ├── admins/
-│   │   │   └── AdminListPage.tsx
-│   │   ├── roles/
-│   │   │   └── RoleListPage.tsx
-│   │   ├── settings/
-│   │   │   ├── GeneralSettingsPage.tsx
-│   │   │   ├── LanguageSettingsPage.tsx
-│   │   │   └── WebhookSettingsPage.tsx
-│   │   └── error/
-│   │       ├── NotFoundPage.tsx
-│   │       └── UnauthorizedPage.tsx
+│   ├── Pages/                      # 페이지 컴포넌트
+│   │   ├── System/
+│   │   │   └── Login.jsx           # 로그인 (구현 완료)
+│   │   ├── Router/                 # 섹션별 라우터 (Outlet 래퍼)
+│   │   │   ├── ContentTypeRouter.jsx
+│   │   │   ├── ContentRouter.jsx
+│   │   │   ├── MediaRouter.jsx
+│   │   │   └── RoleRouter.jsx
+│   │   ├── Dashboard/
+│   │   │   └── Dashboard.jsx       # 대시보드 (플레이스홀더)
+│   │   ├── ContentType/
+│   │   │   └── ContentTypeList.jsx # 콘텐츠 타입 목록 (플레이스홀더)
+│   │   ├── Content/
+│   │   │   └── ContentList.jsx     # 콘텐츠 목록 (플레이스홀더)
+│   │   ├── Media/
+│   │   │   └── MediaList.jsx       # 미디어 (플레이스홀더)
+│   │   └── Role/
+│   │       └── RoleList.jsx        # 역할 관리 (플레이스홀더)
 │   │
-│   ├── features/                   # 기능별 모듈
-│   │   ├── auth/
-│   │   │   ├── api/
-│   │   │   │   └── auth.api.ts
-│   │   │   ├── hooks/
-│   │   │   │   └── useAuth.ts
-│   │   │   ├── components/
-│   │   │   │   ├── LoginForm.tsx
-│   │   │   │   └── AuthGuard.tsx
-│   │   │   └── index.ts
-│   │   │
-│   │   ├── content/
-│   │   │   ├── api/
-│   │   │   │   └── content.api.ts
-│   │   │   ├── hooks/
-│   │   │   │   ├── useContents.ts
-│   │   │   │   └── useContentMutation.ts
-│   │   │   ├── components/
-│   │   │   │   ├── ContentList.tsx
-│   │   │   │   ├── ContentForm.tsx
-│   │   │   │   └── DynamicForm.tsx
-│   │   │   ├── types/
-│   │   │   │   └── content.types.ts
-│   │   │   └── index.ts
-│   │   │
-│   │   ├── content-type/
-│   │   │   ├── api/
-│   │   │   ├── hooks/
-│   │   │   ├── components/
-│   │   │   │   ├── ContentTypeList.tsx
-│   │   │   │   ├── ContentTypeForm.tsx
-│   │   │   │   └── FieldEditor.tsx
-│   │   │   └── index.ts
-│   │   │
-│   │   ├── page-builder/
-│   │   │   ├── api/
-│   │   │   ├── hooks/
-│   │   │   ├── stores/
-│   │   │   │   └── page-builder.store.ts
-│   │   │   ├── components/
-│   │   │   │   ├── Canvas.tsx
-│   │   │   │   ├── ComponentPalette.tsx
-│   │   │   │   ├── PropertiesPanel.tsx
-│   │   │   │   ├── LayersPanel.tsx
-│   │   │   │   └── preview/
-│   │   │   │       └── PreviewFrame.tsx
-│   │   │   ├── registry/
-│   │   │   │   ├── index.ts
-│   │   │   │   └── components/
-│   │   │   │       ├── Text/
-│   │   │   │       ├── Image/
-│   │   │   │       ├── Container/
-│   │   │   │       └── ...
-│   │   │   └── index.ts
-│   │   │
-│   │   ├── media/
-│   │   │   ├── api/
-│   │   │   ├── hooks/
-│   │   │   ├── components/
-│   │   │   │   ├── MediaLibrary.tsx
-│   │   │   │   ├── MediaUploader.tsx
-│   │   │   │   ├── FolderTree.tsx
-│   │   │   │   └── MediaPicker.tsx
-│   │   │   └── index.ts
-│   │   │
-│   │   └── ... (기타 features)
-│   │
-│   ├── components/                 # 공통 컴포넌트
-│   │   ├── ui/                     # shadcn/ui 컴포넌트
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── dialog.tsx
-│   │   │   ├── dropdown-menu.tsx
-│   │   │   ├── table.tsx
+│   ├── Components/                 # 공통 컴포넌트
+│   │   ├── features/
+│   │   │   └── AuthGuard.jsx       # 인증 가드 (라우트 보호)
+│   │   ├── layout/                 # 레이아웃 (구현 완료)
+│   │   │   ├── AdminLayout.jsx     # 관리자 레이아웃 (Sidebar + Header + Outlet)
+│   │   │   ├── AppSidebar.jsx      # 사이드바 (고정메뉴 + 동적 콘텐츠 메뉴)
+│   │   │   └── AppHeader.jsx       # 헤더 (브레드크럼 + 모바일 햄버거)
+│   │   ├── ui/                     # Shadcn/ui 컴포넌트 (25개)
+│   │   │   ├── button.jsx
+│   │   │   ├── input.jsx
+│   │   │   ├── dropdown-menu.jsx
 │   │   │   └── ...
-│   │   │
-│   │   ├── layout/                 # 레이아웃 컴포넌트
-│   │   │   ├── AdminLayout.tsx
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── Header.tsx
-│   │   │   └── Breadcrumb.tsx
-│   │   │
-│   │   ├── common/                 # 공통 UI
-│   │   │   ├── DataTable.tsx
-│   │   │   ├── Pagination.tsx
-│   │   │   ├── ConfirmDialog.tsx
-│   │   │   ├── SearchInput.tsx
-│   │   │   ├── EmptyState.tsx
-│   │   │   └── LoadingSpinner.tsx
-│   │   │
-│   │   └── editor/                 # 에디터 컴포넌트
-│   │       └── RichTextEditor.tsx
+│   │   └── common/                 # 공통 UI (예정)
 │   │
-│   ├── hooks/                      # 전역 커스텀 훅
-│   │   ├── useDebounce.ts
-│   │   ├── useUrlParams.ts
-│   │   └── usePermission.ts
-│   │
-│   ├── stores/                     # Zustand 스토어
-│   │   ├── auth.store.ts
-│   │   └── ui.store.ts
+│   ├── hooks/                      # 커스텀 훅
+│   │   └── use-mobile.js
 │   │
 │   ├── lib/                        # 유틸리티
-│   │   ├── axios.ts
-│   │   ├── query-client.ts
-│   │   ├── query-keys.ts
-│   │   ├── i18n.ts
-│   │   └── utils.ts
+│   │   ├── query-client.js         # TanStack Query 클라이언트 설정
+│   │   └── utils.js                # cn() 유틸리티 (Shadcn/ui)
 │   │
-│   ├── types/                      # TypeScript 타입
-│   │   ├── api.types.ts
-│   │   └── common.types.ts
+│   ├── Assets/                     # 정적 리소스
+│   │   ├── images/
+│   │   └── icons/
 │   │
-│   └── styles/                     # 전역 스타일
-│       └── globals.css
-│
-├── public/
-│   ├── locales/                    # 번역 파일
-│   │   ├── ko/
-│   │   │   ├── common.json
-│   │   │   └── ...
-│   │   └── en/
-│   │       ├── common.json
-│   │       └── ...
-│   └── favicon.ico
+│   └── CSS/                        # 스타일시트
+│       ├── index.css               # Tailwind + 레이아웃/사이드바/팝업 스타일
+│       └── reset.css               # CSS 리셋 + CSS 변수 정의
 │
 ├── index.html
-├── vite.config.ts
-├── tailwind.config.js
-├── tsconfig.json
-├── package.json
-└── components.json               # shadcn/ui 설정
+├── vite.config.js                  # Vite 설정 (alias + React Compiler)
+├── jsconfig.json                   # import alias (@/ → src/)
+├── components.json                 # Shadcn/ui 설정
+└── package.json
 ```
 
-### Public Site
+### Public Site (User Site) `[Business+]` — 미구현
+
+> Business 에디션 이상에서만 제공. Phase A의 Business 에디션 개발 시 구현 예정.
 
 ```
-frontend/packages/public/
+frontend/user/
 ├── src/
-│   ├── main.tsx
-│   ├── App.tsx
+│   ├── main.jsx
+│   ├── App.jsx
 │   │
-│   ├── app/
-│   │   ├── router.tsx
-│   │   └── providers.tsx
-│   │
-│   ├── pages/
-│   │   ├── HomePage.tsx
-│   │   ├── DynamicPage.tsx         # 동적 페이지 렌더러
+│   ├── pages/                      # 페이지 컴포넌트
+│   │   ├── HomePage.jsx
+│   │   ├── DynamicPage.jsx         # 동적 페이지 렌더러
 │   │   ├── auth/
-│   │   │   ├── LoginPage.tsx
-│   │   │   ├── RegisterPage.tsx
-│   │   │   └── ProfilePage.tsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── RegisterPage.jsx
+│   │   │   └── ProfilePage.jsx
 │   │   ├── search/
-│   │   │   └── SearchResultPage.tsx
+│   │   │   └── SearchResultPage.jsx
 │   │   └── error/
-│   │       └── NotFoundPage.tsx
-│   │
-│   ├── features/
-│   │   ├── auth/
-│   │   ├── content/
-│   │   └── search/
+│   │       └── NotFoundPage.jsx
 │   │
 │   ├── components/
 │   │   ├── ui/
 │   │   ├── layout/
-│   │   │   ├── PublicLayout.tsx
-│   │   │   ├── Header.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   └── Navigation.tsx
+│   │   │   ├── PublicLayout.jsx
+│   │   │   ├── Header.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   └── Navigation.jsx
 │   │   └── renderer/               # 페이지 렌더러
-│   │       ├── PageRenderer.tsx
+│   │       ├── PageRenderer.jsx
 │   │       └── components/
-│   │           ├── TextRenderer.tsx
-│   │           ├── ImageRenderer.tsx
-│   │           └── ...
 │   │
 │   ├── hooks/
-│   ├── stores/
 │   ├── lib/
-│   ├── types/
-│   └── styles/
+│   └── CSS/
 │
-├── public/
 ├── index.html
-├── vite.config.ts
-├── tailwind.config.js
-├── tsconfig.json
+├── vite.config.js
 └── package.json
 ```
 
@@ -436,20 +318,18 @@ frontend/packages/public/
 
 ## 4. 공유 패키지
 
-### 프론트엔드 공유 (shared)
+### 프론트엔드 공유 (shared) — 현재 미사용
+
+> workspace 패키지 간 참조가 복잡하여 현재는 사용하지 않음. 필요 시 재검토 예정.
 
 ```
-frontend/packages/shared/
+frontend/shared/
 ├── src/
 │   ├── components/                 # 공유 컴포넌트
-│   │   └── ...
 │   ├── hooks/                      # 공유 훅
-│   │   └── ...
 │   ├── utils/                      # 공유 유틸
-│   │   └── ...
-│   └── index.ts
+│   └── index.js
 │
-├── tsconfig.json
 └── package.json
 ```
 
@@ -561,16 +441,16 @@ export interface ContentType {
 | 인터셉터 | kebab-case + .interceptor | `logging.interceptor.ts` |
 | 데코레이터 | kebab-case + .decorator | `current-user.decorator.ts` |
 
-### 프론트엔드 (React)
+### 프론트엔드 (React, JavaScript)
 
 | 유형 | 네이밍 | 예시 |
 |------|--------|------|
-| 페이지 | PascalCase + Page | `ContentListPage.tsx` |
-| 컴포넌트 | PascalCase | `ContentCard.tsx` |
-| 훅 | camelCase (use 접두사) | `useContentMutation.ts` |
-| API 함수 | kebab-case + .api | `content.api.ts` |
-| 스토어 | kebab-case + .store | `auth.store.ts` |
-| 타입 | kebab-case + .types | `content.types.ts` |
+| 페이지 | PascalCase | `ContentList.jsx`, `Dashboard.jsx` |
+| 컴포넌트 | PascalCase | `ContentCard.jsx`, `AdminLayout.jsx` |
+| 훅 | camelCase (use 접두사) | `use-mobile.js` |
+| API 함수 | kebab-case + .api | `content.api.js` |
+| Provider | PascalCase + Context | `UserContext.jsx`, `APIContext.jsx` |
+| 유틸리티 | kebab-case | `query-client.js`, `utils.js` |
 
 ### 테스트 파일
 

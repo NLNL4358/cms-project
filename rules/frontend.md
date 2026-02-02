@@ -2,6 +2,10 @@
 
 이 문서는 CMS 프론트엔드의 기술적 구현 방향을 정의한다.
 
+> **에디션 표기**: `[Starter+]` `[Business]` `[Enterprise]` 태그는 해당 기능이 활성화되는 최소 에디션을 나타낸다.
+> 프론트엔드는 백엔드의 `/config/edition` API 또는 환경변수를 통해 현재 에디션을 확인하고,
+> 메뉴/라우트/UI를 에디션에 맞게 동적으로 제어한다.
+
 ---
 
 ## ⚠️ 핵심 아키텍처 결정사항
@@ -94,13 +98,28 @@
 
 > Shadcn/ui 컴포넌트는 node_modules가 아닌 프로젝트 코드(`src/components/ui/`)로 관리됩니다.
 
-### 페이지 빌더 관련
+### 데이터/유틸리티 라이브러리
 
-| 라이브러리                 | 용도               |
-| -------------------------- | ------------------ |
-| **@dnd-kit**               | 드래그 앤 드롭     |
-| **TipTap**                 | 리치 텍스트 에디터 |
-| **react-resizable-panels** | 패널 리사이즈      |
+| 라이브러리                | 용도                            | 라이선스 |
+| ------------------------- | ------------------------------- | -------- |
+| **@tanstack/react-table** | 데이터 테이블 (목록 페이지)     | MIT      |
+| **date-fns**              | 날짜 포매팅/파싱 (한국어 지원)  | MIT      |
+
+### 페이지 빌더 관련 `[Business]`
+
+| 라이브러리                 | 용도                  | 라이선스 |
+| -------------------------- | --------------------- | -------- |
+| **Craft.js**               | 페이지 빌더 엔진      | MIT      |
+| **@dnd-kit**               | 드래그 앤 드롭        | MIT      |
+| **react-resizable-panels** | 패널 리사이즈         | MIT      |
+
+### 리치 텍스트 에디터 `[Starter+]`
+
+| 라이브러리    | 용도                       | 라이선스    |
+| ------------- | -------------------------- | ----------- |
+| **TipTap**    | richtext 필드 에디터       | MIT (Core)  |
+
+> TipTap Core(무료, MIT)만 사용. Pro 확장(협업 편집, AI 등)은 현재 불필요.
 
 ---
 
@@ -127,27 +146,13 @@ frontend/
 admin/
 ├── src/
 │   ├── App.jsx                 # 루트 컴포넌트 (라우팅 설정)
-│   ├── main.jsx                # 앱 진입점 (Provider 중첩: Query > Router > API > User > Global)
-│   │
-│   ├── lib/                    # 유틸리티 모듈
-│   │   └── query-client.js     # TanStack Query 클라이언트 설정
+│   ├── main.jsx                # 앱 진입점 (Provider 중첩: Query > Router > Popup > API > User > Global)
 │   │
 │   ├── Providers/              # Context Providers (useState 기반)
-│   │   ├── PopupContext.jsx   # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
+│   │   ├── PopupContext.jsx    # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
 │   │   ├── APIContext.jsx      # Axios 인스턴스 + 인터셉터 (tokenRef + popupRef 패턴)
 │   │   ├── UserContext.jsx     # 인증 상태 (login, logout, refresh, localStorage persist)
-│   │   └── GlobalContext.jsx   # 전역 서버 데이터 (useQuery로 contentTypes 캐싱)
-│   │
-│   ├── hooks/                  # 커스텀 훅 (TanStack Query 래퍼)
-│   │
-│   ├── Pages/                  # 페이지 컴포넌트
-│   │   ├── System/             # 시스템 필수 페이지
-│   │   │   └── Login.jsx       # 로그인 페이지
-│   │   ├── Dashboard/          # 대시보드 (예정)
-│   │   ├── ContentType/        # 콘텐츠 타입 관리 (예정)
-│   │   ├── Content/            # 콘텐츠 관리 (예정)
-│   │   ├── Media/              # 미디어 관리 (예정)
-│   │   └── Role/               # 역할/권한 관리 (예정)
+│   │   └── GlobalContext.jsx   # 전역 서버 데이터 (contentTypes, isMobile, sidebarOpen)
 │   │
 │   ├── hooks/                  # 커스텀 훅
 │   │   └── use-mobile.js      # 모바일 감지 (Shadcn Sidebar 의존)
@@ -156,10 +161,27 @@ admin/
 │   │   ├── query-client.js     # TanStack Query 클라이언트 설정
 │   │   └── utils.js            # cn() 유틸리티 (Shadcn/ui)
 │   │
+│   ├── Pages/                  # 페이지 컴포넌트
+│   │   ├── System/             # 시스템 필수 페이지
+│   │   │   └── Login.jsx       # 로그인 페이지 (구현 완료)
+│   │   ├── Router/             # 섹션별 라우터 (Outlet 래퍼)
+│   │   │   ├── ContentTypeRouter.jsx
+│   │   │   ├── ContentRouter.jsx
+│   │   │   ├── MediaRouter.jsx
+│   │   │   └── RoleRouter.jsx
+│   │   ├── Dashboard/          # 대시보드 (플레이스홀더)
+│   │   ├── ContentType/        # 콘텐츠 타입 관리 (플레이스홀더)
+│   │   ├── Content/            # 콘텐츠 관리 (플레이스홀더)
+│   │   ├── Media/              # 미디어 관리 (플레이스홀더)
+│   │   └── Role/               # 역할/권한 관리 (플레이스홀더)
+│   │
 │   ├── Components/             # 공통 컴포넌트
 │   │   ├── features/           # 기능 컴포넌트
 │   │   │   └── AuthGuard.jsx   # 인증 가드 (라우트 보호)
-│   │   ├── layout/             # 레이아웃 컴포넌트 (예정)
+│   │   ├── layout/             # 레이아웃 컴포넌트 (구현 완료)
+│   │   │   ├── AdminLayout.jsx # 관리자 레이아웃 (Sidebar + Header + Outlet)
+│   │   │   ├── AppSidebar.jsx  # 사이드바 (고정메뉴 + 동적 콘텐츠 메뉴)
+│   │   │   └── AppHeader.jsx   # 헤더 (브레드크럼 + 모바일 햄버거)
 │   │   ├── ui/                 # Shadcn/ui 컴포넌트 (25개)
 │   │   └── common/             # 공통 컴포넌트 (예정)
 │   │
@@ -168,8 +190,8 @@ admin/
 │   │   └── icons/              # 아이콘 파일
 │   │
 │   └── CSS/                    # 스타일시트
-│       ├── index.css           # Tailwind + Shadcn CSS 변수 + 공통 스타일
-│       └── reset.css           # CSS 리셋
+│       ├── index.css           # Tailwind + Shadcn CSS 변수 + 레이아웃/사이드바/팝업 스타일
+│       └── reset.css           # CSS 리셋 + CSS 변수 정의
 │
 ├── index.html
 ├── vite.config.js              # Vite 설정 (alias + Tailwind 플러그인)
@@ -481,20 +503,35 @@ export function useUser() {
 - `useAPI()` 사용: 모든 API 요청을 APIProvider를 통해 수행
 - `tokenRef.current` 업데이트: APIProvider의 인터셉터가 최신 토큰 참조
 
-### GlobalContext 구현 (전역 서버 데이터)
+### GlobalContext 구현 (전역 서버 데이터 + 반응형 상태)
 
 ```javascript
 // src/Providers/GlobalContext.jsx
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAPI } from "./APIContext.jsx";
 import { useUser } from "./UserContext.jsx";
 
+const MOBILE_BREAKPOINT = 768;
 const GlobalContext = createContext();
 
 export function GlobalProvider({ children }) {
   const api = useAPI();
   const { user, accessToken } = useUser();
+
+  /** 반응형 — isMobile */
+  const [isMobile, setIsMobile] = useState(
+    () => window.innerWidth <= MOBILE_BREAKPOINT,
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  /** 사이드바 열림/닫힘 (모바일 전용) */
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  useEffect(() => { if (!isMobile) setSidebarOpen(false); }, [isMobile]);
 
   // 로그인된 사용자 + accessToken이 있을 때만 콘텐츠 타입 목록 조회
   const { data: contentTypes = [] } = useQuery({
@@ -504,7 +541,7 @@ export function GlobalProvider({ children }) {
   });
 
   return (
-    <GlobalContext.Provider value={{ contentTypes }}>
+    <GlobalContext.Provider value={{ contentTypes, isMobile, sidebarOpen, setSidebarOpen }}>
       {children}
     </GlobalContext.Provider>
   );
@@ -519,6 +556,8 @@ export function useGlobal() {
 - `useQuery`로 서버 데이터 캐싱
 - `enabled: !!user && !!accessToken`: user가 localStorage에 있어도 accessToken(메모리)이 없으면 API 호출 방지 → 새로고침 직후 401 에러 방지
 - `useAPI()`, `useUser()` 사용: APIProvider와 UserProvider에 의존
+- `isMobile`: 768px 이하 반응형 감지 (resize 이벤트)
+- `sidebarOpen` / `setSidebarOpen`: 모바일 사이드바 토글 (데스크톱 전환 시 자동 닫힘)
 
 ---
 
@@ -819,7 +858,7 @@ export function Header() {
 
 ## 6. 라우팅
 
-### 라우터 설정 (실제 구현)
+### 라우터 설정 (현재 구현)
 
 **App.jsx:**
 
@@ -827,7 +866,10 @@ export function Header() {
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthGuard } from "@/Components/features/AuthGuard.jsx";
+import AdminLayout from "@/Components/layout/AdminLayout.jsx";
 import Login from "@pages/System/Login.jsx";
+import Dashboard from "@pages/Dashboard/Dashboard.jsx";
+// ... 섹션별 라우터 및 플레이스홀더 페이지 import
 
 function App() {
   return (
@@ -835,51 +877,50 @@ function App() {
       {/* 공개 라우트 */}
       <Route path="/login" element={<Login />} />
 
-      {/* 보호된 라우트 - 로그인 필요 */}
-      <Route
-        path="/"
-        element={
-          <AuthGuard>
-            <div className="inner">대시보드 (로그인 성공!)</div>
-          </AuthGuard>
-        }
-      />
+      {/* 보호된 라우트 — AdminLayout (Sidebar + Header + Outlet) */}
+      <Route path="/" element={<AuthGuard><AdminLayout /></AuthGuard>}>
+        <Route index element={<Dashboard />} />
+        <Route path="content-types" element={<ContentTypeRouter />}>
+          <Route index element={<ContentTypeList />} />
+        </Route>
+        <Route path="contents/:contentTypeSlug" element={<ContentRouter />}>
+          <Route index element={<ContentList />} />
+        </Route>
+        <Route path="media" element={<MediaRouter />}>
+          <Route index element={<MediaList />} />
+        </Route>
+        <Route path="roles" element={<RoleRouter />}>
+          <Route index element={<RoleList />} />
+        </Route>
+      </Route>
 
-      {/* 기본 리다이렉트 */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-
-export default App;
 ```
 
 **라우팅 구조:**
 1. **공개 라우트**: `/login` - 로그인 페이지 (누구나 접근 가능)
-2. **보호된 라우트**: `/` - AuthGuard로 보호 (로그인 필수)
-3. **Catch-all**: `*` - 기타 모든 경로는 `/`로 리다이렉트
+2. **보호된 라우트**: `AuthGuard` + `AdminLayout`으로 감싸진 nested routes
+   - `/` - 대시보드
+   - `/content-types` - 콘텐츠 타입 관리
+   - `/contents/:contentTypeSlug` - 동적 콘텐츠 목록 (GlobalContext의 contentTypes 기반)
+   - `/media` - 미디어 관리
+   - `/roles` - 역할/권한 관리
+3. **Catch-all**: `*` → `/`로 리다이렉트
 
-**AuthGuard 동작 방식:**
-- `useUser()` 훅으로 로그인 상태 확인
-- 비로그인 시 `/login`으로 자동 리다이렉트
-- 로그인 시 자식 컴포넌트 렌더링
+**AdminLayout 구조:**
+- 헤더(AppHeader): 브레드크럼 + 모바일 햄버거 메뉴
+- 사이드바(AppSidebar): 고정 메뉴 + 동적 콘텐츠 메뉴 (contentTypes에서 생성)
+- 메인 콘텐츠: `<Outlet />`으로 자식 라우트 렌더링
+- 모바일: 사이드바가 오른쪽 오버레이로 표시 (GlobalContext의 isMobile/sidebarOpen 제어)
 
-**향후 확장 예정:**
-```javascript
-<Routes>
-  <Route path="/login" element={<Login />} />
-
-  <Route element={<AuthGuard><AdminLayout /></AuthGuard>}>
-    <Route path="/" element={<Dashboard />} />
-    <Route path="/content-types" element={<ContentTypeList />} />
-    <Route path="/contents/:type" element={<ContentList />} />
-    <Route path="/media" element={<MediaManager />} />
-    <Route path="/roles" element={<RoleManager />} />
-  </Route>
-
-  <Route path="*" element={<NotFoundPage />} />
-</Routes>
-```
+**에디션별 라우트 제어 (향후):**
+에디션에 따라 메뉴와 라우트를 동적으로 표시/숨김:
+- `Starter`: 대시보드, 콘텐츠 타입, 콘텐츠, 미디어, 역할/권한
+- `Business`: + 페이지 관리, 템플릿, 컴포넌트
+- `Enterprise`: + 워크플로우, 감사 로그 대시보드, 멀티사이트
 
 ### URL 상태 관리
 
@@ -1599,13 +1640,17 @@ VITE_APP_NAME=CMS Admin
 VITE_PUBLIC_URL=http://localhost:5173
 ```
 
+> **Note:** 에디션 정보는 프론트엔드 환경변수가 아닌, 백엔드 API(`/config/edition`)를 통해 확인합니다.
+> 프론트엔드는 이 정보를 GlobalContext에서 캐싱하여 메뉴/라우트 제어에 활용합니다.
+
 ---
 
 ## 참고 문서
 
 - [React 공식 문서](https://react.dev)
 - [TanStack Query](https://tanstack.com/query/latest)
-- [Zustand](https://zustand-demo.pmnd.rs/)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [dnd-kit](https://dndkit.com/)
 - [TipTap Editor](https://tiptap.dev/)
+- [프로젝트 기획서](./project.md)
+- [백엔드 아키텍처](./architecture.md)

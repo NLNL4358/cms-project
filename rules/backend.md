@@ -2,6 +2,10 @@
 
 이 문서는 백엔드 구현에 필요한 기술적 세부 사항을 정의한다.
 
+> **에디션 표기**: 기능/모듈 옆의 `[Starter+]` `[Business]` `[Enterprise]` 태그는
+> 해당 기능이 활성화되는 최소 에디션을 나타낸다.
+> 환경변수 `CMS_EDITION` (`starter` | `business` | `enterprise`)으로 제어한다.
+
 ---
 
 ## 1. 인증/보안 (Authentication & Security)
@@ -580,12 +584,114 @@ uploads/
 
 ---
 
-## 6. 캐싱 및 성능 (Caching & Performance)
+## 6. 오픈소스 라이브러리 (백엔드)
 
-### 6.1 캐싱 전략
+### 6.1 이미지 처리 — Sharp `[Starter+]`
+
+| 항목 | 내용 |
+|------|------|
+| 버전 | 0.34.x |
+| 라이선스 | Apache-2.0 |
+| 용도 | Media 모듈 이미지 처리 파이프라인 |
+
+**처리 흐름:**
+```
+업로드 → 유효성 검사 → 원본 저장 → Sharp 파이프라인 → DB 저장
+                                      ├── 썸네일 생성 (sm/md/lg)
+                                      ├── WebP 변환
+                                      └── 메타데이터 추출
+```
+
+### 6.2 비동기 작업 큐 — BullMQ `[Starter+]`
+
+| 항목 | 내용 |
+|------|------|
+| 버전 | 11.x |
+| 라이선스 | MIT |
+| NestJS 연동 | @nestjs/bullmq |
+| 요구사항 | Redis 6.2.0+ |
+
+**큐 대상 작업:**
+- 이미지 리사이즈/변환 (Sharp 비동기 처리)
+- 예약 발행 실행
+- Webhook 발송 (실패 시 재시도)
+- Import/Export 대량 처리
+
+### 6.3 크론 작업 — @nestjs/schedule `[Starter+]`
+
+| 항목 | 내용 |
+|------|------|
+| 버전 | 6.x |
+| 라이선스 | MIT |
+| 유지보수 | NestJS 공식 패키지 |
+
+**크론 대상:**
+- 예약 발행 체크 (1분 간격)
+- 휴지통 자동 비우기 (일간)
+- 자동 백업 (설정에 따라 일간/주간)
+- 임시 파일 정리
+
+### 6.4 Rate Limiting — @nestjs/throttler `[Starter+]`
+
+| 항목 | 내용 |
+|------|------|
+| 버전 | 6.5.x |
+| 라이선스 | MIT |
+
+| API 유형 | 제한 |
+|----------|------|
+| Public API | 100 요청/분 |
+| Admin API | 300 요청/분 |
+| 로그인 시도 | 5회/분 (실패 시) |
+
+### 6.5 HTML Sanitize — isomorphic-dompurify `[Starter+]`
+
+| 항목 | 내용 |
+|------|------|
+| 버전 | 2.x |
+| 라이선스 | MIT |
+| 용도 | richtext 필드 저장 시 XSS 방지 |
+
+TipTap 에디터에서 입력된 HTML을 DB에 저장하기 전 서버에서 sanitize 처리.
+User Site에서 `dangerouslySetInnerHTML`로 렌더링하므로 필수.
+
+### 6.6 검색 엔진 — MeiliSearch `[Starter+]`
+
+| 항목 | 내용 |
+|------|------|
+| 버전 | 1.19.x |
+| 라이선스 | MIT (Community) |
+| NestJS 연동 | nestjs-meilisearch |
+
+**SearchEngine 인터페이스 패턴**으로 추상화하여 설계한다.
+향후 자체 검색엔진으로 교체 시 구현체만 교체하면 된다.
+
+```typescript
+// search/interfaces/search-engine.interface.ts
+interface SearchEngine {
+  indexDocument(index: string, id: string, document: any): Promise<void>;
+  search(index: string, query: string, options?: SearchOptions): Promise<SearchResult>;
+  deleteDocument(index: string, id: string): Promise<void>;
+  createIndex(index: string, options?: IndexOptions): Promise<void>;
+}
+```
+
+### 6.7 기타 백엔드 라이브러리
+
+| 라이브러리 | 용도 | 라이선스 | 우선순위 |
+|-----------|------|---------|---------|
+| **Nodemailer** | 이메일 발송 (알림, 비밀번호 재설정) | MIT | 중간 |
+| **SheetJS (xlsx)** | CSV/Excel Import/Export | Apache-2.0 | 중간 |
+| **archiver** | 백업 ZIP 생성 | MIT | 낮음 |
+
+---
+
+## 7. 캐싱 및 성능 (Caching & Performance)
+
+### 7.1 캐싱 전략
 
 **초기 버전**: 인메모리 캐싱 (NestJS Cache Manager)
-**확장**: Redis (대규모 트래픽 시)
+**확장**: Redis (대규모 트래픽 시, BullMQ 도입과 함께)
 
 | 캐시 대상 | TTL | 무효화 시점 |
 |-----------|-----|-------------|
@@ -594,44 +700,61 @@ uploads/
 | 콘텐츠 타입 정의 | 1시간 | 수정 시 |
 | 페이지 | 10분 | 수정 시 |
 
-### 6.2 Rate Limiting
-
-| API 유형 | 제한 |
-|----------|------|
-| Public API | 100 요청/분 |
-| Admin API | 300 요청/분 |
-| 로그인 시도 | 5회/분 (실패 시) |
-
 ---
 
-## 7. NestJS 모듈 구조 (Module Structure)
+## 8. NestJS 모듈 구조 (Module Structure)
+
+### 에디션별 모듈 분기
+
+`AppModule`에서 `CMS_EDITION` 환경변수를 확인하여 조건부로 모듈을 import 한다.
+단일 코드베이스에서 에디션별로 기능 범위를 제어하는 방식이다.
+
+```typescript
+// app.module.ts (개념)
+const edition = process.env.CMS_EDITION || 'starter';
+
+const coreModules = [AuthModule, ContentTypeModule, ContentModule, MediaModule, RoleModule, ...];
+const businessModules = edition !== 'starter' ? [PageModule, TemplateModule, ComponentModule] : [];
+const enterpriseModules = edition === 'enterprise' ? [WorkflowModule, InternalCommentModule, SsoModule, MultiSiteModule, ...] : [];
+
+@Module({ imports: [...coreModules, ...businessModules, ...enterpriseModules] })
+```
+
+### 모듈 목록
 
 ```
 src/
 ├── modules/
-│   ├── auth/           # 인증/인가
-│   ├── users/          # 사용자 관리
-│   ├── roles/          # 역할/권한
-│   ├── content-types/  # 콘텐츠 타입 정의
-│   ├── contents/       # 콘텐츠 CRUD
-│   ├── pages/          # 페이지 관리
-│   ├── media/          # 미디어 관리
-│   ├── notifications/  # 알림
-│   ├── audit/          # 감사 로그
-│   └── settings/       # 시스템 설정
+│   ├── auth/            # 인증/인가 [Starter+]
+│   ├── users/           # 사용자 관리 [Starter+]
+│   ├── roles/           # 역할/권한 [Starter+]
+│   ├── content-types/   # 콘텐츠 타입 정의 [Starter+]
+│   ├── contents/        # 콘텐츠 CRUD [Starter+]
+│   ├── media/           # 미디어 관리 [Starter+]
+│   ├── notifications/   # 알림 [Starter+]
+│   ├── audit/           # 감사 로그 (기본) [Starter+]
+│   ├── settings/        # 시스템 설정 [Starter+]
+│   ├── pages/           # 페이지 관리 [Business]
+│   ├── templates/       # 템플릿 관리 [Business]
+│   ├── components/      # 컴포넌트 관리 [Business]
+│   ├── workflow/        # 승인 워크플로우 [Enterprise]
+│   ├── internal-comment/# 내부 댓글/메모 [Enterprise]
+│   ├── sso/             # SSO 연동 [Enterprise]
+│   ├── multi-site/      # 멀티사이트 [Enterprise]
+│   └── api-analytics/   # API 분석 [Enterprise]
 ├── common/
-│   ├── guards/         # 인증/권한 Guard
-│   ├── decorators/     # 커스텀 데코레이터
-│   ├── filters/        # 예외 필터
-│   ├── interceptors/   # 인터셉터
-│   └── pipes/          # 유효성 검사 Pipe
-├── config/             # 설정 파일
-└── prisma/             # Prisma 스키마
+│   ├── guards/          # 인증/권한 Guard
+│   ├── decorators/      # 커스텀 데코레이터
+│   ├── filters/         # 예외 필터
+│   ├── interceptors/    # 인터셉터
+│   └── pipes/           # 유효성 검사 Pipe
+├── config/              # 설정 파일
+└── prisma/              # Prisma 스키마
 ```
 
 ---
 
-## 8. 에러 코드 (Error Codes)
+## 9. 에러 코드 (Error Codes)
 
 | 코드 | HTTP | 설명 |
 |------|------|------|
@@ -645,12 +768,15 @@ src/
 
 ---
 
-## 9. 환경 변수 (Environment Variables)
+## 10. 환경 변수 (Environment Variables)
 
 ```env
 # 서버
 PORT=3000
 NODE_ENV=development
+
+# 에디션 (starter | business | enterprise)
+CMS_EDITION=starter
 
 # 데이터베이스
 DATABASE_URL=postgresql://user:password@localhost:5432/cms
@@ -668,3 +794,13 @@ MAX_FILE_SIZE=52428800
 # 캐시 (선택)
 REDIS_URL=redis://localhost:6379
 ```
+
+### 에디션별 환경변수 설명
+
+| 변수 | 값 | 설명 |
+|------|------|------|
+| `CMS_EDITION` | `starter` | Headless CMS (API + Admin Panel) |
+| | `business` | + User Site + Page Builder |
+| | `enterprise` | + Workflow, SSO, MultiSite 등 |
+
+에디션은 **상위 호환**: `enterprise`는 `business`의 모든 기능을 포함하고, `business`는 `starter`의 모든 기능을 포함한다.
