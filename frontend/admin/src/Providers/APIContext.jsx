@@ -9,6 +9,7 @@
  */
 import React, { createContext, useContext, useEffect, createRef } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 
 import { usePopup } from "./PopupContext";
 
@@ -84,6 +85,24 @@ instance.interceptors.response.use(
         window.location.href = "/login";
         return Promise.reject(error);
       }
+    }
+
+    // 에러 유형별 toast 알림
+    if (!error.response) {
+      // 네트워크 에러 — 서버 자체에 도달 불가
+      toast.error("서버에 연결할 수 없습니다.", {
+        description: "백엔드 서버가 실행 중인지 확인해주세요.",
+      });
+    } else if (error.response.status === 403) {
+      toast.error("접근 권한이 없습니다.");
+    } else if (error.response.status === 429) {
+      toast.error("요청이 너무 많습니다.", {
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } else if (error.response.status >= 500) {
+      toast.error("서버 오류가 발생했습니다.", {
+        description: error.response.data?.message || "잠시 후 다시 시도해주세요.",
+      });
     }
 
     // 에러 응답: 로딩 스피너 숨김

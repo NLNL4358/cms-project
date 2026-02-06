@@ -8,6 +8,7 @@ import { APIProvider } from '@/Providers/APIContext.jsx';
 import { GlobalProvider } from '@/Providers/GlobalContext.jsx';
 import { PopupProvider } from '@/Providers/PopupContext.jsx';
 
+import { Toaster } from '@/Components/ui/sonner.jsx';
 import App from './App.jsx';
 
 createRoot(document.getElementById('root')).render(
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
                     <UserProvider>
                         <GlobalProvider>
                             <App />
+                            <Toaster position="top-right" richColors />
                         </GlobalProvider>
                     </UserProvider>
                 </APIProvider>
