@@ -54,6 +54,9 @@ uploads/
 # IntelliJ / WebStorm
 .idea/
 
+# Claude Code
+.claude/
+
 # VS Code - 선택적 (팀 설정 공유 시 일부 파일 포함 가능)
 .vscode/*
 !.vscode/settings.json
