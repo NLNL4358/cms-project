@@ -26,77 +26,6 @@
     position: relative;
 }
 
-/** Popup */
-.popupOuter {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    z-index: +1000;
-
-    opacity: 0;
-    background-color: transparent;
-    pointer-events: none;
-    transition: 0.2s;
-}
-.popupOuter.true {
-    opacity: 1;
-    background-color: rgba(0, 0, 0, 0.5);
-    pointer-events: auto;
-    backdrop-filter: blur(2px);
-}
-.progressInner,
-.popupInner {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-
-    opacity: 0;
-    background-color: transparent;
-    pointer-events: none;
-    transition: 0.2s;
-}
-.progressInner.true,
-.popupInner.true {
-    opacity: 1;
-}
-.popupInner {
-    z-index: +1;
-
-    max-width: 95%;
-    min-width: 100px;
-    max-height: 95%;
-    min-height: 100px;
-
-    overflow: auto;
-    background-color: white;
-    border-radius: 1.5rem;
-}
-.progressInner {
-    z-index: +10;
-}
-.progressInner .progress {
-    animation: progressRoll;
-    animation-duration: 0.5s;
-    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    animation-iteration-count: infinite;
-}
-@keyframes progressRoll {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
 .loginCard {
     padding: 20px;
 }
@@ -126,7 +55,6 @@
 .sidebar {
     width: 240px;
     min-width: 240px;
-    height: 100%;
     min-height: calc(100vh - var(--header-height));
     display: flex;
     flex-direction: column;
@@ -417,4 +345,32 @@
     width: 24px;
     height: 24px;
     color: var(--text-basic-color);
+}
+
+/* ===== 페이지 ====== */
+.pageInner {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
+    padding: 1%;
+    border-radius: 1rem;
+    background-color: white;
+}
+.pageHeadWrap {
+    margin-bottom: 20px;
+}
+.pageTitle {
+}
+.pageHead {
+}
+.pageDescription {
+    color: var(--text-sub1-color);
+    text-wrap: wrap;
+    position: relative;
+}
+
+/* ===== 테이블 ====== */
+.tableInner {
+    width: 100%;
+    padding: 0px 10px;
 }

@@ -84,7 +84,7 @@ function Login() {
                                 {...register('email')}
                             />
                             {errors.email && (
-                                <p className="text-sm text-destructive">
+                                <p className="text-sm text-destructive helpText">
                                     {errors.email.message}
                                 </p>
                             )}
@@ -100,7 +100,7 @@ function Login() {
                                 {...register('password')}
                             />
                             {errors.password && (
-                                <p className="text-sm text-destructive">
+                                <p className="text-sm text-destructive helpText">
                                     {errors.password.message}
                                 </p>
                             )}

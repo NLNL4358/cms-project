@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -6,10 +5,13 @@ import { ko } from 'date-fns/locale';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
+import { usePopup } from '@/Providers/PopupContext';
+
 import { Button } from '@/Components/ui/Button.jsx';
 import { Badge } from '@/Components/ui/badge.jsx';
 import { DataTable } from '@/Components/common/DataTable.jsx';
-import { DeleteDialog } from '@/Components/common/DeleteDialog.jsx';
+import YesNoPopup from '@/Components/common/YesNoPopup';
+import AlertPopup from '@/Components/common/AlertPopup';
 
 /**
  * 콘텐츠 타입 목록 페이지
@@ -19,11 +21,9 @@ import { DeleteDialog } from '@/Components/common/DeleteDialog.jsx';
  */
 function ContentTypeList() {
     const api = useAPI();
+    const { makePopup, closePopup } = usePopup();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-
-    // 삭제 다이얼로그 상태
-    const [deleteTarget, setDeleteTarget] = useState(null);
 
     // 콘텐츠 타입 목록 조회
     const { data: contentTypes = [], isLoading } = useQuery({
@@ -35,24 +35,29 @@ function ContentTypeList() {
     const deleteMutation = useMutation({
         mutationFn: (id) => api.delete(`/content-types/${id}`),
         onSuccess: () => {
-            // 캐시 무효화 — 목록 + GlobalContext contentTypes 모두 갱신
             queryClient.invalidateQueries({ queryKey: ['content-types'] });
-            setDeleteTarget(null);
+            closePopup();
+            makePopup(
+                <AlertPopup
+                    title="삭제 완료"
+                    body={<p>콘텐츠 타입이 삭제되었습니다.</p>}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
         },
         onError: (error) => {
             const message =
                 error.response?.data?.message || '삭제에 실패했습니다';
-            alert(message);
-            setDeleteTarget(null);
+            closePopup();
+            makePopup(
+                <AlertPopup
+                    title="삭제 실패"
+                    body={<p>{message}</p>}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
         },
     });
-
-    // 삭제 확인 핸들러
-    const handleDeleteConfirm = () => {
-        if (deleteTarget) {
-            deleteMutation.mutate(deleteTarget.id);
-        }
-    };
 
     // 테이블 컬럼 정의
     const columns = [
@@ -91,79 +96,119 @@ function ContentTypeList() {
             ),
         },
         {
-            id: 'actions',
-            header: '',
+            id: 'edit',
+            header: '수정',
             cell: ({ row }) => (
-                <div className="flex items-center justify-end gap-1">
-                    {/* 편집 버튼 */}
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/content-types/${row.original.id}/edit`);
-                        }}
-                    >
-                        <Pencil className="size-4" />
-                    </Button>
-                    {/* 삭제 버튼 */}
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteTarget(row.original);
-                        }}
-                    >
-                        <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                </div>
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/content-types/${row.original.id}/edit`);
+                    }}
+                >
+                    <Pencil className="size-4" />
+                </Button>
+            ),
+        },
+        {
+            id: 'delete',
+            header: '삭제',
+            cell: ({ row }) => (
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        makePopup(
+                            <YesNoPopup
+                                title="콘텐츠 타입 삭제"
+                                body={
+                                    <>
+                                        <p>
+                                            {`"${row.original.name}" 콘텐츠 타입을 삭제하시겠습니까?`}
+                                        </p>
+                                        <p>
+                                            이 타입에 연결된 콘텐츠가 있으면
+                                            삭제할 수 없습니다.
+                                        </p>
+                                    </>
+                                }
+                                buttonText={{
+                                    left: '삭제',
+                                    right: '취소',
+                                }}
+                                buttonFunction={{
+                                    left: () =>
+                                        deleteMutation.mutate(row.original.id),
+                                    right: () => closePopup(),
+                                }}
+                            />,
+                        );
+                    }}
+                >
+                    <Trash2 className="size-4 text-destructive" />
+                </Button>
             ),
         },
     ];
 
+    // 테이블 컬럼의 길이와 align방향 colgroup
+    const colWidths = [
+        {
+            width: 'auto',
+        },
+        {
+            width: '15%',
+        },
+        {
+            width: '10%',
+        },
+        {
+            width: '15%',
+        },
+        {
+            width: '5%',
+            align: 'center',
+        },
+        {
+            width: '5%',
+            align: 'center',
+        },
+    ];
+
     return (
-        <div className="p-6">
+        <div className="pageInner">
             {/* 페이지 헤더 */}
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">콘텐츠 타입</h1>
-                    <p className="text-muted-foreground mt-1">
+            <div className="pageHeadWrap flex items-end justify-between">
+                <div className="pageTitle">
+                    <h2 className="pageHead">콘텐츠 타입</h2>
+                    <p className="pageDescription">
                         콘텐츠의 구조를 정의하는 타입을 관리합니다
                     </p>
                 </div>
-                <Button onClick={() => navigate('/content-types/new')}>
-                    <Plus className="size-4" />
-                    새 콘텐츠 타입
+                <Button
+                    className="contentPlus"
+                    onClick={() => navigate('/content-types/new')}
+                >
+                    <Plus className="size-5" />
+                    콘텐츠 타입 추가
                 </Button>
             </div>
 
             {/* 데이터 테이블 */}
-            <div className="border rounded-lg">
+            <div className="tableInner border rounded-lg">
                 <DataTable
                     columns={columns}
+                    colWidths={colWidths}
                     data={contentTypes}
                     isLoading={isLoading}
                     emptyMessage="등록된 콘텐츠 타입이 없습니다. 새 콘텐츠 타입을 생성해보세요."
-                    onRowClick={(row) => navigate(`/content-types/${row.id}/edit`)}
+                    onRowClick={(row) =>
+                        navigate(`/content-types/${row.id}/edit`)
+                    }
                 />
             </div>
-
-            {/* 삭제 확인 다이얼로그 */}
-            <DeleteDialog
-                open={!!deleteTarget}
-                onOpenChange={(open) => {
-                    if (!open) setDeleteTarget(null);
-                }}
-                title="콘텐츠 타입 삭제"
-                description={
-                    deleteTarget
-                        ? `"${deleteTarget.name}" 콘텐츠 타입을 삭제하시겠습니까? 이 타입에 연결된 콘텐츠가 있으면 삭제할 수 없습니다.`
-                        : ''
-                }
-                onConfirm={handleDeleteConfirm}
-                isLoading={deleteMutation.isPending}
-            />
         </div>
     );
 }

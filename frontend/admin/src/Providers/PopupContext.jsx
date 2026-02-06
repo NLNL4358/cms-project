@@ -11,19 +11,19 @@ const PopupContext = createContext();
 export function PopupProvider({ children }) {
     /** useState */
     const [popupSwitch, setPopupSwitch] = useState(false); // 팝업 스위치
-    const [popupContext, setPopupContext] = useState(<></>); // 팝업 내용
+    const [popupBody, setPopupBody] = useState(<></>); // 팝업 내용
 
     const [progressPopupSwitch, setProgressPopupSwitch] = useState(false); // 프로그레스 팝업
 
     /** Function */
     const makePopup = (element) => {
         setPopupSwitch(true);
-        setPopupContext(element);
+        setPopupBody(element);
     };
 
     const closePopup = () => {
         setPopupSwitch(false);
-        setPopupContext(<></>);
+        setPopupBody(<></>);
     };
 
     const makeProgressPopup = () => {
@@ -66,7 +66,7 @@ export function PopupProvider({ children }) {
                         <img className="progress" src={progressImg} alt="" />
                     </div>
                     <div className={`popupInner ${popupSwitch ? 'true' : ''}`}>
-                        {popupContext}
+                        {popupBody}
                     </div>
                 </div>
             </div>
