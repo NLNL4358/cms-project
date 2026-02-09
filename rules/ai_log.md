@@ -676,9 +676,72 @@ YYYY.MM.DD HH:MM
         - 빌드 & dev 서버: 백엔드/프론트엔드 모두 에러 없이 기동
     - [참고] 기존 콘텐츠 타입 2개(blog-post, product)의 fields가 구 포맷(객체)이라 프론트엔드 목록에서 "필드 수"가 0으로 표시됨 → 마이그레이션 필요
 
+2026.02.06
+    - 개발 환경 설정 (새 디바이스)
+        - PostgreSQL 17 설치 (Homebrew), postgres 사용자 및 cms_db 데이터베이스 생성
+        - Prisma db push + seed 실행 (15개 테이블 + 시드 데이터)
+        - backend/.env 복원 (PORT=3000, JWT 시크릿, MAX_FILE_SIZE=52428800)
+        - backend/.env.example 생성 (Git 추적용 환경변수 템플릿)
+        - .gitignore에 .claude/ 추가
+    - API 에러 toast 알림 구현
+        - Sonner Toaster 컴포넌트를 main.jsx에 추가
+        - APIContext.jsx 응답 인터셉터에 에러 유형별 toast 추가
+            - 네트워크 에러: "서버에 연결할 수 없습니다"
+            - 403: "접근 권한이 없습니다"
+            - 429: "요청이 너무 많습니다"
+            - 500+: "서버 오류가 발생했습니다"
+    - 콘텐츠 관리 페이지 구현 (Phase 1 완료)
+        - content-schema.js 신규 생성 (lib/)
+            - buildContentSchema(fields): ContentType.fields 배열을 받아 동적 Zod 스키마 생성
+            - 17개 필드 타입별 검증 (integer/decimal → z.coerce.number, email → .email(), json → JSON.parse 검증 등)
+            - required 여부에 따른 .optional() 적용
+        - DynamicField.jsx 신규 생성 (Components/features/)
+            - React Hook Form Controller로 폼 연결
+            - 17개 필드 타입별 UI 렌더러 (switch문)
+                - text/textarea → Input/Textarea
+                - integer/decimal → Input type="number"
+                - boolean → Switch 토글
+                - date/datetime → Input type="date"/"datetime-local"
+                - email/url → Input type="email"/"url"
+                - select → Select 드롭다운 (options 사용)
+                - color → 색상 선택기 + HEX 코드 입력
+                - json → 고정폭 Textarea
+                - richtext → Textarea (Phase 2에서 TipTap으로 교체 예정)
+                - image/file → 비활성 Input (미디어 관리 이후 사용 가능)
+        - ContentForm.jsx 신규 생성 (Pages/Content/)
+            - 생성/수정 모드 공용 (URL :id 유무로 판별)
+            - contentTypeSlug → GlobalContext에서 contentType 객체 해석
+            - useMemo로 동적 Zod 스키마 생성 (buildContentSchema)
+            - 제목 입력 시 고유주소 자동생성 (생성 모드만)
+            - 카드 2개: "기본 정보" (제목+고유주소) + "입력 항목" (DynamicField 순회)
+            - API: POST /contents (생성), PATCH /contents/:id (수정)
+        - ContentList.jsx 재작성 (플레이스홀더 → 완전 구현)
+            - 동적 컬럼: 고정 6개 + ContentType.fields 처음 2개 자동 추가
+            - 상태 배지: DRAFT→초안, REVIEW→검토중, PUBLISHED→발행됨, REJECTED→반려됨, ARCHIVED→보관됨
+            - 검색: 제목/고유주소 텍스트 검색 (Enter 또는 돋보기 클릭)
+            - 상태 필터: Select 드롭다운 (전체/초안/검토중/승인됨/발행됨/반려됨/보관됨)
+            - 서버 페이지네이션: 20건 단위, 이전/다음 버튼
+            - 삭제: YesNoPopup 확인 → DELETE → AlertPopup 결과 알림
+            - contentTypeSlug 변경 시 검색/필터/페이지 자동 초기화
+        - App.jsx 라우트 추가
+            - /contents/:contentTypeSlug/new → ContentForm (생성 모드)
+            - /contents/:contentTypeSlug/:id/edit → ContentForm (수정 모드)
+        - REST API + 시나리오 테스트 전체 통과
+            - ✅ 로그인 → 콘텐츠 생성 3건 → 목록 조회 (meta 포함)
+            - ✅ 검색 (키워드 매칭/미매칭), 상태 필터 (DRAFT/PUBLISHED)
+            - ✅ 단건 조회, 수정 (version 자동 증가), 삭제
+            - ✅ 프론트엔드 모듈 변환 (HTTP 200), 프로덕션 빌드 성공
+    - UI 용어 비개발자 친화적으로 변경
+        - 슬러그 → 고유주소 (ContentList, ContentForm, ContentTypeForm, ContentTypeList, content-schema.js)
+        - 필드 → 입력 항목 (ContentForm 카드 제목, ContentTypeForm 전체)
+        - 필드명 → 항목 이름, 레이블 → 표시 이름, 타입 → 종류
+        - 불리언 → 예/아니오, 필드 수 → 항목 수
+        - 코드 변수명/주석은 개발자용이므로 유지
+
 ### 다음 작업
     - 1단계 (Starter) 핵심 기능 구현 계속
-        - 콘텐츠 관리 페이지 구현 (동적 폼 + TipTap richtext)
+        - 콘텐츠 관리 Phase 2: TipTap 리치텍스트 에디터 통합
+        - 콘텐츠 관리 Phase 3: 상태 관리(발행/미발행) + 버전 히스토리 UI
         - 미디어 관리 페이지 구현
         - 대시보드 페이지 실제 구현
 
