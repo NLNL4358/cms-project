@@ -70,14 +70,14 @@ function ContentTypeList() {
         },
         {
             accessorKey: 'slug',
-            header: '슬러그',
+            header: '고유주소',
             cell: ({ row }) => (
                 <Badge variant="secondary">{row.original.slug}</Badge>
             ),
         },
         {
             id: 'fieldCount',
-            header: '필드 수',
+            header: '항목 수',
             cell: ({ row }) => {
                 const fields = row.original.fields;
                 const count = Array.isArray(fields) ? fields.length : 0;

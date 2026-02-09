@@ -33,7 +33,7 @@ const FIELD_TYPES = [
     { value: 'richtext', label: '리치 텍스트' },
     { value: 'integer', label: '정수' },
     { value: 'decimal', label: '소수' },
-    { value: 'boolean', label: '불리언' },
+    { value: 'boolean', label: '예/아니오' },
     { value: 'date', label: '날짜' },
     { value: 'datetime', label: '날짜/시간' },
     { value: 'email', label: '이메일' },
@@ -43,7 +43,7 @@ const FIELD_TYPES = [
     { value: 'image', label: '이미지' },
     { value: 'file', label: '파일' },
     { value: 'json', label: 'JSON' },
-    { value: 'slug', label: '슬러그' },
+    { value: 'slug', label: '고유주소' },
     { value: 'color', label: '색상' },
 ];
 
@@ -51,13 +51,13 @@ const FIELD_TYPES = [
 const fieldSchema = z.object({
     name: z
         .string()
-        .min(1, '필드명을 입력하세요')
+        .min(1, '항목 이름을 입력하세요')
         .regex(
             /^[a-zA-Z][a-zA-Z0-9_]*$/,
             '영문자로 시작, 영문/숫자/밑줄만 가능',
         ),
-    label: z.string().min(1, '레이블을 입력하세요'),
-    type: z.string().min(1, '타입을 선택하세요'),
+    label: z.string().min(1, '표시 이름을 입력하세요'),
+    type: z.string().min(1, '종류를 선택하세요'),
     required: z.boolean(),
 });
 
@@ -65,10 +65,10 @@ const contentTypeSchema = z.object({
     name: z.string().min(1, '이름을 입력하세요'),
     slug: z
         .string()
-        .min(1, '슬러그를 입력하세요')
+        .min(1, '고유주소를 입력하세요')
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, '소문자, 숫자, 하이픈만 가능'),
     description: z.string().optional(),
-    fields: z.array(fieldSchema).min(1, '최소 1개의 필드를 추가하세요'),
+    fields: z.array(fieldSchema).min(1, '최소 1개의 입력 항목을 추가하세요'),
 });
 
 /**
@@ -215,7 +215,7 @@ function ContentTypeForm() {
                     </h1>
                     <p className="text-muted-foreground mt-1">
                         {isEdit
-                            ? '콘텐츠 타입의 정보와 필드를 수정합니다'
+                            ? '콘텐츠 타입의 정보와 입력 항목을 수정합니다'
                             : '콘텐츠의 구조를 정의하는 새 타입을 생성합니다'}
                     </p>
                 </div>
@@ -246,10 +246,10 @@ function ContentTypeForm() {
                             )}
                         </div>
 
-                        {/* 슬러그 */}
+                        {/* 고유주소 */}
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="slug">
-                                슬러그{' '}
+                                고유주소{' '}
                                 <span className="text-destructive">*</span>
                             </Label>
                             <Input
@@ -282,10 +282,10 @@ function ContentTypeForm() {
                     </CardContent>
                 </Card>
 
-                {/* 필드 정의 카드 */}
+                {/* 입력 항목 정의 카드 */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>필드 정의</CardTitle>
+                        <CardTitle>입력 항목 정의</CardTitle>
                         <Button
                             type="button"
                             variant="outline"
@@ -300,7 +300,7 @@ function ContentTypeForm() {
                             }
                         >
                             <Plus className="size-4" />
-                            필드 추가
+                            항목 추가
                         </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -317,8 +317,8 @@ function ContentTypeForm() {
 
                         {formFields.length === 0 && (
                             <p className="text-sm text-muted-foreground text-center py-8">
-                                필드가 없습니다. &quot;필드 추가&quot; 버튼을
-                                클릭하여 필드를 추가하세요.
+                                입력 항목이 없습니다. &quot;항목 추가&quot;
+                                버튼을 클릭하여 추가하세요.
                             </p>
                         )}
 
@@ -329,7 +329,7 @@ function ContentTypeForm() {
                             >
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-muted-foreground">
-                                        필드 {index + 1}
+                                        항목 {index + 1}
                                     </span>
                                     <Button
                                         type="button"
@@ -342,12 +342,12 @@ function ContentTypeForm() {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
-                                    {/* 필드명 */}
+                                    {/* 항목 이름 */}
                                     <div className="flex flex-col gap-1.5">
                                         <Label
                                             htmlFor={`fields.${index}.name`}
                                         >
-                                            필드명 (영문)
+                                            항목 이름 (영문)
                                         </Label>
                                         <Input
                                             id={`fields.${index}.name`}
@@ -366,12 +366,12 @@ function ContentTypeForm() {
                                         )}
                                     </div>
 
-                                    {/* 레이블 */}
+                                    {/* 표시 이름 */}
                                     <div className="flex flex-col gap-1.5">
                                         <Label
                                             htmlFor={`fields.${index}.label`}
                                         >
-                                            레이블
+                                            표시 이름
                                         </Label>
                                         <Input
                                             id={`fields.${index}.label`}
@@ -394,7 +394,7 @@ function ContentTypeForm() {
                                 <div className="grid grid-cols-2 gap-3 items-end">
                                     {/* 타입 */}
                                     <div className="flex flex-col gap-1.5">
-                                        <Label>타입</Label>
+                                        <Label>종류</Label>
                                         <Controller
                                             control={control}
                                             name={`fields.${index}.type`}
@@ -404,7 +404,7 @@ function ContentTypeForm() {
                                                     onValueChange={f.onChange}
                                                 >
                                                     <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="타입 선택" />
+                                                        <SelectValue placeholder="종류 선택" />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {FIELD_TYPES.map(

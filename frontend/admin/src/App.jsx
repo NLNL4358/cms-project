@@ -8,6 +8,7 @@ import Dashboard from '@pages/Dashboard/Dashboard.jsx';
 import ContentTypeList from '@pages/ContentType/ContentTypeList.jsx';
 import ContentTypeForm from '@pages/ContentType/ContentTypeForm.jsx';
 import ContentList from '@pages/Content/ContentList.jsx';
+import ContentForm from '@pages/Content/ContentForm.jsx';
 import MediaList from '@pages/Media/MediaList.jsx';
 import RoleList from '@pages/Role/RoleList.jsx';
 
@@ -50,6 +51,8 @@ function App() {
                     element={<ContentRouter />}
                 >
                     <Route index element={<ContentList />} />
+                    <Route path="new" element={<ContentForm />} />
+                    <Route path=":id/edit" element={<ContentForm />} />
                 </Route>
 
                 <Route path="media" element={<MediaRouter />}>
