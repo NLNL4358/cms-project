@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/Select.jsx';
+import RichTextEditor from '@/Components/features/RichTextEditor.jsx';
 
 /**
  * @param {Object} props
@@ -71,13 +72,11 @@ function renderField(field, fieldDef) {
             );
 
         case 'richtext':
-            // Phase 2에서 TipTap으로 교체 예정
             return (
-                <Textarea
-                    {...field}
+                <RichTextEditor
                     value={field.value ?? ''}
-                    placeholder={`${label} 입력 (리치 텍스트 에디터 추후 지원)`}
-                    rows={8}
+                    onChange={field.onChange}
+                    placeholder={`${label} 입력`}
                 />
             );
 

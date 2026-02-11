@@ -738,10 +738,66 @@ YYYY.MM.DD HH:MM
         - 불리언 → 예/아니오, 필드 수 → 항목 수
         - 코드 변수명/주석은 개발자용이므로 유지
 
+2026.02.10
+    - 콘텐츠 관리 Phase 2 완료: TipTap 리치텍스트 에디터 통합
+        - TipTap v3 패키지 10개 설치 (pnpm)
+            - @tiptap/react, @tiptap/starter-kit (코어)
+            - @tiptap/extension-link, @tiptap/extension-image (콘텐츠)
+            - @tiptap/extension-placeholder (UX)
+            - @tiptap/extension-underline, @tiptap/extension-text-align (서식)
+            - @tiptap/extension-text-style, @tiptap/extension-color, @tiptap/extension-highlight (스타일)
+        - RichTextEditor.jsx 신규 생성 (Components/features/)
+            - TipTap useEditor 기반 WYSIWYG 에디터
+            - 툴바 기능 19개:
+                - 텍스트 서식: 굵게, 기울임, 밑줄, 취소선
+                - 제목: H1, H2, H3
+                - 목록: 글머리 기호, 번호 매기기
+                - 정렬: 왼쪽, 가운데, 오른쪽
+                - 기타: 인용, 코드 블록, 링크
+                - 실행취소/다시실행, 서식 지우기
+            - Lucide 아이콘 사용, 활성 상태 시각적 표시
+            - HTML 문자열 입출력 (value/onChange)
+            - 빈 에디터(`<p></p>`) → 빈 문자열 변환
+        - DynamicField.jsx 수정
+            - RichTextEditor import 추가
+            - richtext case: Textarea → RichTextEditor 교체
+        - component.css에 TipTap 에디터 스타일 추가
+            - .richtext-content .tiptap: 에디터 영역 (min-height 200px)
+            - 플레이스홀더 (is-editor-empty::before)
+            - h1/h2/h3, p, ul/ol, li 등 콘텐츠 요소 스타일
+            - blockquote, pre/code, a, img, hr, mark 스타일
+        - 프로덕션 빌드 성공 (2913 모듈, 8.71s)
+        - [참고] @tiptap/extension-text-style은 default export 없음 → named import { TextStyle } 사용 필수
+        - [미완료] 리치텍스트 필드가 있는 콘텐츠로 실제 브라우저 동작 테스트 (다음 작업으로 이관)
+
+2026.02.10 (계속)
+    - TipTap 툴바 활성 상태 스타일 강화
+        - RichTextEditor.jsx ToolbarButton 활성 클래스 변경
+            - 변경 전: `bg-accent text-accent-foreground` (bg-accent가 oklch 0.97로 거의 흰색, 구분 불가)
+            - 변경 후: `bg-foreground/10 text-foreground` (전경색 10% 불투명도 배경, 확실히 구분됨)
+    - 콘텐츠 관리 Phase 3 완료: 상태 관리 + 버전 히스토리 UI
+        - ContentForm.jsx 전면 재작성
+            - 상태 배지 표시 (수정 모드 헤더에 현재 상태 + 버전 번호)
+                - STATUS_MAP: DRAFT→초안, REVIEW→검토 중, APPROVED→승인됨, PUBLISHED→발행됨, REJECTED→반려됨, ARCHIVED→보관됨
+            - 상태 관리 버튼 3종 (하단 액션 영역)
+                - 초안 저장: 생성(POST) 또는 수정(PATCH) 후 목록 이동
+                - 발행: 저장 후 POST /contents/:id/publish 호출 (publishedAt 정확 설정)
+                - 미발행: POST /contents/:id/unpublish (발행됨 상태일 때만 표시)
+            - 버전 히스토리 패널 (접기/펼치기)
+                - GET /contents/:id/versions (showVersions 토글 시에만 fetch)
+                - 각 버전: 버전 번호, 변경자 이메일, 변경 시각
+                - 현재 버전 배지 표시
+                - 복원 버튼 + YesNoPopup 확인 → POST /contents/:id/versions/:version/restore
+            - 모든 액션에 PopupContext 연동 (YesNoPopup 확인, AlertPopup 결과 알림)
+        - 프로덕션 빌드 성공 (2913 모듈)
+
 ### 다음 작업
     - 1단계 (Starter) 핵심 기능 구현 계속
-        - 콘텐츠 관리 Phase 2: TipTap 리치텍스트 에디터 통합
-        - 콘텐츠 관리 Phase 3: 상태 관리(발행/미발행) + 버전 히스토리 UI
+        - Phase 2~3 브라우저 동작 테스트: richtext 에디터, 상태 관리, 버전 히스토리 실제 확인
         - 미디어 관리 페이지 구현
+            - 미디어 업로드/목록/삭제 UI
+            - Sharp 이미지 처리 결과(썸네일, WebP) 표시
+            - 미디어 라이브러리 팝업 (TipTap 이미지 삽입, 콘텐츠 이미지/파일 필드 연동)
+        - TipTap 이미지/비디오 삽입 기능 (미디어 관리 완료 후)
         - 대시보드 페이지 실제 구현
 
