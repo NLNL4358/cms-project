@@ -383,23 +383,24 @@ function ContentForm() {
     }
 
     return (
-        <div className="p-6 max-w-4xl">
+        <div className="formPageWrap">
             {/* 페이지 헤더 */}
             <div className="flex items-center gap-4 mb-6">
                 <Button
                     variant="ghost"
                     size="icon-sm"
+                    className="backButton"
                     onClick={() => navigate(`/contents/${contentTypeSlug}`)}
                 >
                     <ArrowLeft className="size-4" />
                 </Button>
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold">
+                        <h2 className="text-2xl font-bold">
                             {isEdit
                                 ? `${contentType.name} 수정`
                                 : `새 ${contentType.name}`}
-                        </h1>
+                        </h2>
                         {/* 수정 모드: 현재 상태 배지 + 버전 */}
                         {isEdit && existingContent && (
                             <div className="flex items-center gap-2">

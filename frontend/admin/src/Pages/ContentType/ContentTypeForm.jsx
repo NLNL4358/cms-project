@@ -211,20 +211,21 @@ function ContentTypeForm() {
     }
 
     return (
-        <div className="p-6 max-w-4xl">
+        <div className="formPageWrap">
             {/* 페이지 헤더 */}
             <div className="flex items-center gap-4 mb-6">
                 <Button
                     variant="ghost"
                     size="icon-sm"
+                    className="backButton"
                     onClick={() => navigate('/content-types')}
                 >
                     <ArrowLeft className="size-4" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold">
+                    <h2 className="text-2xl font-bold">
                         {isEdit ? '콘텐츠 타입 수정' : '새 콘텐츠 타입'}
-                    </h1>
+                    </h2>
                     <p className="text-muted-foreground mt-1">
                         {isEdit
                             ? '콘텐츠 타입의 정보와 입력 항목을 수정합니다'
@@ -296,7 +297,7 @@ function ContentTypeForm() {
 
                         {/* 설명 */}
                         <div className="flex flex-col gap-2">
-                            <Label htmlFor="description">설명</Label>
+                            <Label htmlFor="description">설명 <span className="text-muted-foreground font-normal">(선택)</span></Label>
                             <Textarea
                                 id="description"
                                 placeholder="콘텐츠 타입에 대한 설명을 입력하세요"

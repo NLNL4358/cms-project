@@ -987,3 +987,23 @@ table {
     margin-top: 4px;
     margin-bottom: 16px;
 }
+
+/* ─── Back Button (override .buttonComponent) ─── */
+.backButton {
+    background-color: transparent;
+    color: var(--muted-foreground);
+    padding: 0;
+}
+.backButton:hover {
+    background-color: var(--accent);
+    color: var(--foreground);
+}
+.backButton:active {
+    background-color: var(--accent);
+}
+
+/* ─── Form Page Layout ─── */
+.formPageWrap {
+    max-width: 765px;
+    margin: auto;
+}
