@@ -429,7 +429,7 @@ function ContentForm() {
                 <Card>
                     <CardHeader className="border-b">
                         <div className="flex items-center gap-2.5">
-                            <div className="cardAccentBar" />
+                            <div className="sectionTitleBar" />
                             <CardTitle>기본 정보</CardTitle>
                         </div>
                     </CardHeader>
@@ -492,7 +492,7 @@ function ContentForm() {
                     <Card>
                         <CardHeader className="border-b">
                             <div className="flex items-center gap-2.5">
-                                <div className="cardAccentBar" />
+                                <div className="sectionTitleBar" />
                                 <CardTitle>입력 항목</CardTitle>
                                 {fields.length > 0 && (
                                     <span className="fieldCountBadge">
@@ -525,7 +525,7 @@ function ContentForm() {
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="cardAccentBar" />
+                                    <div className="sectionTitleBar" />
                                     <CardTitle className="flex items-center gap-2">
                                         <History className="size-5" />
                                         버전 히스토리
