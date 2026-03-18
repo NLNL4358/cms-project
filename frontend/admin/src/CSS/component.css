@@ -29,6 +29,7 @@
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
     --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -45,44 +46,68 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+    /* 폰트: Tailwind의 font-sans, font-mono 클래스에서 사용 */
+    --font-sans: 'Noto Sans KR', system-ui, sans-serif;
+    --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, monospace;
 }
 
 /*---break---
 
 */
 :root {
-    --radius: 0.625rem;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
+    --radius: 0.5rem;
+
+    /* 인디고 기반 Primary */
+    --primary: oklch(0.491 0.214 264.4);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+
+    /* 배경/전경 — 슬레이트 톤 */
+    --background: oklch(0.984 0.002 247.858);
+    --foreground: oklch(0.129 0.042 264.695);
+
+    /* 카드 — 순백 */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.129 0.042 264.695);
+
+    /* 팝오버 */
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.129 0.042 264.695);
+
+    /* 보조 색상 — 슬레이트 계열 */
+    --secondary: oklch(0.961 0.006 264.531);
+    --secondary-foreground: oklch(0.379 0.046 264.695);
+    --muted: oklch(0.961 0.006 264.531);
+    --muted-foreground: oklch(0.554 0.046 257.417);
+    --accent: oklch(0.961 0.006 264.531);
+    --accent-foreground: oklch(0.129 0.042 264.695);
+
+    /* 위험 — 빨간색 */
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
+    --destructive-foreground: oklch(0.985 0 0);
+
+    /* 테두리/입력 */
+    --border: oklch(0.918 0.013 264.531);
+    --input: oklch(0.918 0.013 264.531);
+    --ring: oklch(0.491 0.214 264.4);
+
+    /* 차트 — 인디고 계열 */
+    --chart-1: oklch(0.491 0.214 264.4);
+    --chart-2: oklch(0.6 0.18 264.4);
+    --chart-3: oklch(0.7 0.12 264.4);
+    --chart-4: oklch(0.75 0.08 264.4);
+    --chart-5: oklch(0.82 0.05 264.4);
+
+    /* 사이드바 — 다크 슬레이트 */
+    --sidebar: oklch(0.129 0.042 264.695);
+    --sidebar-foreground: oklch(0.85 0.02 264.695);
+    --sidebar-muted-foreground: oklch(0.45 0.03 264.695);
+    --sidebar-primary: oklch(0.491 0.214 264.4);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar-primary-light: oklch(0.65 0.15 264.4);
+    --sidebar-accent: oklch(0.18 0.042 264.695);
+    --sidebar-accent-foreground: oklch(0.92 0.01 264.695);
+    --sidebar-border: oklch(0.22 0.035 264.695);
+    --sidebar-ring: oklch(0.491 0.214 264.4);
 
     --input-padding: 20px;
 }
@@ -134,6 +159,21 @@
 
     body {
         @apply bg-background text-foreground;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 클릭 가능한 요소에 pointer 커서 자동 적용 */
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    [type="button"]:not(:disabled),
+    [type="submit"]:not(:disabled),
+    [type="reset"]:not(:disabled),
+    a[href],
+    select:not(:disabled),
+    input[type="checkbox"]:not(:disabled),
+    input[type="radio"]:not(:disabled) {
+        @apply cursor-pointer;
     }
 }
 
@@ -441,4 +481,509 @@ table {
     background-color: #fef08a;
     border-radius: 0.125rem;
     padding: 0.0625rem 0;
+}
+
+/* ─── Sidebar Component ─── */
+.sidebar * {
+    color: var(--sidebar-foreground);
+}
+
+/* 로고 */
+.sidebarLogoWrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+.sidebarLogoIcon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background-color: var(--sidebar-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebarLogoIcon * {
+    color: var(--sidebar-primary-foreground);
+}
+
+.sidebarLogoTitle {
+    font-size: var(--small-size);
+    font-weight: 600;
+    color: var(--sidebar-primary-foreground);
+    line-height: 1.2;
+}
+
+.sidebarLogoSub {
+    font-size: 10px;
+    color: var(--sidebar-muted-foreground);
+    line-height: 1.2;
+}
+
+/* 네비게이션 */
+.sidebarNav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+}
+
+/* 섹션 */
+.sidebarSection {
+    margin-bottom: 16px;
+}
+
+.sidebarSectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--sidebar-muted-foreground);
+    padding: 0 24px;
+    margin-bottom: 6px;
+}
+
+.sidebarSectionTitle.clickable {
+    cursor: pointer;
+    width: 100%;
+    transition: color 0.15s;
+}
+
+.sidebarSectionTitle.clickable:hover {
+    color: var(--sidebar-foreground);
+}
+
+.sidebarSectionBadge {
+    font-size: 10px;
+    background-color: oklch(from var(--sidebar-primary) l c h / 0.2);
+    color: var(--sidebar-primary-light);
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-family: var(--font-mono);
+    line-height: 1.4;
+}
+
+.sidebarSectionChevron {
+    width: 14px;
+    height: 14px;
+    margin-left: auto;
+    transition: transform 0.2s;
+    color: var(--sidebar-muted-foreground);
+}
+
+.sidebarSectionChevron.open {
+    transform: rotate(180deg);
+}
+
+/* 메뉴 아이템 */
+.menuList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 8px;
+}
+
+.menuItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    color: var(--sidebar-foreground);
+    font-size: var(--label-size);
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+    width: 100%;
+}
+
+.menuItem:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--sidebar-foreground);
+}
+
+.menuItem.active {
+    background-color: oklch(from var(--sidebar-primary) l c h / 0.15);
+    color: var(--sidebar-primary-foreground);
+    font-weight: 500;
+}
+
+/* 활성 표시기 (좌측 인디고 바) */
+.menuItem.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background-color: var(--sidebar-primary);
+    border-radius: 0 2px 2px 0;
+}
+
+.menuItem.active .menuIcon {
+    color: var(--sidebar-primary-light);
+}
+
+.menuIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* 푸터 */
+.sidebarFooter {
+    padding: 12px;
+    border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebarUserInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.15s;
+}
+
+.sidebarUserInfo:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebarAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: oklch(from var(--sidebar-primary) l c h / 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sidebar-primary-light);
+}
+
+.sidebarUserText {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebarUserName {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sidebar-foreground);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebarUserEmail {
+    font-size: 10px;
+    color: var(--sidebar-muted-foreground);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebarLogoutBtn {
+    padding: 6px;
+    border-radius: 6px;
+    color: var(--sidebar-muted-foreground);
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+}
+
+.sidebarLogoutBtn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--sidebar-foreground);
+}
+
+/* ─── Form Card Styles ─── */
+.cardAccentBar {
+    width: 4px;
+    height: 16px;
+    background-color: var(--primary);
+    border-radius: 99px;
+    flex-shrink: 0;
+}
+
+/* ─── Field Item Card ─── */
+.fieldItemCard {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--card);
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+}
+
+.fieldItemCard:hover {
+    box-shadow: 0 1px 3px oklch(0 0 0 / 0.06);
+}
+
+.fieldItemHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background-color: var(--muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.fieldItemHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fieldGripIcon {
+    color: var(--muted-foreground);
+    opacity: 0.4;
+    cursor: grab;
+}
+
+.fieldItemIndex {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+}
+
+.fieldItemBody {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ─── Field Delete Button ─── */
+.fieldDeleteBtn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: var(--muted-foreground);
+    transition:
+        color 0.15s,
+        background-color 0.15s;
+}
+
+.fieldDeleteBtn:hover {
+    color: var(--destructive);
+    background-color: oklch(from var(--destructive) l c h / 0.1);
+}
+
+/* ─── Type Badge ─── */
+.typeBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 500;
+    border: 1px solid;
+    line-height: 1.4;
+}
+
+.typeBadge[data-type='text'],
+.typeBadge[data-type='textarea'] {
+    background-color: oklch(0.96 0.02 230);
+    color: oklch(0.45 0.1 230);
+    border-color: oklch(0.88 0.04 230);
+}
+
+.typeBadge[data-type='richtext'] {
+    background-color: oklch(0.96 0.02 295);
+    color: oklch(0.45 0.15 295);
+    border-color: oklch(0.88 0.05 295);
+}
+
+.typeBadge[data-type='integer'],
+.typeBadge[data-type='decimal'] {
+    background-color: oklch(0.96 0.03 80);
+    color: oklch(0.5 0.12 80);
+    border-color: oklch(0.88 0.05 80);
+}
+
+.typeBadge[data-type='boolean'] {
+    background-color: oklch(0.96 0.03 160);
+    color: oklch(0.45 0.12 160);
+    border-color: oklch(0.88 0.05 160);
+}
+
+.typeBadge[data-type='date'],
+.typeBadge[data-type='datetime'] {
+    background-color: oklch(0.96 0.03 55);
+    color: oklch(0.5 0.13 55);
+    border-color: oklch(0.88 0.05 55);
+}
+
+.typeBadge[data-type='email'],
+.typeBadge[data-type='url'] {
+    background-color: oklch(0.96 0.02 350);
+    color: oklch(0.5 0.14 350);
+    border-color: oklch(0.88 0.05 350);
+}
+
+.typeBadge[data-type='image'],
+.typeBadge[data-type='file'] {
+    background-color: oklch(0.96 0.02 310);
+    color: oklch(0.45 0.15 310);
+    border-color: oklch(0.88 0.05 310);
+}
+
+.typeBadge[data-type='json'],
+.typeBadge[data-type='slug'] {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border-color: var(--border);
+}
+
+.typeBadge[data-type='color'] {
+    background-color: oklch(0.96 0.02 15);
+    color: oklch(0.5 0.15 15);
+    border-color: oklch(0.88 0.05 15);
+}
+
+.typeBadge[data-type='select'],
+.typeBadge[data-type='multiselect'] {
+    background-color: oklch(0.96 0.02 195);
+    color: oklch(0.45 0.1 195);
+    border-color: oklch(0.88 0.04 195);
+}
+
+/* ─── Required Badge ─── */
+.requiredBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 500;
+    background-color: oklch(from var(--destructive) l c h / 0.1);
+    color: var(--destructive);
+    border: 1px solid oklch(from var(--destructive) l c h / 0.2);
+    line-height: 1.4;
+}
+
+/* ─── Field Count Badge ─── */
+.fieldCountBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+    background-color: oklch(from var(--primary) l c h / 0.1);
+    color: var(--primary);
+    border: 1px solid oklch(from var(--primary) l c h / 0.15);
+    font-family: var(--font-mono);
+    line-height: 1.4;
+}
+
+/* ─── Add Field Button (dashed) ─── */
+.addFieldBtn {
+    border-style: dashed;
+}
+
+.addFieldBtn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.05);
+}
+
+/* 전체 너비 dashed 추가 버튼 */
+.addFieldBtnFull {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    transition:
+        border-color 0.15s,
+        color 0.15s,
+        background-color 0.15s;
+}
+
+.addFieldBtnFull:hover {
+    border-color: oklch(from var(--primary) l c h / 0.5);
+    color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.05);
+}
+
+/* ─── Slug Preview ─── */
+.slugPreviewWrap {
+    position: relative;
+}
+
+.slugPreviewWrap input {
+    padding-right: 5rem;
+}
+
+.slugPreview {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--muted-foreground);
+    background-color: var(--secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* ─── Empty State ─── */
+.fieldEmptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 0;
+    text-align: center;
+}
+
+.fieldEmptyIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: var(--secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: var(--muted-foreground);
+}
+
+.fieldEmptyTitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+}
+
+.fieldEmptyDescription {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    opacity: 0.8;
+    margin-top: 4px;
+    margin-bottom: 16px;
 }

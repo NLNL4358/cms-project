@@ -1,7 +1,7 @@
 /**
  * @description
  * 관리자 사이드바 컴포넌트
- * 일반 nav 기반으로, GlobalContext의 contentTypes를 활용하여 동적 메뉴를 생성합니다.
+ * 다크 슬레이트 배경, 인디고 활성 표시기, 섹션 분리 디자인
  */
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ import {
     Shield,
     LogOut,
     ChevronDown,
+    Layers,
 } from 'lucide-react';
 
 import { useUser } from '@/Providers/UserContext.jsx';
@@ -49,77 +50,109 @@ function AppSidebar() {
         navigate('/login', { replace: true });
     };
 
+    /** 사용자 이니셜 */
+    const userInitial =
+        user?.username?.charAt(0)?.toUpperCase() ||
+        user?.email?.charAt(0)?.toUpperCase() ||
+        '?';
+
     return (
-        <nav className={`sidebar ${isMobile && sidebarOpen ? 'true' : ''}`}>
-            {/* 메뉴 */}
-            <div className="sidebarMenu">
-                {/* 고정 메뉴 */}
-                <ul className="menuList">
-                    {mainMenuItems.map((item) => (
-                        <li key={item.path}>
-                            <a
-                                href={item.path}
-                                className={`menuItem ${isActive(item.path) ? 'active' : ''}`}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleNavigate(item.path);
-                                }}
-                            >
-                                <item.icon className="menuIcon" />
-                                <span>{item.title}</span>
-                            </a>
-                        </li>
-                    ))}
-                </ul>
+        <aside className={`sidebar ${isMobile && sidebarOpen ? 'open' : ''}`}>
+            {/* 로고 */}
+            <div className="sidebarLogoWrap">
+                <div className="sidebarLogoIcon">
+                    <Layers size={14} />
+                </div>
+                <div>
+                    <p className="sidebarLogoTitle">ContentCMS</p>
+                    <p className="sidebarLogoSub">Admin Panel</p>
+                </div>
+            </div>
 
-                {/* 동적 콘텐츠 메뉴 */}
+            {/* 네비게이션 */}
+            <nav className="sidebarNav">
+                {/* 메뉴 섹션 */}
+                <div className="sidebarSection">
+                    <p className="sidebarSectionTitle">메뉴</p>
+                    <ul className="menuList">
+                        {mainMenuItems.map((item) => (
+                            <li key={item.path}>
+                                <a
+                                    href={item.path}
+                                    className={`menuItem ${isActive(item.path) ? 'active' : ''}`}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleNavigate(item.path);
+                                    }}
+                                >
+                                    <item.icon className="menuIcon" />
+                                    <span>{item.title}</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* 동적 콘텐츠 섹션 */}
                 {contentTypes.length > 0 && (
-                    <>
-                        <div className="menuDivider" />
-                        <div className="menuGroup">
-                            <button
-                                className="menuGroupTitle"
-                                onClick={() => setContentOpen(!contentOpen)}
-                            >
-                                <FileText className="menuIcon" />
-                                <span>콘텐츠</span>
-                                <ChevronDown
-                                    className={`menuChevron ${contentOpen ? 'open' : ''}`}
-                                />
-                            </button>
-                            {contentOpen && (
-                                <ul className="menuSubList">
-                                    {contentTypes.map((ct) => (
-                                        <li key={ct.id}>
-                                            <a
-                                                href={`/contents/${ct.slug}`}
-                                                className={`menuSubItem ${isActive(`/contents/${ct.slug}`) ? 'active' : ''}`}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    handleNavigate(
-                                                        `/contents/${ct.slug}`,
-                                                    );
-                                                }}
-                                            >
-                                                <span>{ct.name}</span>
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    </>
+                    <div className="sidebarSection">
+                        <button
+                            className="sidebarSectionTitle clickable"
+                            onClick={() => setContentOpen(!contentOpen)}
+                        >
+                            <span>콘텐츠</span>
+                            <span className="sidebarSectionBadge">
+                                {contentTypes.length}
+                            </span>
+                            <ChevronDown
+                                className={`sidebarSectionChevron ${contentOpen ? 'open' : ''}`}
+                            />
+                        </button>
+                        {contentOpen && (
+                            <ul className="menuList">
+                                {contentTypes.map((ct) => (
+                                    <li key={ct.id}>
+                                        <a
+                                            href={`/contents/${ct.slug}`}
+                                            className={`menuItem ${isActive(`/contents/${ct.slug}`) ? 'active' : ''}`}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleNavigate(
+                                                    `/contents/${ct.slug}`,
+                                                );
+                                            }}
+                                        >
+                                            <FileText className="menuIcon" />
+                                            <span>{ct.name}</span>
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                 )}
-            </div>
+            </nav>
 
-            {/* 푸터 — 로그아웃 */}
+            {/* 푸터 — 사용자 정보 + 로그아웃 */}
             <div className="sidebarFooter">
-                <button className="menuItem" onClick={handleLogout}>
-                    <LogOut className="menuIcon" />
-                    <span>Logout</span>
-                </button>
+                <div className="sidebarUserInfo">
+                    <div className="sidebarAvatar">{userInitial}</div>
+                    <div className="sidebarUserText">
+                        <p className="sidebarUserName">
+                            {user?.username || '사용자'}
+                        </p>
+                        <p className="sidebarUserEmail">{user?.email || ''}</p>
+                    </div>
+                    <button
+                        className="sidebarLogoutBtn"
+                        onClick={handleLogout}
+                        title="로그아웃"
+                    >
+                        <LogOut size={16} />
+                    </button>
+                </div>
             </div>
-        </nav>
+        </aside>
     );
 }
 

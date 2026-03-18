@@ -133,6 +133,7 @@ function ContentForm() {
 
     // 제목 → 슬러그 자동 생성 (생성 모드 + 수동 편집 전)
     const titleValue = watch('title');
+    const slugValue = watch('slug');
 
     useEffect(() => {
         if (!slugManuallyEdited && !isEdit && titleValue) {
@@ -425,8 +426,11 @@ function ContentForm() {
             >
                 {/* 기본 정보 카드 */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>기본 정보</CardTitle>
+                    <CardHeader className="border-b">
+                        <div className="flex items-center gap-2.5">
+                            <div className="cardAccentBar" />
+                            <CardTitle>기본 정보</CardTitle>
+                        </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* 제목 */}
@@ -453,13 +457,22 @@ function ContentForm() {
                                 고유주소{' '}
                                 <span className="text-destructive">*</span>
                             </Label>
-                            <Input
-                                id="slug"
-                                placeholder="content-slug"
-                                {...register('slug', {
-                                    onChange: () => setSlugManuallyEdited(true),
-                                })}
-                            />
+                            <div className="slugPreviewWrap">
+                                <Input
+                                    id="slug"
+                                    className="font-mono"
+                                    placeholder="content-slug"
+                                    {...register('slug', {
+                                        onChange: () =>
+                                            setSlugManuallyEdited(true),
+                                    })}
+                                />
+                                {slugValue && (
+                                    <span className="slugPreview">
+                                        /{slugValue}
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                                 URL에 사용됩니다. 소문자, 숫자, 하이픈만
                                 가능합니다.
@@ -476,8 +489,16 @@ function ContentForm() {
                 {/* 입력 항목 카드 */}
                 {fields.length > 0 && (
                     <Card>
-                        <CardHeader>
-                            <CardTitle>입력 항목</CardTitle>
+                        <CardHeader className="border-b">
+                            <div className="flex items-center gap-2.5">
+                                <div className="cardAccentBar" />
+                                <CardTitle>입력 항목</CardTitle>
+                                {fields.length > 0 && (
+                                    <span className="fieldCountBadge">
+                                        {fields.length}
+                                    </span>
+                                )}
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {fields.map((fieldDef) => (
@@ -496,16 +517,19 @@ function ContentForm() {
                 {isEdit && (
                     <Card>
                         <CardHeader
-                            className="cursor-pointer"
+                            className="cursor-pointer border-b"
                             onClick={() => {
                                 setShowVersions(!showVersions);
                             }}
                         >
                             <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2">
-                                    <History className="size-5" />
-                                    버전 히스토리
-                                </CardTitle>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="cardAccentBar" />
+                                    <CardTitle className="flex items-center gap-2">
+                                        <History className="size-5" />
+                                        버전 히스토리
+                                    </CardTitle>
+                                </div>
                                 <span className="text-sm text-muted-foreground">
                                     {showVersions ? '접기' : '펼치기'}
                                 </span>

@@ -1,19 +1,12 @@
 /**
  * @description
  * 관리자 헤더 컴포넌트
- * 브레드크럼과 사용자 드롭다운을 포함합니다.
+ * 브레드크럼과 모바일 햄버거 버튼을 포함합니다.
  */
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useUser } from '@/Providers/UserContext.jsx';
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu.jsx';
-import { LogOut, User, ChevronRight, Menu } from 'lucide-react';
+import { ChevronRight, Menu } from 'lucide-react';
 
 /** 경로 → 브레드크럼 라벨 매핑 */
 const pathLabels = {
@@ -24,15 +17,9 @@ const pathLabels = {
 };
 
 function AppHeader() {
-    const { user, logout } = useUser();
     const { contentTypes, isMobile, setSidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
-
-    const handleLogout = () => {
-        logout();
-        navigate('/login', { replace: true });
-    };
 
     /** 현재 경로에서 브레드크럼 생성 */
     const buildBreadcrumbs = () => {
@@ -67,6 +54,16 @@ function AppHeader() {
 
     return (
         <header className="adminHeader">
+            {/* 모바일: 햄버거 메뉴 버튼 */}
+            {isMobile && (
+                <button
+                    className="hamburgerBtn"
+                    onClick={() => setSidebarOpen((v) => !v)}
+                >
+                    <Menu className="hamburgerIcon" />
+                </button>
+            )}
+
             {/* 브레드크럼 */}
             <div className="breadcrumb">
                 {breadcrumbs.map((crumb, i) => (
@@ -91,16 +88,6 @@ function AppHeader() {
                     </span>
                 ))}
             </div>
-
-            {/* 모바일: 햄버거 메뉴 버튼 */}
-            {isMobile && (
-                <button
-                    className="hamburgerBtn"
-                    onClick={() => setSidebarOpen((v) => !v)}
-                >
-                    <Menu className="hamburgerIcon" />
-                </button>
-            )}
         </header>
     );
 }

@@ -168,3 +168,6 @@ backups/
 
 # Turbo (모노레포 빌드 캐시)
 .turbo/
+
+#ai-design
+ai-design/*

@@ -16,8 +16,6 @@
 
     font-weight: normal;
     /* pointer-events: auto; */
-    white-space: nowrap;
-
     /* 중요! print시 배경색을 브라우저가 빼버리는데 아래의 CSS가 있다면 적용시켜줄 수 있다. */
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
@@ -89,7 +87,6 @@ tt,
 u,
 ul,
 var {
-    background: transparent;
     border: 0px;
     margin: 0px;
     outline: 0px;
@@ -107,8 +104,8 @@ var {
 
 /* 실제 적용되는 부분 */
 body {
-    background-color: var(--background-white-color);
-    color: var(--text-basic-color);
+    background-color: var(--background);
+    color: var(--foreground);
     transition:
         background-color 0.3s ease,
         color 0.3s ease;

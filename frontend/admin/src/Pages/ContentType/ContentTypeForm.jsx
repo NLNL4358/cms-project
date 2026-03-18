@@ -4,7 +4,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, Plus, X, GripVertical } from 'lucide-react';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
 import { Button } from '@/Components/ui/Button.jsx';
@@ -46,6 +46,11 @@ const FIELD_TYPES = [
     { value: 'slug', label: '고유주소' },
     { value: 'color', label: '색상' },
 ];
+
+/** 필드 타입 라벨 검색용 맵 */
+const FIELD_TYPE_MAP = Object.fromEntries(
+    FIELD_TYPES.map((ft) => [ft.value, ft.label]),
+);
 
 /** Zod 검증 스키마 */
 const fieldSchema = z.object({
@@ -151,9 +156,12 @@ function ContentTypeForm() {
         }
     }, [existingData, reset]);
 
-    // 이름 → 슬러그 자동 생성 (생성 모드 + 수동 편집 전)
+    // 필드 값 실시간 추적 (타입 배지, 필수 배지 표시용)
+    const fieldsValues = watch('fields');
+    const slugValue = watch('slug');
     const nameValue = watch('name');
 
+    // 이름 → 슬러그 자동 생성 (생성 모드 + 수동 편집 전)
     useEffect(() => {
         if (!slugManuallyEdited && !isEdit && nameValue) {
             const slug = nameValue
@@ -188,6 +196,10 @@ function ContentTypeForm() {
     const onSubmit = (data) => {
         saveMutation.mutate(data);
     };
+
+    /** 항목 추가 헬퍼 */
+    const appendField = () =>
+        append({ name: '', label: '', type: 'text', required: false });
 
     // 수정 모드 데이터 로딩 중
     if (isEdit && isLoadingData) {
@@ -224,8 +236,11 @@ function ContentTypeForm() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* 기본 정보 카드 */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>기본 정보</CardTitle>
+                    <CardHeader className="border-b">
+                        <div className="flex items-center gap-2.5">
+                            <div className="cardAccentBar" />
+                            <CardTitle>기본 정보</CardTitle>
+                        </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* 이름 */}
@@ -252,13 +267,22 @@ function ContentTypeForm() {
                                 고유주소{' '}
                                 <span className="text-destructive">*</span>
                             </Label>
-                            <Input
-                                id="slug"
-                                placeholder="예: blog-post"
-                                {...register('slug', {
-                                    onChange: () => setSlugManuallyEdited(true),
-                                })}
-                            />
+                            <div className="slugPreviewWrap">
+                                <Input
+                                    id="slug"
+                                    className="font-mono"
+                                    placeholder="예: blog-post"
+                                    {...register('slug', {
+                                        onChange: () =>
+                                            setSlugManuallyEdited(true),
+                                    })}
+                                />
+                                {slugValue && (
+                                    <span className="slugPreview">
+                                        /{slugValue}
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                                 URL에 사용됩니다. 소문자, 숫자, 하이픈만
                                 가능합니다.
@@ -284,182 +308,274 @@ function ContentTypeForm() {
 
                 {/* 입력 항목 정의 카드 */}
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>입력 항목 정의</CardTitle>
+                    <CardHeader className="flex flex-row items-center justify-between border-b">
+                        <div className="flex items-center gap-2.5">
+                            <div className="cardAccentBar" />
+                            <CardTitle>입력 항목 정의</CardTitle>
+                            {formFields.length > 0 && (
+                                <span className="fieldCountBadge">
+                                    {formFields.length}
+                                </span>
+                            )}
+                        </div>
                         <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                                append({
-                                    name: '',
-                                    label: '',
-                                    type: 'text',
-                                    required: false,
-                                })
-                            }
+                            className="addFieldBtn"
+                            onClick={appendField}
                         >
                             <Plus className="size-4" />
                             항목 추가
                         </Button>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent>
                         {errors.fields?.root && (
-                            <p className="text-sm text-destructive">
+                            <p className="text-sm text-destructive mb-3">
                                 {errors.fields.root.message}
                             </p>
                         )}
                         {errors.fields?.message && (
-                            <p className="text-sm text-destructive">
+                            <p className="text-sm text-destructive mb-3">
                                 {errors.fields.message}
                             </p>
                         )}
 
-                        {formFields.length === 0 && (
-                            <p className="text-sm text-muted-foreground text-center py-8">
-                                입력 항목이 없습니다. &quot;항목 추가&quot;
-                                버튼을 클릭하여 추가하세요.
-                            </p>
-                        )}
-
-                        {formFields.map((field, index) => (
-                            <div
-                                key={field.id}
-                                className="border rounded-lg p-4 space-y-3"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-muted-foreground">
-                                        항목 {index + 1}
-                                    </span>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon-sm"
-                                        onClick={() => remove(index)}
-                                    >
-                                        <X className="size-4 text-destructive" />
-                                    </Button>
+                        {formFields.length === 0 ? (
+                            <div className="fieldEmptyState">
+                                <div className="fieldEmptyIcon">
+                                    <Plus size={20} />
                                 </div>
+                                <p className="fieldEmptyTitle">
+                                    입력 항목이 없습니다
+                                </p>
+                                <p className="fieldEmptyDescription">
+                                    &quot;항목 추가&quot; 버튼을 클릭하여
+                                    추가하세요
+                                </p>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="addFieldBtn"
+                                    onClick={appendField}
+                                >
+                                    <Plus className="size-4" />
+                                    첫 번째 항목 추가
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {formFields.map((field, index) => {
+                                    const typeValue =
+                                        fieldsValues?.[index]?.type;
+                                    const typeLabel =
+                                        FIELD_TYPE_MAP[typeValue];
+                                    const isRequired =
+                                        fieldsValues?.[index]?.required;
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    {/* 항목 이름 */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label
-                                            htmlFor={`fields.${index}.name`}
+                                    return (
+                                        <div
+                                            key={field.id}
+                                            className="fieldItemCard"
                                         >
-                                            항목 이름 (영문)
-                                        </Label>
-                                        <Input
-                                            id={`fields.${index}.name`}
-                                            placeholder="예: title"
-                                            {...register(
-                                                `fields.${index}.name`,
-                                            )}
-                                        />
-                                        {errors.fields?.[index]?.name && (
-                                            <p className="text-xs text-destructive">
-                                                {
-                                                    errors.fields[index].name
-                                                        .message
-                                                }
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* 표시 이름 */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label
-                                            htmlFor={`fields.${index}.label`}
-                                        >
-                                            표시 이름
-                                        </Label>
-                                        <Input
-                                            id={`fields.${index}.label`}
-                                            placeholder="예: 제목"
-                                            {...register(
-                                                `fields.${index}.label`,
-                                            )}
-                                        />
-                                        {errors.fields?.[index]?.label && (
-                                            <p className="text-xs text-destructive">
-                                                {
-                                                    errors.fields[index].label
-                                                        .message
-                                                }
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 items-end">
-                                    {/* 타입 */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label>종류</Label>
-                                        <Controller
-                                            control={control}
-                                            name={`fields.${index}.type`}
-                                            render={({ field: f }) => (
-                                                <Select
-                                                    value={f.value}
-                                                    onValueChange={f.onChange}
+                                            <div className="fieldItemHeader">
+                                                <div className="fieldItemHeaderLeft">
+                                                    <GripVertical
+                                                        size={14}
+                                                        className="fieldGripIcon"
+                                                    />
+                                                    <span className="fieldItemIndex">
+                                                        항목 {index + 1}
+                                                    </span>
+                                                    {typeLabel && (
+                                                        <span
+                                                            className="typeBadge"
+                                                            data-type={
+                                                                typeValue
+                                                            }
+                                                        >
+                                                            {typeLabel}
+                                                        </span>
+                                                    )}
+                                                    {isRequired && (
+                                                        <span className="requiredBadge">
+                                                            필수
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="fieldDeleteBtn"
+                                                    onClick={() =>
+                                                        remove(index)
+                                                    }
                                                 >
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="종류 선택" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {FIELD_TYPES.map(
-                                                            (ft) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        ft.value
-                                                                    }
+                                                    <X size={13} />
+                                                </button>
+                                            </div>
+
+                                            <div className="fieldItemBody">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {/* 항목 이름 */}
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label
+                                                            htmlFor={`fields.${index}.name`}
+                                                        >
+                                                            항목 이름 (영문)
+                                                        </Label>
+                                                        <Input
+                                                            id={`fields.${index}.name`}
+                                                            className="font-mono"
+                                                            placeholder="예: title"
+                                                            {...register(
+                                                                `fields.${index}.name`,
+                                                            )}
+                                                        />
+                                                        {errors.fields?.[index]
+                                                            ?.name && (
+                                                            <p className="text-xs text-destructive">
+                                                                {
+                                                                    errors
+                                                                        .fields[
+                                                                        index
+                                                                    ].name
+                                                                        .message
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* 표시 이름 */}
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label
+                                                            htmlFor={`fields.${index}.label`}
+                                                        >
+                                                            표시 이름
+                                                        </Label>
+                                                        <Input
+                                                            id={`fields.${index}.label`}
+                                                            placeholder="예: 제목"
+                                                            {...register(
+                                                                `fields.${index}.label`,
+                                                            )}
+                                                        />
+                                                        {errors.fields?.[index]
+                                                            ?.label && (
+                                                            <p className="text-xs text-destructive">
+                                                                {
+                                                                    errors
+                                                                        .fields[
+                                                                        index
+                                                                    ].label
+                                                                        .message
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3 items-end">
+                                                    {/* 타입 */}
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label>종류</Label>
+                                                        <Controller
+                                                            control={control}
+                                                            name={`fields.${index}.type`}
+                                                            render={({
+                                                                field: f,
+                                                            }) => (
+                                                                <Select
                                                                     value={
-                                                                        ft.value
+                                                                        f.value
+                                                                    }
+                                                                    onValueChange={
+                                                                        f.onChange
                                                                     }
                                                                 >
-                                                                    {ft.label}
-                                                                </SelectItem>
-                                                            ),
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue placeholder="종류 선택" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {FIELD_TYPES.map(
+                                                                            (
+                                                                                ft,
+                                                                            ) => (
+                                                                                <SelectItem
+                                                                                    key={
+                                                                                        ft.value
+                                                                                    }
+                                                                                    value={
+                                                                                        ft.value
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        ft.label
+                                                                                    }
+                                                                                </SelectItem>
+                                                                            ),
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.fields?.[index]
+                                                            ?.type && (
+                                                            <p className="text-xs text-destructive">
+                                                                {
+                                                                    errors
+                                                                        .fields[
+                                                                        index
+                                                                    ].type
+                                                                        .message
+                                                                }
+                                                            </p>
                                                         )}
-                                                    </SelectContent>
-                                                </Select>
-                                            )}
-                                        />
-                                        {errors.fields?.[index]?.type && (
-                                            <p className="text-xs text-destructive">
-                                                {
-                                                    errors.fields[index].type
-                                                        .message
-                                                }
-                                            </p>
-                                        )}
-                                    </div>
+                                                    </div>
 
-                                    {/* 필수 여부 */}
-                                    <div className="flex items-center gap-2 pb-1">
-                                        <Controller
-                                            control={control}
-                                            name={`fields.${index}.required`}
-                                            render={({ field: f }) => (
-                                                <Checkbox
-                                                    id={`fields.${index}.required`}
-                                                    checked={f.value}
-                                                    onCheckedChange={
-                                                        f.onChange
-                                                    }
-                                                />
-                                            )}
-                                        />
-                                        <Label
-                                            htmlFor={`fields.${index}.required`}
-                                            className="text-sm font-normal"
-                                        >
-                                            필수 항목
-                                        </Label>
-                                    </div>
-                                </div>
+                                                    {/* 필수 여부 */}
+                                                    <div className="flex items-center gap-2 pb-1">
+                                                        <Controller
+                                                            control={control}
+                                                            name={`fields.${index}.required`}
+                                                            render={({
+                                                                field: f,
+                                                            }) => (
+                                                                <Checkbox
+                                                                    id={`fields.${index}.required`}
+                                                                    checked={
+                                                                        f.value
+                                                                    }
+                                                                    onCheckedChange={
+                                                                        f.onChange
+                                                                    }
+                                                                />
+                                                            )}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`fields.${index}.required`}
+                                                            className="text-sm font-normal"
+                                                        >
+                                                            필수 항목
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* 하단 전체 너비 추가 버튼 */}
+                                <button
+                                    type="button"
+                                    className="addFieldBtnFull"
+                                    onClick={appendField}
+                                >
+                                    <Plus size={14} />
+                                    항목 추가
+                                </button>
                             </div>
-                        ))}
+                        )}
                     </CardContent>
                 </Card>
 
