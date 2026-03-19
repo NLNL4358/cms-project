@@ -1,38 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, X, GripVertical } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    KeyboardSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
 import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Label } from '@/Components/ui/label.jsx';
 import { Textarea } from '@/Components/ui/textarea.jsx';
-import { Checkbox } from '@/Components/ui/checkbox.jsx';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/Components/ui/Select.jsx';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/Components/ui/card.jsx';
+import SortableFieldItem from './SortableFieldItem.jsx';
 
 import "@/CSS/local/content.css"
 
 /** 필드 타입 목록 */
-const FIELD_TYPES = [
+export const FIELD_TYPES = [
     { value: 'text', label: '텍스트' },
     { value: 'textarea', label: '텍스트 영역' },
-    { value: 'richtext', label: '리치 텍스트' },
+    { value: 'richtext', label: '텍스트 에디터' },
     { value: 'integer', label: '정수' },
     { value: 'decimal', label: '소수' },
     { value: 'boolean', label: '예/아니오' },
@@ -50,7 +49,7 @@ const FIELD_TYPES = [
 ];
 
 /** 필드 타입 라벨 검색용 맵 */
-const FIELD_TYPE_MAP = Object.fromEntries(
+export const FIELD_TYPE_MAP = Object.fromEntries(
     FIELD_TYPES.map((ft) => [ft.value, ft.label]),
 );
 
@@ -115,10 +114,29 @@ function ContentTypeForm() {
         fields: formFields,
         append,
         remove,
+        move,
     } = useFieldArray({
         control,
         name: 'fields',
     });
+
+    // dnd-kit 센서 설정
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: { distance: 8 },
+        }),
+        useSensor(KeyboardSensor),
+    );
+
+    // 드래그 종료 핸들러
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            const oldIndex = formFields.findIndex((f) => f.id === active.id);
+            const newIndex = formFields.findIndex((f) => f.id === over.id);
+            move(oldIndex, newIndex);
+        }
+    };
 
     // 수정 모드: 기존 데이터 로드
     const { data: existingData, isLoading: isLoadingData } = useQuery({
@@ -356,206 +374,29 @@ function ContentTypeForm() {
                             </div>
                         ) : (
                             <div className="flex flex-col gap-5 space-y-3">
-                                {formFields.map((field, index) => {
-                                    const typeValue =
-                                        fieldsValues?.[index]?.type;
-                                    const typeLabel =
-                                        FIELD_TYPE_MAP[typeValue];
-                                    const isRequired =
-                                        fieldsValues?.[index]?.required;
-
-                                    return (
-                                        <div
-                                            key={field.id}
-                                            className="fieldItemCard"
-                                        >
-                                            <div className="fieldItemHeader">
-                                                <div className="fieldItemHeaderLeft">
-                                                    <GripVertical
-                                                        size={14}
-                                                        className="fieldGripIcon"
-                                                    />
-                                                    <span className="fieldItemIndex">
-                                                        항목 {index + 1}
-                                                    </span>
-                                                    {typeLabel && (
-                                                        <span
-                                                            className="typeBadge"
-                                                            data-type={
-                                                                typeValue
-                                                            }
-                                                        >
-                                                            {typeLabel}
-                                                        </span>
-                                                    )}
-                                                    {isRequired && (
-                                                        <span className="requiredBadge">
-                                                            필수
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className="fieldDeleteBtn"
-                                                    onClick={() =>
-                                                        remove(index)
-                                                    }
-                                                >
-                                                    <X size={13} />
-                                                </button>
-                                            </div>
-
-                                            <div className="fieldItemBody">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    {/* 항목 이름 */}
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <Label
-                                                            htmlFor={`fields.${index}.name`}
-                                                        >
-                                                            항목 이름 <span className="helpText text-muted-foreground font-normal">(영문)</span>
-                                                        </Label>
-                                                        <Input
-                                                            id={`fields.${index}.name`}
-                                                            className="font-mono"
-                                                            placeholder="예: title"
-                                                            {...register(
-                                                                `fields.${index}.name`,
-                                                            )}
-                                                        />
-                                                        {errors.fields?.[index]
-                                                            ?.name && (
-                                                            <p className="helpText text-xs text-destructive">
-                                                                {
-                                                                    errors
-                                                                        .fields[
-                                                                        index
-                                                                    ].name
-                                                                        .message
-                                                                }
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    {/* 표시 이름 */}
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <Label
-                                                            htmlFor={`fields.${index}.label`}
-                                                        >
-                                                            표시 이름
-                                                        </Label>
-                                                        <Input
-                                                            id={`fields.${index}.label`}
-                                                            placeholder="예: 제목"
-                                                            {...register(
-                                                                `fields.${index}.label`,
-                                                            )}
-                                                        />
-                                                        {errors.fields?.[index]
-                                                            ?.label && (
-                                                            <p className="text-xs text-destructive">
-                                                                {
-                                                                    errors
-                                                                        .fields[
-                                                                        index
-                                                                    ].label
-                                                                        .message
-                                                                }
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    {/* 타입 */}
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <Label>종류</Label>
-                                                        <Controller
-                                                            control={control}
-                                                            name={`fields.${index}.type`}
-                                                            render={({
-                                                                field: f,
-                                                            }) => (
-                                                                <Select
-                                                                    value={
-                                                                        f.value
-                                                                    }
-                                                                    onValueChange={
-                                                                        f.onChange
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger className="w-full">
-                                                                        <SelectValue placeholder="종류 선택" />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {FIELD_TYPES.map(
-                                                                            (
-                                                                                ft,
-                                                                            ) => (
-                                                                                <SelectItem
-                                                                                    key={
-                                                                                        ft.value
-                                                                                    }
-                                                                                    value={
-                                                                                        ft.value
-                                                                                    }
-                                                                                >
-                                                                                    {
-                                                                                        ft.label
-                                                                                    }
-                                                                                </SelectItem>
-                                                                            ),
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.fields?.[index]
-                                                            ?.type && (
-                                                            <p className="text-xs text-destructive">
-                                                                {
-                                                                    errors
-                                                                        .fields[
-                                                                        index
-                                                                    ].type
-                                                                        .message
-                                                                }
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    {/* 필수 여부 */}
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <Label>옵션</Label>
-                                                        <div className="h-9 flex items-center">
-                                                            <label className="flex items-center gap-2.5 cursor-pointer">
-                                                                <Controller
-                                                                    control={control}
-                                                                    name={`fields.${index}.required`}
-                                                                    render={({
-                                                                        field: f,
-                                                                    }) => (
-                                                                        <Checkbox
-                                                                            id={`fields.${index}.required`}
-                                                                            checked={
-                                                                                f.value
-                                                                            }
-                                                                            onCheckedChange={
-                                                                                f.onChange
-                                                                            }
-                                                                        />
-                                                                    )}
-                                                                />
-                                                                <span className="text-sm">
-                                                                    필수 항목
-                                                                </span>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={formFields.map((f) => f.id)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {formFields.map((field, index) => (
+                                            <SortableFieldItem
+                                                key={field.id}
+                                                id={field.id}
+                                                index={index}
+                                                register={register}
+                                                control={control}
+                                                errors={errors}
+                                                fieldsValues={fieldsValues}
+                                                remove={remove}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
 
                                 {/* 하단 전체 너비 추가 버튼 */}
                                 <button

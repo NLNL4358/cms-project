@@ -380,6 +380,63 @@ table {
 }
 
 /* ─── TipTap RichText Editor ─── */
+.richtext-editor {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--card);
+}
+
+.richtext-editor:focus-within {
+    border-color: oklch(from var(--primary) l c h / 0.4);
+    box-shadow: 0 0 0 1px oklch(from var(--primary) l c h / 0.15);
+}
+
+.richtext-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    padding: 8px;
+    background-color: var(--muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.richtext-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    color: var(--muted-foreground);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.richtext-toolbar-btn:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.richtext-toolbar-btn.active,
+.richtext-toolbar-btn[class*="bg-foreground"] {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.richtext-toolbar-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.richtext-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    margin: 0 4px;
+    background-color: var(--border);
+}
+
 .richtext-content .tiptap {
     min-height: 200px;
     padding: 1rem;
@@ -796,10 +853,30 @@ table {
     gap: 10px;
 }
 
+.fieldGripHandle {
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.fieldGripHandle:hover .fieldGripIcon {
+    opacity: 0.8;
+}
+
+.fieldGripHandle:active {
+    cursor: grabbing;
+}
+
 .fieldGripIcon {
     color: var(--muted-foreground);
     opacity: 0.4;
-    cursor: grab;
+}
+
+.fieldItemCard.fieldItemDragging {
+    opacity: 0.5;
+    box-shadow: 0 4px 12px oklch(0 0 0 / 0.12);
 }
 
 .fieldItemIndex {

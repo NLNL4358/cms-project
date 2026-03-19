@@ -72,7 +72,7 @@ function RichTextEditor({ value, onChange, placeholder }) {
     if (!editor) return null;
 
     return (
-        <div className="richtext-editor border rounded-md overflow-hidden">
+        <div className="richtext-editor">
             <Toolbar editor={editor} />
             <EditorContent editor={editor} className="richtext-content" />
         </div>
@@ -88,7 +88,7 @@ function Toolbar({ editor }) {
     };
 
     return (
-        <div className="richtext-toolbar flex flex-wrap items-center gap-0.5 border-b bg-muted/30 p-1.5">
+        <div className="richtext-toolbar">
             {/* 텍스트 서식 */}
             <ToolbarButton
                 onClick={() => editor.chain().focus().toggleBold().run()}
@@ -246,9 +246,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
             onClick={onClick}
             disabled={disabled}
             title={title}
-            className={`richtext-toolbar-btn inline-flex items-center justify-center rounded p-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 ${
-                active ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground'
-            }`}
+            className={`richtext-toolbar-btn${active ? ' active' : ''}`}
         >
             {children}
         </button>
@@ -256,7 +254,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
 }
 
 function ToolbarDivider() {
-    return <div className="mx-1 h-5 w-px bg-border" />;
+    return <div className="richtext-toolbar-divider" />;
 }
 
 export default RichTextEditor;

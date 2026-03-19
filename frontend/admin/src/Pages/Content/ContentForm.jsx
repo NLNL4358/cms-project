@@ -32,16 +32,12 @@ import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Label } from '@/Components/ui/label.jsx';
 import { Badge } from '@/Components/ui/badge.jsx';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/Components/ui/card.jsx';
 import DynamicField from '@/Components/features/DynamicField.jsx';
 import YesNoPopup from '@/Components/common/YesNoPopup';
 import AlertPopup from '@/Components/common/AlertPopup';
 import { buildContentSchema } from '@/lib/content-schema.js';
+
+import '@/CSS/local/content.css';
 
 /** 상태 배지 설정 */
 const STATUS_MAP = {
@@ -385,35 +381,35 @@ function ContentForm() {
     return (
         <div className="formPageWrap">
             {/* 페이지 헤더 */}
-            <div className="flex items-center gap-4 mb-6">
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="backButton"
-                    onClick={() => navigate(`/contents/${contentTypeSlug}`)}
-                >
-                    <ArrowLeft className="size-4" />
-                </Button>
-                <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold">
-                            {isEdit
-                                ? `${contentType.name} 수정`
-                                : `새 ${contentType.name}`}
-                        </h2>
-                        {/* 수정 모드: 현재 상태 배지 + 버전 */}
-                        {isEdit && existingContent && (
-                            <div className="flex items-center gap-2">
-                                <Badge variant={statusConfig.variant}>
-                                    {statusConfig.label}
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                    v{existingContent.version}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                    <p className="text-muted-foreground mt-1">
+            <div className="formPageHead">
+                <div className="flex gap-3 items-center">
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="backButton"
+                        onClick={() => navigate(`/contents/${contentTypeSlug}`)}
+                    >
+                        <ArrowLeft className="size-4" />
+                    </Button>
+                    <h2 className="text-2xl font-bold">
+                        {isEdit
+                            ? `${contentType.name} 수정`
+                            : `새 ${contentType.name}`}
+                    </h2>
+                    {/* 수정 모드: 현재 상태 배지 + 버전 */}
+                    {isEdit && existingContent && (
+                        <div className="flex items-center gap-2">
+                            <Badge variant={statusConfig.variant}>
+                                {statusConfig.label}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                                v{existingContent.version}
+                            </span>
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <p className="pageDescription">
                         {isEdit
                             ? `${contentType.name} 콘텐츠를 수정합니다`
                             : `새 ${contentType.name} 콘텐츠를 생성합니다`}
@@ -423,19 +419,17 @@ function ContentForm() {
 
             <form
                 onSubmit={(e) => e.preventDefault()}
-                className="space-y-6"
+                className="flex flex-col gap-4"
             >
-                {/* 기본 정보 카드 */}
-                <Card>
-                    <CardHeader className="border-b">
-                        <div className="flex items-center gap-2.5">
-                            <div className="sectionTitleBar" />
-                            <CardTitle>기본 정보</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                {/* 기본 정보 */}
+                <div className="sectionBox">
+                    <div className="sectionTitle">
+                        <div className="sectionTitleBar" />
+                        <h5>기본 정보</h5>
+                    </div>
+                    <div className="contentColumnWrap">
                         {/* 제목 */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col">
                             <Label htmlFor="title">
                                 제목{' '}
                                 <span className="text-destructive">*</span>
@@ -453,7 +447,7 @@ function ContentForm() {
                         </div>
 
                         {/* 고유주소 */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col">
                             <Label htmlFor="slug">
                                 고유주소{' '}
                                 <span className="text-destructive">*</span>
@@ -474,7 +468,7 @@ function ContentForm() {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="helpText text-muted-foreground">
                                 URL에 사용됩니다. 소문자, 숫자, 하이픈만
                                 가능합니다.
                             </p>
@@ -484,24 +478,22 @@ function ContentForm() {
                                 </p>
                             )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
-                {/* 입력 항목 카드 */}
+                {/* 입력 항목 */}
                 {fields.length > 0 && (
-                    <Card>
-                        <CardHeader className="border-b">
-                            <div className="flex items-center gap-2.5">
-                                <div className="sectionTitleBar" />
-                                <CardTitle>입력 항목</CardTitle>
-                                {fields.length > 0 && (
-                                    <span className="fieldCountBadge">
-                                        {fields.length}
-                                    </span>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                    <div className="sectionBox">
+                        <div className="sectionTitle">
+                            <div className="sectionTitleBar" />
+                            <h5>입력 항목</h5>
+                            {fields.length > 0 && (
+                                <span className="fieldCountBadge">
+                                    {fields.length}
+                                </span>
+                            )}
+                        </div>
+                        <div className="contentColumnWrap">
                             {fields.map((fieldDef) => (
                                 <DynamicField
                                     key={fieldDef.name}
@@ -510,34 +502,33 @@ function ContentForm() {
                                     errors={errors}
                                 />
                             ))}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
 
-                {/* 버전 히스토리 카드 (수정 모드에서만) */}
+                {/* 버전 히스토리 (수정 모드에서만) */}
                 {isEdit && (
-                    <Card>
-                        <CardHeader
-                            className="cursor-pointer border-b"
+                    <div className="sectionBox">
+                        <div
+                            className="sectionTitle cursor-pointer"
+                            style={{ justifyContent: 'space-between' }}
                             onClick={() => {
                                 setShowVersions(!showVersions);
                             }}
                         >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="sectionTitleBar" />
-                                    <CardTitle className="flex items-center gap-2">
-                                        <History className="size-5" />
-                                        버전 히스토리
-                                    </CardTitle>
-                                </div>
-                                <span className="text-sm text-muted-foreground">
-                                    {showVersions ? '접기' : '펼치기'}
-                                </span>
+                            <div className="flex items-center gap-2">
+                                <div className="sectionTitleBar" />
+                                <h5 className="flex items-center gap-2">
+                                    <History className="size-5" />
+                                    버전 히스토리
+                                </h5>
                             </div>
-                        </CardHeader>
+                            <span className="text-sm text-muted-foreground">
+                                {showVersions ? '접기' : '펼치기'}
+                            </span>
+                        </div>
                         {showVersions && (
-                            <CardContent>
+                            <div>
                                 {versions.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">
                                         버전 히스토리가 없습니다.
@@ -592,9 +583,9 @@ function ContentForm() {
                                         ))}
                                     </div>
                                 )}
-                            </CardContent>
+                            </div>
                         )}
-                    </Card>
+                    </div>
                 )}
 
                 {/* 하단 버튼 */}
