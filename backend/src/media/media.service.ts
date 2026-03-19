@@ -86,7 +86,7 @@ export class MediaService {
     return this.prisma.media.create({
       data: {
         filename: file.filename,
-        originalName: file.originalname,
+        originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
         mimeType: file.mimetype,
         size: file.size,
         path: file.path,

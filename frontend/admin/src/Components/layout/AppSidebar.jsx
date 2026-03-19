@@ -23,7 +23,7 @@ import { useGlobal } from '@/Providers/GlobalContext.jsx';
 const mainMenuItems = [
     { title: '대시보드', path: '/', icon: LayoutDashboard },
     { title: '콘텐츠 타입', path: '/content-types', icon: AppWindow },
-    { title: '미디어', path: '/media', icon: Image },
+    { title: '파일 관리', path: '/media', icon: Image },
     { title: '역할/권한', path: '/roles', icon: Shield },
 ];
 

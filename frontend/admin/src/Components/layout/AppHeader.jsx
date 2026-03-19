@@ -12,7 +12,7 @@ import { ChevronRight, Menu } from 'lucide-react';
 const pathLabels = {
     'content-types': '콘텐츠 타입',
     contents: '콘텐츠',
-    media: '미디어',
+    media: '파일 관리',
     roles: '역할/권한',
 };
 

@@ -1,0 +1,401 @@
+/* ===== Media Grid ===== */
+.mediaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.mediaCard {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    background-color: var(--card);
+}
+
+.mediaCard:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px oklch(0 0 0 / 0.08);
+}
+
+.mediaCardThumb {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background-color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mediaCardThumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mediaCardIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--muted-foreground);
+}
+
+.mediaCardBody {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mediaCardName {
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mediaCardMeta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mediaCardSkeleton {
+    pointer-events: none;
+}
+
+/* ===== Media Empty State ===== */
+.mediaEmptyState {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 0;
+    color: var(--muted-foreground);
+}
+
+/* ===== View Toggle ===== */
+.mediaViewToggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.mediaViewBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--muted-foreground);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.mediaViewBtn:hover {
+    background-color: var(--accent);
+}
+
+.mediaViewBtn.active {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.mediaViewBtn + .mediaViewBtn {
+    border-left: 1px solid var(--border);
+}
+
+/* ===== Table Thumbnail ===== */
+.mediaTableThumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.mediaTableThumbIcon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    color: var(--muted-foreground);
+}
+
+/* ===== Upload Zone ===== */
+.mediaUploadZone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    transition: border-color 0.15s, background-color 0.15s;
+    cursor: pointer;
+}
+
+.mediaUploadZone:hover,
+.mediaUploadZone.dragging {
+    border-color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.04);
+}
+
+.mediaUploadPrompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.mediaUploadPrompt p {
+    font-size: 14px;
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+
+/* ===== Upload Progress List ===== */
+.mediaUploadList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.mediaUploadItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+}
+
+.mediaUploadItem.done {
+    border-color: oklch(0.7 0.15 145);
+    background-color: oklch(0.7 0.15 145 / 0.05);
+}
+
+.mediaUploadItem.error {
+    border-color: var(--destructive);
+    background-color: oklch(from var(--destructive) l c h / 0.05);
+}
+
+.mediaUploadItemName {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.mediaUploadItemProgress {
+    width: 120px;
+    height: 4px;
+    background-color: var(--muted);
+    border-radius: 99px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.mediaUploadItemBar {
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: 99px;
+    transition: width 0.2s;
+}
+
+.mediaUploadItem.done .mediaUploadItemBar {
+    background-color: oklch(0.7 0.15 145);
+}
+
+.mediaUploadItemStatus {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--muted-foreground);
+    width: 60px;
+    text-align: right;
+}
+
+.mediaUploadItem.done .mediaUploadItemStatus {
+    color: oklch(0.55 0.15 145);
+}
+
+.mediaUploadItem.error .mediaUploadItemStatus {
+    color: var(--destructive);
+}
+
+/* ===== Detail Popup (PopupProvider 내부) ===== */
+.mediaPopupHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.mediaPopupTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.mediaPopupClose {
+    color: var(--muted-foreground);
+    transition: color 0.15s;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+}
+
+.mediaPopupClose:hover {
+    color: var(--foreground);
+    background-color: var(--accent);
+}
+
+.mediaPopupBody {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 600px;
+    max-width: 80vw;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.mediaPopupPreview {
+    background-color: var(--muted);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 200px;
+    position: relative;
+}
+
+.mediaPopupPreview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.mediaPopupViewOriginal {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    background-color: oklch(0 0 0 / 0.6);
+    border-radius: var(--radius-md);
+    transition: background-color 0.15s;
+}
+
+.mediaPopupViewOriginal:hover {
+    background-color: oklch(0 0 0 / 0.8);
+}
+
+.mediaPopupFileIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    color: var(--muted-foreground);
+}
+
+.mediaPopupInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mediaPopupMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.mediaPopupMetaRow {
+    display: flex;
+    gap: 8px;
+}
+
+.mediaPopupMetaLabel {
+    flex-shrink: 0;
+    width: 70px;
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+
+.mediaPopupMetaValue {
+    word-break: break-all;
+    min-width: 0;
+}
+
+.mediaPopupUrlRow {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.mediaPopupUrlRow input {
+    flex: 1;
+}
+
+.mediaPopupEditFields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mediaPopupEditFields label {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.mediaPopupFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+/* ===== Filter Bar ===== */
+.mediaFilterBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mediaSearchWrap {
+    position: relative;
+    max-width: 300px;
+    flex: 1;
+}
+
+.mediaSearchBtn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-foreground);
+    transition: color 0.15s;
+}
+
+.mediaSearchBtn:hover {
+    color: var(--foreground);
+}
