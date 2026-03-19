@@ -4,10 +4,12 @@
  * React Hook Form의 Controller를 통해 폼과 연결됩니다.
  */
 import { Controller } from 'react-hook-form';
+import { Image, FileText, X, RefreshCw } from 'lucide-react';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Textarea } from '@/Components/ui/textarea.jsx';
 import { Switch } from '@/Components/ui/switch.jsx';
 import { Label } from '@/Components/ui/label.jsx';
+import { Button } from '@/Components/ui/Button.jsx';
 import {
     Select,
     SelectContent,
@@ -16,6 +18,9 @@ import {
     SelectValue,
 } from '@/Components/ui/Select.jsx';
 import RichTextEditor from '@/Components/features/RichTextEditor.jsx';
+import { usePopup } from '@/Providers/PopupContext';
+import MediaPickerPopup from '@/Components/common/MediaPickerPopup.jsx';
+import { getMediaUrl } from '@/lib/media-utils.js';
 
 /**
  * @param {Object} props
@@ -27,6 +32,7 @@ function DynamicField({ fieldDef, control, errors }) {
     const { name, label, type, required } = fieldDef;
     const fieldName = `data.${name}`;
     const fieldError = errors?.data?.[name];
+    const { makePopup, closePopup } = usePopup();
 
     return (
         <div className="flex flex-col gap-2">
@@ -38,7 +44,9 @@ function DynamicField({ fieldDef, control, errors }) {
             <Controller
                 control={control}
                 name={fieldName}
-                render={({ field }) => renderField(field, fieldDef)}
+                render={({ field }) =>
+                    renderField(field, fieldDef, { makePopup, closePopup })
+                }
             />
 
             {fieldError && (
@@ -48,7 +56,7 @@ function DynamicField({ fieldDef, control, errors }) {
     );
 }
 
-function renderField(field, fieldDef) {
+function renderField(field, fieldDef, popup) {
     const { type, label, options } = fieldDef;
 
     switch (type) {
@@ -228,14 +236,78 @@ function renderField(field, fieldDef) {
             );
 
         case 'image':
-        case 'file':
+        case 'file': {
+            const mode = type === 'image' ? 'image' : 'file';
+            const currentUrl = field.value || '';
+            const isImg = type === 'image' || currentUrl.match(/\.(jpe?g|png|gif|webp|svg)$/i);
+
+            const openPicker = () => {
+                popup.makePopup(
+                    <MediaPickerPopup
+                        mode={mode}
+                        onSelect={(media) => {
+                            field.onChange(media.url);
+                            popup.closePopup();
+                        }}
+                        onClose={() => popup.closePopup()}
+                    />,
+                );
+            };
+
+            if (!currentUrl) {
+                return (
+                    <div className="dynamicFieldMediaEmpty" onClick={openPicker}>
+                        {type === 'image' ? (
+                            <Image className="size-6 text-muted-foreground" />
+                        ) : (
+                            <FileText className="size-6 text-muted-foreground" />
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                            {type === 'image' ? '이미지 선택' : '파일 선택'}
+                        </span>
+                    </div>
+                );
+            }
+
             return (
-                <Input
-                    value=""
-                    disabled
-                    placeholder="미디어 관리 기능 추가 후 사용 가능"
-                />
+                <div className="dynamicFieldMediaPreview">
+                    {isImg ? (
+                        <img
+                            src={getMediaUrl(currentUrl)}
+                            alt=""
+                            className="dynamicFieldMediaThumb"
+                        />
+                    ) : (
+                        <div className="dynamicFieldMediaThumbIcon">
+                            <FileText className="size-5" />
+                        </div>
+                    )}
+                    <span className="dynamicFieldMediaName">
+                        {currentUrl.split('/').pop()}
+                    </span>
+                    <div className="dynamicFieldMediaActions">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-sm"
+                            onClick={openPicker}
+                            title="변경"
+                        >
+                            <RefreshCw className="size-3.5" />
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-sm"
+                            onClick={() => field.onChange('')}
+                            title="제거"
+                        >
+                            <X className="size-3.5" />
+                        </Button>
+                    </div>
+                </div>
             );
+        }
 
         default:
             return (

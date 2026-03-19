@@ -24,6 +24,7 @@ import {
     List,
     ListOrdered,
     Link as LinkIcon,
+    Image as ImageIcon,
     AlignLeft,
     AlignCenter,
     AlignRight,
@@ -33,6 +34,10 @@ import {
     Redo,
     RemoveFormatting,
 } from 'lucide-react';
+
+import { usePopup } from '@/Providers/PopupContext';
+import MediaPickerPopup from '@/Components/common/MediaPickerPopup.jsx';
+import { getMediaUrl } from '@/lib/media-utils.js';
 
 /**
  * @param {Object} props
@@ -80,11 +85,33 @@ function RichTextEditor({ value, onChange, placeholder }) {
 }
 
 function Toolbar({ editor }) {
+    const { makePopup, closePopup } = usePopup();
+
     const addLink = () => {
         const url = window.prompt('URL을 입력하세요');
         if (url) {
             editor.chain().focus().setLink({ href: url }).run();
         }
+    };
+
+    const addImage = () => {
+        makePopup(
+            <MediaPickerPopup
+                mode="image"
+                onSelect={(media) => {
+                    editor
+                        .chain()
+                        .focus()
+                        .setImage({
+                            src: getMediaUrl(media.url),
+                            alt: media.alt || media.originalName,
+                        })
+                        .run();
+                    closePopup();
+                }}
+                onClose={() => closePopup()}
+            />,
+        );
     };
 
     return (
@@ -210,6 +237,12 @@ function Toolbar({ editor }) {
                 title="링크"
             >
                 <LinkIcon className="size-4" />
+            </ToolbarButton>
+            <ToolbarButton
+                onClick={addImage}
+                title="이미지 삽입"
+            >
+                <ImageIcon className="size-4" />
             </ToolbarButton>
 
             <ToolbarDivider />

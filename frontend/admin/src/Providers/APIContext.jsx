@@ -13,6 +13,20 @@ import { toast } from "sonner";
 
 import { usePopup } from "./PopupContext";
 
+/**
+ * popupRef를 PopupProvider 내부에서 동기화하는 컴포넌트.
+ * APIProvider가 PopupProvider 바깥에 위치할 수 있도록 분리.
+ */
+export function ProgressPopupSync() {
+  const { makeProgressPopup, closeProgressPopup } = usePopup();
+
+  useEffect(() => {
+    popupRef.current = { makeProgressPopup, closeProgressPopup };
+  }, [makeProgressPopup, closeProgressPopup]);
+
+  return null;
+}
+
 const APIContext = createContext();
 
 // 모듈 레벨 ref — UserProvider에서 업데이트
@@ -114,13 +128,6 @@ instance.interceptors.response.use(
 );
 
 export function APIProvider({ children }) {
-  const { makeProgressPopup, closeProgressPopup } = usePopup();
-
-  // popupRef 동기화 — 인터셉터가 참조
-  useEffect(() => {
-    popupRef.current = { makeProgressPopup, closeProgressPopup };
-  }, [makeProgressPopup, closeProgressPopup]);
-
   return <APIContext.Provider value={instance}>{children}</APIContext.Provider>;
 }
 
