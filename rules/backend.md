@@ -227,7 +227,7 @@
 | `unique` | 고유값 여부 | false |
 | `default` | 기본값 | null |
 | `private` | API 노출 여부 | false |
-| `localized` | 다국어 지원 여부 | false |
+| `localized` | 다국어 지원 여부 `[Business+]` | false |
 
 필드 타입별 추가 옵션:
 
@@ -330,7 +330,7 @@ contents
 ├── data (JSONB)          -- 실제 데이터
 ├── status (draft | review | approved | published)
 ├── author_id (FK)
-├── locale                 -- 언어 코드
+├── locale                 -- 언어 코드 [Business+]
 ├── version               -- 버전 번호
 ├── published_at
 ├── scheduled_at          -- 예약 발행
@@ -375,9 +375,9 @@ pages
 ├── type (main | static | dynamic | system)
 ├── content (JSONB)       -- 페이지 빌더 데이터
 ├── template_id (FK)
-├── seo (JSONB)
+├── seo (JSONB)           -- [Business+]
 ├── status
-├── locale
+├── locale                 -- [Business+]
 └── created_at
 
 -- 알림
@@ -512,10 +512,10 @@ DELETE /api/v1/contents/posts/123      # 게시글 삭제
 | `sort` | 정렬 | `?sort=-created_at` (- = DESC) |
 | `filter` | 필터링 | `?filter[status]=published` |
 | `search` | 검색 | `?search=키워드` |
-| `locale` | 언어 | `?locale=ko` |
+| `locale` | 언어 `[Business+]` | `?locale=ko` |
 | `populate` | 관계 포함 | `?populate=author,category` |
 
-### 4.4 GraphQL (선택사항)
+### 4.4 GraphQL (선택사항) `[Enterprise]`
 
 기본은 REST API이고, GraphQL은 추후 확장으로 제공.
 
@@ -714,8 +714,8 @@ interface SearchEngine {
 const edition = process.env.CMS_EDITION || 'starter';
 
 const coreModules = [AuthModule, ContentTypeModule, ContentModule, MediaModule, RoleModule, ...];
-const businessModules = edition !== 'starter' ? [PageModule, TemplateModule, ComponentModule] : [];
-const enterpriseModules = edition === 'enterprise' ? [WorkflowModule, InternalCommentModule, SsoModule, MultiSiteModule, ...] : [];
+const businessModules = edition !== 'starter' ? [PageModule, TemplateModule, ComponentModule, I18nModule, SeoModule] : [];
+const enterpriseModules = edition === 'enterprise' ? [WorkflowModule, InternalCommentModule, SsoModule, MultiSiteModule, GraphqlModule, ...] : [];
 
 @Module({ imports: [...coreModules, ...businessModules, ...enterpriseModules] })
 ```
@@ -737,11 +737,14 @@ src/
 │   ├── pages/           # 페이지 관리 [Business]
 │   ├── templates/       # 템플릿 관리 [Business]
 │   ├── components/      # 컴포넌트 관리 [Business]
+│   ├── i18n/            # 다국어 지원 [Business+]
+│   ├── seo/             # SEO 관리 [Business+]
 │   ├── workflow/        # 승인 워크플로우 [Enterprise]
 │   ├── internal-comment/# 내부 댓글/메모 [Enterprise]
 │   ├── sso/             # SSO 연동 [Enterprise]
 │   ├── multi-site/      # 멀티사이트 [Enterprise]
-│   └── api-analytics/   # API 분석 [Enterprise]
+│   ├── api-analytics/   # API 분석 [Enterprise]
+│   └── graphql/         # GraphQL API [Enterprise]
 ├── common/
 │   ├── guards/          # 인증/권한 Guard
 │   ├── decorators/      # 커스텀 데코레이터
@@ -804,3 +807,29 @@ REDIS_URL=redis://localhost:6379
 | | `enterprise` | + Workflow, SSO, MultiSite 등 |
 
 에디션은 **상위 호환**: `enterprise`는 `business`의 모든 기능을 포함하고, `business`는 `starter`의 모든 기능을 포함한다.
+
+---
+
+## 추가 세부 스펙
+
+### 동시 편집 충돌 처리
+- Starter에서는 last-write-wins 방식 사용
+- 콘텐츠 편집 시 updatedAt 비교 → 다른 사용자가 수정한 경우 경고 표시 (optimistic locking)
+- Enterprise에서 실시간 협업 편집 고려
+
+### 파일(미디어) 접근 제어
+- 업로드된 파일은 `/uploads/` 경로로 정적 서빙 (인증 불필요)
+- 민감한 파일이 필요한 경우 signed URL 방식 도입 검토 (Enterprise)
+
+### Webhook 재시도 전략
+- 실패 시 최대 3회 재시도
+- 지수 백오프: 1분, 5분, 30분
+- 3회 실패 후 Webhook 비활성화 + 관리자 알림
+- 실패 로그 저장 (AuditLog)
+
+### 검색(MeiliSearch) 인덱싱 동기화
+- 콘텐츠 생성/수정/삭제 시 비동기로 MeiliSearch 인덱스 업데이트
+- 발행(PUBLISHED) 상태 콘텐츠만 인덱싱
+- 미발행/삭제 시 인덱스에서 제거
+- 인덱싱 대상 필드: title, slug, data(동적 필드), contentType.name
+- BullMQ 큐를 통해 비동기 처리 (실패 시 재시도)

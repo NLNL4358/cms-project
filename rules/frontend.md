@@ -46,6 +46,7 @@
 ### 7. PopupContext + popupRef 패턴 (자동 로딩 스피너)
 - PopupProvider: 팝업/로딩 스피너 전역 상태 관리
 - popupRef: tokenRef와 동일한 패턴으로 APIProvider 인터셉터에서 참조
+- ProgressPopupSync: PopupProvider 안에서 popupRef를 동기화 (APIProvider↔PopupProvider 의존성 분리)
 - 모든 API 요청 시 자동으로 로딩 스피너 표시/숨김
 
 ---
@@ -61,7 +62,7 @@
 7. [UI 컴포넌트](#7-ui-컴포넌트)
 8. [페이지 빌더](#8-페이지-빌더)
 9. [폼 관리](#9-폼-관리)
-10. [다국어 (i18n)](#10-다국어-i18n)
+10. [다국어 (i18n)](#10-다국어-i18n) `[Business+]`
 11. [성능 최적화](#11-성능-최적화)
 
 ---
@@ -146,7 +147,7 @@ frontend/
 admin/
 ├── src/
 │   ├── App.jsx                 # 루트 컴포넌트 (라우팅 설정)
-│   ├── main.jsx                # 앱 진입점 (Provider 중첩: Query > Router > Popup > API > User > Global)
+│   ├── main.jsx                # 앱 진입점 (Provider 중첩: Query > Router > API > Popup > User > Global)
 │   │
 │   ├── Providers/              # Context Providers (useState 기반)
 │   │   ├── PopupContext.jsx    # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
@@ -169,11 +170,21 @@ admin/
 │   │   │   ├── ContentRouter.jsx
 │   │   │   ├── MediaRouter.jsx
 │   │   │   └── RoleRouter.jsx
-│   │   ├── Dashboard/          # 대시보드 (플레이스홀더)
-│   │   ├── ContentType/        # 콘텐츠 타입 관리 (플레이스홀더)
-│   │   ├── Content/            # 콘텐츠 관리 (플레이스홀더)
-│   │   ├── Media/              # 미디어 관리 (플레이스홀더)
-│   │   └── Role/               # 역할/권한 관리 (플레이스홀더)
+│   │   ├── Dashboard/          # 대시보드 (stats cards + 최근 활동)
+│   │   ├── ContentType/        # 콘텐츠 타입 관리
+│   │   │   ├── ContentTypeList.jsx     # 목록 페이지
+│   │   │   ├── ContentTypeForm.jsx     # 생성/수정 폼 (레이아웃 표준)
+│   │   │   └── SortableFieldItem.jsx   # 드래그 앤 드롭 필드 아이템
+│   │   ├── Content/            # 콘텐츠 관리
+│   │   │   ├── ContentList.jsx         # 목록 페이지
+│   │   │   └── ContentForm.jsx         # 생성/수정 폼 (TipTap, 버전 히스토리, 상태 관리)
+│   │   ├── Media/              # 미디어(파일) 관리
+│   │   │   ├── MediaList.jsx           # 그리드/테이블 뷰, MediaPickerPopup
+│   │   │   ├── MediaUploadZone.jsx     # 업로드 영역
+│   │   │   └── MediaDetailPopup.jsx    # 상세/삭제 팝업
+│   │   └── Role/               # 역할/권한 관리
+│   │       ├── RoleList.jsx            # 목록 페이지
+│   │       └── RoleForm.jsx            # 생성/수정 폼 (권한 선택 UI)
 │   │
 │   ├── Components/             # 공통 컴포넌트
 │   │   ├── features/           # 기능 컴포넌트
@@ -256,24 +267,27 @@ import { QueryClientProvider } from '@tanstack/react-query';
 
 import { queryClient } from '@/lib/query-client.js';
 import { UserProvider } from '@/Providers/UserContext.jsx';
-import { APIProvider } from '@/Providers/APIContext.jsx';
+import { APIProvider, ProgressPopupSync } from '@/Providers/APIContext.jsx';
 import { GlobalProvider } from '@/Providers/GlobalContext.jsx';
 import { PopupProvider } from '@/Providers/PopupContext.jsx';
 
+import { Toaster } from '@/Components/ui/sonner.jsx';
 import App from './App.jsx';
 
 createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-            <PopupProvider>
-                <APIProvider>
+            <APIProvider>
+                <PopupProvider>
+                    <ProgressPopupSync />
                     <UserProvider>
                         <GlobalProvider>
                             <App />
+                            <Toaster position="top-right" richColors />
                         </GlobalProvider>
                     </UserProvider>
-                </APIProvider>
-            </PopupProvider>
+                </PopupProvider>
+            </APIProvider>
         </BrowserRouter>
     </QueryClientProvider>,
 );
@@ -291,25 +305,30 @@ createRoot(document.getElementById('root')).render(
    - 모든 라우팅 관련 훅 (`useNavigate`, `useLocation` 등) 사용 가능하게 함
    - 의존성: 없음
 
-3. **PopupProvider**
+3. **APIProvider**
+   - Axios 인스턴스 생성 및 제공 (PopupProvider **외부**에 위치)
+   - `useAPI()` 훅으로 axios 인스턴스 접근 가능
+   - 인터셉터가 `tokenRef`로 토큰 첨부, `popupRef`로 로딩 스피너 자동 표시
+   - 의존성: 없음 (popupRef는 모듈 레벨 ref로 간접 참조)
+
+4. **PopupProvider**
    - 팝업/로딩 스피너 전역 상태 관리
    - `usePopup()` 훅으로 makePopup, closePopup, makeProgressPopup, closeProgressPopup 제공
    - 의존성: 없음
 
-4. **APIProvider**
-   - Axios 인스턴스 생성 및 제공
-   - `useAPI()` 훅으로 axios 인스턴스 접근 가능
-   - `usePopup()` 사용 → PopupProvider에 의존 (popupRef 동기화)
-   - 인터셉터가 `tokenRef`로 토큰 첨부, `popupRef`로 로딩 스피너 자동 표시
+5. **ProgressPopupSync** (PopupProvider 내부 컴포넌트)
+   - PopupProvider 안에서 `usePopup()`으로 popupRef를 동기화하는 브릿지 컴포넌트
+   - APIProvider↔PopupProvider 간 의존성을 분리하기 위해 존재
+   - APIProvider가 PopupProvider 외부에 있어도 인터셉터가 로딩 스피너를 제어 가능
    - 의존성: PopupProvider
 
-5. **UserProvider**
+6. **UserProvider**
    - 인증 상태 관리 (user, accessToken, refreshToken)
    - `useAPI()` 사용 → APIProvider에 의존
    - `tokenRef.current` 업데이트
    - 의존성: APIProvider
 
-6. **GlobalProvider** (최하위)
+7. **GlobalProvider** (최하위)
    - 전역 서버 데이터 캐싱 (contentTypes 등)
    - `useAPI()` + `useUser()` 사용 → APIProvider, UserProvider에 의존
    - `enabled: !!user && !!accessToken`로 로그인 + 토큰 보유 시에만 데이터 fetch
@@ -358,15 +377,17 @@ features/content/
 // src/main.jsx
 <QueryClientProvider client={queryClient}>  {/* TanStack Query 필수 */}
   <BrowserRouter>                           {/* React Router */}
-    <PopupProvider>                         {/* 팝업/로딩 스피너 상태 */}
-      <APIProvider>                         {/* Axios + popupRef 동기화 */}
+    <APIProvider>                           {/* Axios 인스턴스 (popupRef 모듈레벨 ref) */}
+      <PopupProvider>                       {/* 팝업/로딩 스피너 상태 */}
+        <ProgressPopupSync />               {/* popupRef ↔ PopupProvider 동기화 */}
         <UserProvider>                      {/* useAPI() 사용, tokenRef 업데이트 */}
           <GlobalProvider>                  {/* useAPI() + useUser() 사용 */}
             <App />
+            <Toaster position="top-right" richColors />
           </GlobalProvider>
         </UserProvider>
-      </APIProvider>
-    </PopupProvider>
+      </PopupProvider>
+    </APIProvider>
   </BrowserRouter>
 </QueryClientProvider>
 ```
@@ -374,10 +395,11 @@ features/content/
 **중첩 순서 이유:**
 1. **QueryClientProvider**: `useQuery`, `useMutation` 사용을 위해 최상위 필수
 2. **BrowserRouter**: 라우팅 컨텍스트 제공
-3. **PopupProvider**: 팝업/스피너 상태 제공 (APIProvider가 `usePopup()` 사용)
-4. **APIProvider**: axios 인스턴스 생성 + `usePopup()`으로 popupRef 동기화
-5. **UserProvider**: `useAPI()`를 사용하므로 APIProvider 하위에 위치
-6. **GlobalProvider**: `useAPI()`와 `useUser()`를 모두 사용하므로 가장 하위
+3. **APIProvider**: axios 인스턴스 생성 (PopupProvider **외부** — popupRef는 모듈 레벨 ref로 간접 참조)
+4. **PopupProvider**: 팝업/스피너 상태 제공
+5. **ProgressPopupSync**: PopupProvider 안에서 `usePopup()`으로 popupRef를 동기화 (APIProvider↔PopupProvider 의존성 분리)
+6. **UserProvider**: `useAPI()`를 사용하므로 APIProvider 하위에 위치
+7. **GlobalProvider**: `useAPI()`와 `useUser()`를 모두 사용하므로 가장 하위
 
 ### TanStack Query 설정
 
@@ -1357,7 +1379,7 @@ export function DynamicForm({
 
 ---
 
-## 10. 다국어 (i18n)
+## 10. 다국어 (i18n) `[Business+]`
 
 ### react-i18next 설정
 

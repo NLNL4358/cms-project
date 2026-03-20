@@ -791,13 +791,40 @@ YYYY.MM.DD HH:MM
             - 모든 액션에 PopupContext 연동 (YesNoPopup 확인, AlertPopup 결과 알림)
         - 프로덕션 빌드 성공 (2913 모듈)
 
-### 다음 작업
-    - 1단계 (Starter) 핵심 기능 구현 계속
-        - Phase 2~3 브라우저 동작 테스트: richtext 에디터, 상태 관리, 버전 히스토리 실제 확인
-        - 미디어 관리 페이지 구현
-            - 미디어 업로드/목록/삭제 UI
-            - Sharp 이미지 처리 결과(썸네일, WebP) 표시
-            - 미디어 라이브러리 팝업 (TipTap 이미지 삽입, 콘텐츠 이미지/파일 필드 연동)
-        - TipTap 이미지/비디오 삽입 기능 (미디어 관리 완료 후)
-        - 대시보드 페이지 실제 구현
+2026.03.20
+    - 대시보드 페이지 구현 완료
+        - 백엔드 GET /dashboard/stats 엔드포인트 생성
+        - 통계 카드 (콘텐츠/콘텐츠 타입/파일/사용자)
+        - 콘텐츠 상태별 요약 바, 최근 활동 테이블
+        - 저장소 사용량 카드, 로딩 스켈레톤, 반응형 레이아웃
+    - 역할/권한 관리 페이지 구현 완료
+        - RoleList: 역할 목록 테이블 (이름, 고유주소, 설명, 권한 수, 사용자 수)
+        - RoleForm: 역할 생성/수정 폼 + 리소스별 권한 선택 UI
+        - App.jsx에 /roles/new, /roles/:id/edit 라우트 추가
+    - Starter 에디션 기획 재검토 및 방향성 확정
+        - i18n → Business로 이동 (설계 복잡도)
+        - GraphQL → Enterprise로 이동 (REST만으로 출시 가능)
+        - SEO 관리 → Business로 이동 (Starter는 API only)
+        - 검색 (MeiliSearch) → Starter 유지
+        - 개발 우선순위 확정: 회원관리 → 휴지통 → 설정 → Webhook → 로그 → 알림 → 백업 → Import/Export
+    - 기획 문서 전면 재정비
+        - rules/project.md: 에디션별 기능 범위 재정의
+        - rules/backend.md: Starter 범위 수정 + 세부 스펙 추가 (동시편집, 파일접근, Webhook재시도, MeiliSearch인덱싱)
+        - rules/frontend.md: Provider 순서 동기화 + 구현된 페이지 목록 업데이트
+        - rules/scenarios.md: 에디션 태그 수정
 
+### 다음 작업
+    - 기획 문서 재정비 (완료)
+        - Starter/Business/Enterprise 기능 범위 재정의
+        - i18n, SEO → Business / GraphQL → Enterprise 이동
+        - 문서 간 불일치 수정, 세부 스펙 추가
+    - 1단계 (Starter) 남은 기능 구현 (순서대로)
+        1. 회원/관리자 관리 페이지
+        2. 휴지통 UI (복원/영구삭제)
+        3. 시스템 설정 페이지
+        4. Webhook 관리
+        5. 감사 로그
+        6. 알림 센터
+        7. 백업/복원
+        8. Import/Export
+        9. 검색 (MeiliSearch 연동)
