@@ -1,0 +1,112 @@
+/* ===== Role Permission Selector ===== */
+
+/* 전체 권한 토글 */
+.permSuperAdmin {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--card);
+    margin-bottom: 16px;
+}
+
+.permSuperAdminInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.permSuperAdminLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.permSuperAdminDesc {
+    font-size: 12px;
+    color: var(--muted-foreground);
+}
+
+/* 권한 그룹 리스트 */
+.permGroupList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.permGroup {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.permGroupHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background-color: var(--muted);
+}
+
+.permGroupLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.permAllBtn {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.permAllBtn:hover {
+    color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.06);
+}
+
+.permAllBtnActive {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+/* 권한 액션 버튼 리스트 */
+.permActionList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+}
+
+.permActionBtn {
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+    background-color: var(--card);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.permActionBtn:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.permActionBtnActive {
+    border-color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.08);
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.permActionBtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

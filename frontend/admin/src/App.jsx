@@ -11,6 +11,7 @@ import ContentList from '@pages/Content/ContentList.jsx';
 import ContentForm from '@pages/Content/ContentForm.jsx';
 import MediaList from '@pages/Media/MediaList.jsx';
 import RoleList from '@pages/Role/RoleList.jsx';
+import RoleForm from '@pages/Role/RoleForm.jsx';
 
 /* Routers */
 import ContentTypeRouter from '@pages/Router/ContentTypeRouter.jsx';
@@ -61,6 +62,8 @@ function App() {
 
                 <Route path="roles" element={<RoleRouter />}>
                     <Route index element={<RoleList />} />
+                    <Route path="new" element={<RoleForm />} />
+                    <Route path=":id/edit" element={<RoleForm />} />
                 </Route>
             </Route>
 
