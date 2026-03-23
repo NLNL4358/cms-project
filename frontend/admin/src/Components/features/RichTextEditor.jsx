@@ -3,6 +3,7 @@
  * TipTap 기반 리치 텍스트 에디터.
  * DynamicField의 richtext 타입에서 사용됩니다.
  */
+import { useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -46,6 +47,8 @@ import { getMediaUrl } from '@/lib/media-utils.js';
  * @param {string} [props.placeholder] - 플레이스홀더
  */
 function RichTextEditor({ value, onChange, placeholder }) {
+    const lastValueRef = useRef(value || '');
+
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
@@ -70,9 +73,19 @@ function RichTextEditor({ value, onChange, placeholder }) {
         content: value || '',
         onUpdate: ({ editor: ed }) => {
             const html = ed.getHTML();
-            onChange(html === '<p></p>' ? '' : html);
+            const normalized = html === '<p></p>' ? '' : html;
+            lastValueRef.current = normalized;
+            onChange(normalized);
         },
     });
+
+    // 외부에서 value가 변경되면 에디터에 반영 (수정 모드 데이터 로드 시)
+    useEffect(() => {
+        if (editor && value !== lastValueRef.current) {
+            lastValueRef.current = value || '';
+            editor.commands.setContent(value || '');
+        }
+    }, [editor, value]);
 
     if (!editor) return null;
 
