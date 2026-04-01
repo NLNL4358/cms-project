@@ -50,6 +50,7 @@ function AuditLogList() {
     const { makePopup, closePopup } = usePopup();
 
     const [page, setPage] = useState(1);
+    const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
     const [actionFilter, setActionFilter] = useState('');
     const [entityFilter, setEntityFilter] = useState('');
@@ -183,59 +184,71 @@ function AuditLogList() {
 
             {/* 필터 바 */}
             <div className="sectionBox auditFilterBox">
-                <div className="auditFilterRow">
-                    <div className="auditSearchWrap">
-                        <Search className="auditSearchIcon" />
-                        <Input
-                            placeholder="검색..."
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
+                <div className="auditSearchWrap">
+                    <Input
+                        placeholder="검색..."
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                setSearch(searchInput);
+                                setPage(1);
+                            }
+                        }}
+                        className="auditSearchInput"
+                    />
+                    <button
+                        type="button"
+                        className="auditSearchBtn"
+                        onClick={() => {
+                            setSearch(searchInput);
+                            setPage(1);
+                        }}
+                    >
+                        <Search className="size-4" />
+                    </button>
+                </div>
+                <div className="auditFilterWrap">
+                    <div className="auditSelectGroup">
+                        <Select
+                            value={actionFilter || 'all'}
+                            onValueChange={(v) => {
+                                setActionFilter(v === 'all' ? '' : v);
                                 setPage(1);
                             }}
-                            className="auditSearchInput"
-                        />
+                        >
+                            <SelectTrigger className="auditFilterSelect">
+                                <SelectValue placeholder="액션 전체" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">액션 전체</SelectItem>
+                                {actions.map((a) => (
+                                    <SelectItem key={a} value={a}>
+                                        {ACTION_LABELS[a] || a}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={entityFilter || 'all'}
+                            onValueChange={(v) => {
+                                setEntityFilter(v === 'all' ? '' : v);
+                                setPage(1);
+                            }}
+                        >
+                            <SelectTrigger className="auditFilterSelect">
+                                <SelectValue placeholder="대상 전체" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">대상 전체</SelectItem>
+                                {entities.map((e) => (
+                                    <SelectItem key={e} value={e}>
+                                        {e}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <Select
-                        value={actionFilter || 'all'}
-                        onValueChange={(v) => {
-                            setActionFilter(v === 'all' ? '' : v);
-                            setPage(1);
-                        }}
-                    >
-                        <SelectTrigger className="auditFilterSelect">
-                            <SelectValue placeholder="액션 전체" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">액션 전체</SelectItem>
-                            {actions.map((a) => (
-                                <SelectItem key={a} value={a}>
-                                    {ACTION_LABELS[a] || a}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        value={entityFilter || 'all'}
-                        onValueChange={(v) => {
-                            setEntityFilter(v === 'all' ? '' : v);
-                            setPage(1);
-                        }}
-                    >
-                        <SelectTrigger className="auditFilterSelect">
-                            <SelectValue placeholder="대상 전체" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">대상 전체</SelectItem>
-                            {entities.map((e) => (
-                                <SelectItem key={e} value={e}>
-                                    {e}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="auditFilterRow">
                     <div className="auditDateGroup">
                         <Input
                             type="date"
@@ -257,6 +270,8 @@ function AuditLogList() {
                             className="auditDateInput"
                         />
                     </div>
+                </div>
+                <div className="auditFilterRow">
                     <span className="auditResultCount">
                         총 {meta.total}건
                     </span>

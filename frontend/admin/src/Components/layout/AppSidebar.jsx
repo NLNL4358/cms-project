@@ -15,6 +15,7 @@ import {
     Settings,
     ScrollText,
     Webhook,
+    ArrowDownToLine,
     LogOut,
     ChevronDown,
     Layers,
@@ -33,6 +34,7 @@ const mainMenuItems = [
     { title: '사용자 관리', path: '/users', icon: Users },
     { title: '감사 로그', path: '/audit-logs', icon: ScrollText },
     { title: 'Webhook', path: '/webhooks', icon: Webhook },
+    { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine },
     { title: '시스템 설정', path: '/settings', icon: Settings },
 ];
 

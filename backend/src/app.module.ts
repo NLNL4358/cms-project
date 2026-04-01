@@ -20,6 +20,7 @@ import { SettingsModule } from './settings/settings.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { AuditLogInterceptor } from './audit-log/audit-log.interceptor';
 import { WebhookModule } from './webhook/webhook.module';
+import { ImportExportModule } from './import-export/import-export.module';
 
 @Module({
   imports: [
@@ -63,6 +64,8 @@ import { WebhookModule } from './webhook/webhook.module';
     AuditLogModule,
     // Webhook 모듈
     WebhookModule,
+    // Import/Export 모듈
+    ImportExportModule,
   ],
   controllers: [AppController],
   providers: [

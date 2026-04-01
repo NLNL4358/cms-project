@@ -10,6 +10,7 @@
 import React, { createContext, useContext, useEffect, createRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { queryClient } from "@/lib/query-client.js";
 
 import { usePopup } from "./PopupContext";
 
@@ -44,6 +45,25 @@ const instance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+/**
+ * API URL에서 무효화할 React Query 캐시 키를 추출.
+ * 예: POST /contents/abc → ["contents"]
+ *     POST /import-export/import/execute → ["contents"]
+ *     PATCH /settings → ["settings"]
+ */
+function getCacheKeysFromUrl(url) {
+  // import-export는 콘텐츠 관련 캐시 무효화
+  if (url.includes("/import-export")) return ["contents"];
+
+  // URL의 첫 번째 경로 세그먼트를 캐시 키로 사용
+  const segment = url.split("?")[0].split("/").filter(Boolean)[0];
+  if (!segment) return [];
+
+  // 연관 캐시도 함께 무효화 (대시보드 통계 등)
+  const related = ["dashboard"];
+  return [segment, ...related];
+}
+
 // 요청 인터셉터 — 로딩 스피너 표시 + accessToken 첨부
 instance.interceptors.request.use((config) => {
   // 로딩 스피너 표시
@@ -65,6 +85,15 @@ instance.interceptors.response.use(
     if (popupRef.current?.closeProgressPopup) {
       popupRef.current.closeProgressPopup();
     }
+
+    // CUD 성공 시 관련 쿼리 캐시 자동 무효화
+    const method = response.config.method?.toUpperCase();
+    if (method === "POST" || method === "PATCH" || method === "PUT" || method === "DELETE") {
+      const url = response.config.url || "";
+      const keys = getCacheKeysFromUrl(url);
+      keys.forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+    }
+
     return response;
   },
   async (error) => {

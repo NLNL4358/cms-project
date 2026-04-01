@@ -8,6 +8,19 @@
     padding: 16px 20px;
 }
 
+.auditFilterWrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.auditSelectGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .auditFilterRow {
     display: flex;
     align-items: center;
@@ -16,24 +29,35 @@
 }
 
 .auditSearchWrap {
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     flex: 1;
-    min-width: 200px;
-}
-
-.auditSearchIcon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    color: var(--muted-foreground);
-    pointer-events: none;
+    min-width: 180px;
 }
 
 .auditSearchInput {
-    padding-left: 34px !important;
+    flex: 1;
+}
+
+.auditSearchBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--card);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.auditSearchBtn:hover {
+    color: var(--foreground);
+    border-color: var(--primary);
 }
 
 .auditFilterSelect {
@@ -166,6 +190,7 @@
 
 /* 페이지네이션 */
 .auditPagination {
+    margin-top: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;

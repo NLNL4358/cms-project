@@ -17,6 +17,7 @@ import UserForm from '@pages/User/UserForm.jsx';
 import SettingsPage from '@pages/Settings/SettingsPage.jsx';
 import AuditLogList from '@pages/AuditLog/AuditLogList.jsx';
 import WebhookList from '@pages/Webhook/WebhookList.jsx';
+import ImportExportPage from '@pages/ImportExport/ImportExportPage.jsx';
 
 /* Routers */
 import ContentTypeRouter from '@pages/Router/ContentTypeRouter.jsx';
@@ -81,6 +82,7 @@ function App() {
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="audit-logs" element={<AuditLogList />} />
                 <Route path="webhooks" element={<WebhookList />} />
+                <Route path="import-export" element={<ImportExportPage />} />
             </Route>
 
             {/* 기본 리다이렉트 */}
