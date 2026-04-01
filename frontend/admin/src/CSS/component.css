@@ -581,6 +581,14 @@ table {
     color: var(--sidebar-primary-foreground);
 }
 
+.sidebarLogoImage {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 .sidebarLogoTitle {
     font-size: var(--small-size);
     font-weight: 600;
@@ -1222,4 +1230,52 @@ table {
     display: flex;
     gap: 4px;
     flex-shrink: 0;
+}
+
+/* ─── Switch ─── */
+.switchRoot {
+    display: inline-flex;
+    align-items: center;
+    width: 42px;
+    height: 24px;
+    padding: 0;
+    border-radius: 9999px;
+    border: none;
+    background-color: var(--input);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s;
+
+    position: relative;
+}
+
+.switchRoot[data-state="checked"] {
+    background-color: var(--primary);
+}
+
+.switchRoot:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.switchThumb {
+    --thumb-size: 1.125rem;
+    display: block;
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    border-radius: 9999px;
+    background-color: white;
+    box-shadow: 0 1px 3px oklch(0 0 0 / 0.15);
+    transition: 0.15s;
+    
+    position: absolute;
+    left: 15%;
+    top: 50%;
+
+    transform: translate(0%, -50%);
+    
+}
+
+.switchRoot[data-state="checked"] .switchThumb {
+    left: calc(85% - var(--thumb-size));
 }

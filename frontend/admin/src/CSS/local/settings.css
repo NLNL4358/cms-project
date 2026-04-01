@@ -1,0 +1,143 @@
+/* ===== Settings Page ===== */
+
+.settingsIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background-color: var(--primary);
+    color: white;
+}
+
+/* 로딩 스켈레톤 */
+.settingsLoading {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settingsSkeletonTitle {
+    height: 20px;
+    width: 120px;
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    animation: pulse 1.5s infinite;
+}
+
+.settingsSkeletonField {
+    height: 40px;
+    width: 100%;
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    margin-top: 12px;
+    animation: pulse 1.5s infinite;
+}
+
+/* 가로 2열 배치 */
+.settingsRow {
+    display: flex;
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .settingsRow {
+        flex-direction: column;
+    }
+}
+
+/* 미디어(로고/파비콘) 영역 */
+.settingsMediaRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 0 4px;
+}
+
+@media (max-width: 640px) {
+    .settingsMediaRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+.settingsMediaItem {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settingsMediaEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px 16px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.settingsMediaEmpty:hover {
+    border-color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.04);
+}
+
+.settingsMediaPreview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--card);
+}
+
+.settingsMediaImg {
+    max-width: 200px;
+    max-height: 100px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+}
+
+.settingsMediaImgSmall {
+    max-width: 64px;
+    max-height: 64px;
+}
+
+.settingsMediaBtns {
+    display: flex;
+    gap: 8px;
+}
+
+/* 유지보수 모드 */
+.settingsMaintenanceRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 4px;
+}
+
+.settingsMaintenanceInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.settingsMaintenanceLabel {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.settingsMaintenanceDesc {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}

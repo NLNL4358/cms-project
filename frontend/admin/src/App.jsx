@@ -14,6 +14,7 @@ import RoleList from '@pages/Role/RoleList.jsx';
 import RoleForm from '@pages/Role/RoleForm.jsx';
 import UserList from '@pages/User/UserList.jsx';
 import UserForm from '@pages/User/UserForm.jsx';
+import SettingsPage from '@pages/Settings/SettingsPage.jsx';
 
 /* Routers */
 import ContentTypeRouter from '@pages/Router/ContentTypeRouter.jsx';
@@ -74,6 +75,8 @@ function App() {
                     <Route path="new" element={<UserForm />} />
                     <Route path=":id/edit" element={<UserForm />} />
                 </Route>
+
+                <Route path="settings" element={<SettingsPage />} />
             </Route>
 
             {/* 기본 리다이렉트 */}

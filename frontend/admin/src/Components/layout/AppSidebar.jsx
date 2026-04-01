@@ -12,6 +12,7 @@ import {
     Image,
     Shield,
     Users,
+    Settings,
     LogOut,
     ChevronDown,
     Layers,
@@ -19,6 +20,7 @@ import {
 
 import { useUser } from '@/Providers/UserContext.jsx';
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
+import { getMediaUrl } from '@/lib/media-utils.js';
 
 /** 고정 메뉴 정의 */
 const mainMenuItems = [
@@ -27,11 +29,12 @@ const mainMenuItems = [
     { title: '파일 관리', path: '/media', icon: Image },
     { title: '역할/권한', path: '/roles', icon: Shield },
     { title: '사용자 관리', path: '/users', icon: Users },
+    { title: '시스템 설정', path: '/settings', icon: Settings },
 ];
 
 function AppSidebar() {
     const { user, logout } = useUser();
-    const { contentTypes, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
+    const { contentTypes, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
     const [contentOpen, setContentOpen] = useState(true);
@@ -62,11 +65,21 @@ function AppSidebar() {
         <aside className={`sidebar ${isMobile && sidebarOpen ? 'open' : ''}`}>
             {/* 로고 */}
             <div className="sidebarLogoWrap">
-                <div className="sidebarLogoIcon">
-                    <Layers size={14} />
-                </div>
+                {settings?.logoUrl ? (
+                    <img
+                        src={getMediaUrl(settings.logoUrl)}
+                        alt="로고"
+                        className="sidebarLogoImage"
+                    />
+                ) : (
+                    <div className="sidebarLogoIcon">
+                        <Layers size={14} />
+                    </div>
+                )}
                 <div>
-                    <p className="sidebarLogoTitle">ContentCMS</p>
+                    <p className="sidebarLogoTitle">
+                        {settings?.siteName || 'ContentCMS'}
+                    </p>
                     <p className="sidebarLogoSub">Admin Panel</p>
                 </div>
             </div>

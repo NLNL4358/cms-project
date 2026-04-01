@@ -16,6 +16,7 @@ import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { TasksModule } from './tasks/tasks.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -53,6 +54,8 @@ import { TasksModule } from './tasks/tasks.module';
     DashboardModule,
     // 크론 작업 모듈
     TasksModule,
+    // 시스템 설정 모듈
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [

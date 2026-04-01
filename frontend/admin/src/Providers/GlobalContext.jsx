@@ -41,8 +41,32 @@ export function GlobalProvider({ children }) {
     enabled: !!user && !!accessToken,
   });
 
+  /** 시스템 설정 */
+  const { data: settings = {} } = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.get("/settings").then((r) => r.data),
+    enabled: !!user && !!accessToken,
+  });
+
+  /** 파비콘 동적 적용 */
+  useEffect(() => {
+    if (settings.faviconUrl) {
+      const base = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const url = settings.faviconUrl.startsWith("http")
+        ? settings.faviconUrl
+        : `${base}${settings.faviconUrl}`;
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+      link.href = url;
+    }
+  }, [settings.faviconUrl]);
+
   return (
-    <GlobalContext.Provider value={{ contentTypes, isMobile, sidebarOpen, setSidebarOpen }}>
+    <GlobalContext.Provider value={{ contentTypes, settings, isMobile, sidebarOpen, setSidebarOpen }}>
       {children}
     </GlobalContext.Provider>
   );
