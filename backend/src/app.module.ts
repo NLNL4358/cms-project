@@ -13,6 +13,7 @@ import { MediaModule } from './media/media.module';
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
 import { RoleModule } from './role/role.module';
+import { UserModule } from './user/user.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { TasksModule } from './tasks/tasks.module';
 
@@ -46,6 +47,8 @@ import { TasksModule } from './tasks/tasks.module';
     // 미디어 모듈
     MediaModule,
     RoleModule,
+    // 사용자 모듈
+    UserModule,
     // 대시보드 모듈
     DashboardModule,
     // 크론 작업 모듈
