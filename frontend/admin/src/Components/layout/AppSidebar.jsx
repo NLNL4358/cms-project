@@ -13,6 +13,8 @@ import {
     Shield,
     Users,
     Settings,
+    ScrollText,
+    Webhook,
     LogOut,
     ChevronDown,
     Layers,
@@ -29,6 +31,8 @@ const mainMenuItems = [
     { title: '파일 관리', path: '/media', icon: Image },
     { title: '역할/권한', path: '/roles', icon: Shield },
     { title: '사용자 관리', path: '/users', icon: Users },
+    { title: '감사 로그', path: '/audit-logs', icon: ScrollText },
+    { title: 'Webhook', path: '/webhooks', icon: Webhook },
     { title: '시스템 설정', path: '/settings', icon: Settings },
 ];
 

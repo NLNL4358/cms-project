@@ -1,0 +1,194 @@
+/* ===== Webhook Page ===== */
+
+.webhookCards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.webhookCard {
+    padding: 16px 20px;
+}
+
+.webhookCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.webhookCardInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.webhookCardName {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.webhookStatusBadge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-weight: 500;
+}
+
+.webhookActive {
+    background-color: oklch(0.87 0.1 148);
+    color: oklch(0.35 0.12 148);
+}
+
+.webhookInactive {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+}
+
+.webhookCardActions {
+    display: flex;
+    gap: 4px;
+}
+
+.webhookCardUrl {
+    font-size: 13px;
+    font-family: monospace;
+    color: var(--muted-foreground);
+    margin-bottom: 10px;
+    word-break: break-all;
+}
+
+.webhookCardEvents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.webhookEventTag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background-color: oklch(0.9 0.08 240);
+    color: oklch(0.4 0.15 240);
+}
+
+/* 폼 */
+.webhookFormBox {
+    border: 2px solid var(--primary);
+}
+
+.webhookEventPicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.webhookEventBtn {
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--card);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.webhookEventBtn:hover {
+    border-color: var(--primary);
+}
+
+.webhookEventBtnActive {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.webhookPageWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 도움말 버튼 */
+.webhookHelpBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    transition: color 0.15s;
+}
+
+.webhookHelpBtn:hover {
+    color: var(--primary);
+}
+
+/* 도움말 팝업 */
+.webhookHelpBody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 380px;
+    max-width: 480px;
+}
+
+.webhookHelpDesc {
+    font-size: 14px;
+    color: var(--foreground);
+    line-height: 1.6;
+}
+
+.webhookHelpSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.webhookHelpSection strong {
+    font-size: 14px;
+}
+
+.webhookHelpList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webhookHelpList li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.webhookHelpEmoji {
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.webhookHelpSteps {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 20px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.webhookHelpNote {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    padding: 8px 12px;
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    line-height: 1.5;
+}

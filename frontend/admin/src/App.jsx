@@ -15,6 +15,8 @@ import RoleForm from '@pages/Role/RoleForm.jsx';
 import UserList from '@pages/User/UserList.jsx';
 import UserForm from '@pages/User/UserForm.jsx';
 import SettingsPage from '@pages/Settings/SettingsPage.jsx';
+import AuditLogList from '@pages/AuditLog/AuditLogList.jsx';
+import WebhookList from '@pages/Webhook/WebhookList.jsx';
 
 /* Routers */
 import ContentTypeRouter from '@pages/Router/ContentTypeRouter.jsx';
@@ -77,6 +79,8 @@ function App() {
                 </Route>
 
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="audit-logs" element={<AuditLogList />} />
+                <Route path="webhooks" element={<WebhookList />} />
             </Route>
 
             {/* 기본 리다이렉트 */}
