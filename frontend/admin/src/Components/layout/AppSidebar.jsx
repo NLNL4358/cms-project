@@ -11,6 +11,7 @@ import {
     FileText,
     Image,
     Shield,
+    Users,
     LogOut,
     ChevronDown,
     Layers,
@@ -25,6 +26,7 @@ const mainMenuItems = [
     { title: '콘텐츠 타입', path: '/content-types', icon: AppWindow },
     { title: '파일 관리', path: '/media', icon: Image },
     { title: '역할/권한', path: '/roles', icon: Shield },
+    { title: '사용자 관리', path: '/users', icon: Users },
 ];
 
 function AppSidebar() {

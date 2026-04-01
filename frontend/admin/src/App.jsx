@@ -12,12 +12,15 @@ import ContentForm from '@pages/Content/ContentForm.jsx';
 import MediaList from '@pages/Media/MediaList.jsx';
 import RoleList from '@pages/Role/RoleList.jsx';
 import RoleForm from '@pages/Role/RoleForm.jsx';
+import UserList from '@pages/User/UserList.jsx';
+import UserForm from '@pages/User/UserForm.jsx';
 
 /* Routers */
 import ContentTypeRouter from '@pages/Router/ContentTypeRouter.jsx';
 import ContentRouter from '@pages/Router/ContentRouter.jsx';
 import MediaRouter from '@pages/Router/MediaRouter.jsx';
 import RoleRouter from '@pages/Router/RoleRouter.jsx';
+import UserRouter from '@pages/Router/UserRouter.jsx';
 
 /* CSS */
 import '@/CSS/reset.css';
@@ -64,6 +67,12 @@ function App() {
                     <Route index element={<RoleList />} />
                     <Route path="new" element={<RoleForm />} />
                     <Route path=":id/edit" element={<RoleForm />} />
+                </Route>
+
+                <Route path="users" element={<UserRouter />}>
+                    <Route index element={<UserList />} />
+                    <Route path="new" element={<UserForm />} />
+                    <Route path=":id/edit" element={<UserForm />} />
                 </Route>
             </Route>
 
