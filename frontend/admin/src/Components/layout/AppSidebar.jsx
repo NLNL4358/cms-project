@@ -16,6 +16,7 @@ import {
     ScrollText,
     Webhook,
     ArrowDownToLine,
+    HardDrive,
     LogOut,
     ChevronDown,
     Layers,
@@ -35,6 +36,7 @@ const mainMenuItems = [
     { title: '감사 로그', path: '/audit-logs', icon: ScrollText },
     { title: 'Webhook', path: '/webhooks', icon: Webhook },
     { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine },
+    { title: '백업/복원', path: '/backups', icon: HardDrive },
     { title: '시스템 설정', path: '/settings', icon: Settings },
 ];
 

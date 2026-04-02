@@ -21,6 +21,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
 import { AuditLogInterceptor } from './audit-log/audit-log.interceptor';
 import { WebhookModule } from './webhook/webhook.module';
 import { ImportExportModule } from './import-export/import-export.module';
+import { BackupModule } from './backup/backup.module';
 
 @Module({
   imports: [
@@ -66,6 +67,8 @@ import { ImportExportModule } from './import-export/import-export.module';
     WebhookModule,
     // Import/Export 모듈
     ImportExportModule,
+    // 백업/복원 모듈
+    BackupModule,
   ],
   controllers: [AppController],
   providers: [
