@@ -32,6 +32,9 @@ const ACTION_LABELS = {
     CREATE: '생성',
     UPDATE: '수정',
     DELETE: '삭제',
+    PUBLISH: '발행',
+    UNPUBLISH: '미발행',
+    RESTORE: '복원',
     LOGIN: '로그인',
     LOGOUT: '로그아웃',
 };
@@ -41,6 +44,9 @@ const ACTION_BADGE = {
     CREATE: 'auditBadgeGreen',
     UPDATE: 'auditBadgeBlue',
     DELETE: 'auditBadgeRed',
+    PUBLISH: 'auditBadgePurple',
+    UNPUBLISH: 'auditBadgeGray',
+    RESTORE: 'auditBadgeBlue',
     LOGIN: 'auditBadgePurple',
     LOGOUT: 'auditBadgeGray',
 };

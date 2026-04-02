@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
 import { ChevronRight, Menu } from 'lucide-react';
+import NotificationBell from '@/Components/layout/NotificationBell.jsx';
 
 /** 경로 → 브레드크럼 라벨 매핑 */
 const pathLabels = {
@@ -88,6 +89,9 @@ function AppHeader() {
                     </span>
                 ))}
             </div>
+
+            {/* 알림 벨 */}
+            <NotificationBell />
         </header>
     );
 }

@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { AuditLogService } from './audit-log.service';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '@prisma/client';
 
 /**
  * 감사 로그 자동 기록 인터셉터.
@@ -13,7 +15,10 @@ import { AuditLogService } from './audit-log.service';
  */
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
-  constructor(private auditLogService: AuditLogService) {}
+  constructor(
+    private auditLogService: AuditLogService,
+    private notificationService: NotificationService,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
@@ -24,7 +29,7 @@ export class AuditLogInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    // 중복 방지: 이미 이 요청에서 로그가 기록된 경우 건너뜀
+    // 중복 방지: APP_INTERCEPTOR가 모듈별로 인스턴스화되므로 진입 단계에서 차단
     if (request._auditLogged) {
       return next.handle();
     }
@@ -36,7 +41,7 @@ export class AuditLogInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const action = this.methodToAction(method);
+    const action = this.resolveAction(method, originalUrl);
     const userId = request.user?.id || null;
     const userAgent = headers['user-agent'] || '';
     // 실제 클라이언트 IP (프록시 뒤에서도 동작)
@@ -46,7 +51,7 @@ export class AuditLogInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap((responseData) => {
-        // 비동기로 로그 기록 (응답 지연 방지)
+        // 비동기로 로그 기록 + 알림 생성 (응답 지연 방지)
         this.auditLogService
           .log({
             userId,
@@ -57,8 +62,12 @@ export class AuditLogInterceptor implements NestInterceptor {
             ipAddress,
             userAgent,
           })
+          .catch(() => {});
+
+        // 주요 이벤트에 대해 권한 기반 알림 생성
+        this.createNotification(action, entity, responseData)
           .catch(() => {
-            // 로그 기록 실패 시 요청은 정상 처리
+            // 알림 생성 실패 시 요청은 정상 처리
           });
       }),
     );
@@ -67,7 +76,7 @@ export class AuditLogInterceptor implements NestInterceptor {
   /** URL에서 엔티티명/ID 추출 */
   private parseUrl(url: string): { entity: string | null; entityId: string | null } {
     // 로그 제외 경로
-    const excludePaths = ['/auth', '/dashboard', '/audit-logs', '/backups'];
+    const excludePaths = ['/auth', '/dashboard', '/audit-logs', '/backups', '/notifications'];
     if (excludePaths.some((p) => url.startsWith(p))) {
       return { entity: null, entityId: null };
     }
@@ -87,8 +96,19 @@ export class AuditLogInterceptor implements NestInterceptor {
     return { entity: null, entityId: null };
   }
 
-  /** HTTP method → action 문자열 */
-  private methodToAction(method: string): string {
+  /** HTTP method + URL → action 문자열 */
+  private resolveAction(method: string, url: string): string {
+    const parts = url.split('?')[0].split('/').filter(Boolean);
+    // /contents/:id/publish → PUBLISH
+    // /contents/:id/unpublish → UNPUBLISH
+    // /contents/:id/versions/:v/restore → RESTORE
+    if (parts.length >= 3) {
+      const subAction = parts[parts.length - 1].toUpperCase();
+      if (['PUBLISH', 'UNPUBLISH', 'RESTORE'].includes(subAction)) {
+        return subAction;
+      }
+    }
+
     switch (method) {
       case 'POST':
         return 'CREATE';
@@ -113,5 +133,37 @@ export class AuditLogInterceptor implements NestInterceptor {
       }
     }
     return sanitized;
+  }
+
+  /** 주요 이벤트 알림 생성 */
+  private async createNotification(action: string, entity: string, data: any) {
+    const ACTION_LABELS: Record<string, string> = {
+      CREATE: '생성', UPDATE: '수정', DELETE: '삭제',
+      PUBLISH: '발행', UNPUBLISH: '미발행', RESTORE: '복원',
+    };
+    const ENTITY_LABELS: Record<string, string> = {
+      content: '콘텐츠', 'content-type': '콘텐츠 타입',
+      media: '파일', user: '사용자', role: '역할',
+    };
+
+    // 알림 대상 엔티티만 처리
+    const entityLabel = ENTITY_LABELS[entity];
+    if (!entityLabel) return;
+
+    const actionLabel = ACTION_LABELS[action] || action;
+    const title = data?.title || data?.name || '';
+    const message = title
+      ? `${entityLabel} "${title}"이(가) ${actionLabel}되었습니다`
+      : `${entityLabel}이(가) ${actionLabel}되었습니다`;
+
+    // 엔티티별 조회 권한을 가진 사용자에게만 알림
+    const permission = `${entity}:read`;
+
+    await this.notificationService.notifyByPermission(permission, {
+      type: NotificationType.SYSTEM,
+      title: `${entityLabel} ${actionLabel}`,
+      message,
+      link: entity === 'content' && data?.id ? `/contents/${data.contentTypeId || ''}` : undefined,
+    });
   }
 }

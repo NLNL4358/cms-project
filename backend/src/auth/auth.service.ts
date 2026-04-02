@@ -127,7 +127,7 @@ export class AuthService {
         if (isMatch) {
           isValidToken = true;
           // 사용된 토큰 삭제 (Refresh Token Rotation)
-          await this.prisma.refreshToken.delete({
+          await this.prisma.refreshToken.deleteMany({
             where: { id: storedToken.id },
           });
           break;

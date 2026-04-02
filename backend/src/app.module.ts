@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -18,10 +18,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { TasksModule } from './tasks/tasks.module';
 import { SettingsModule } from './settings/settings.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
-import { AuditLogInterceptor } from './audit-log/audit-log.interceptor';
+
 import { WebhookModule } from './webhook/webhook.module';
 import { ImportExportModule } from './import-export/import-export.module';
 import { BackupModule } from './backup/backup.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -69,6 +70,8 @@ import { BackupModule } from './backup/backup.module';
     ImportExportModule,
     // 백업/복원 모듈
     BackupModule,
+    // 알림 모듈
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [
@@ -77,11 +80,6 @@ import { BackupModule } from './backup/backup.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    },
-    // 글로벌 감사 로그 인터셉터
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditLogInterceptor,
     },
   ],
 })

@@ -42,6 +42,11 @@ export class CreateUserDto {
     required: false,
     type: [String],
   })
+  @ApiProperty({ example: true, description: '활성 상태', required: false })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
