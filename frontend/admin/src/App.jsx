@@ -19,6 +19,7 @@ import AuditLogList from '@pages/AuditLog/AuditLogList.jsx';
 import WebhookList from '@pages/Webhook/WebhookList.jsx';
 import ImportExportPage from '@pages/ImportExport/ImportExportPage.jsx';
 import SearchPage from '@pages/Search/SearchPage.jsx';
+import ApiGuidePage from '@pages/ApiGuide/ApiGuidePage.jsx';
 import BackupList from '@pages/Backup/BackupList.jsx';
 
 /* Routers */
@@ -87,6 +88,7 @@ function App() {
                 <Route path="import-export" element={<ImportExportPage />} />
                 <Route path="backups" element={<BackupList />} />
                 <Route path="search" element={<SearchPage />} />
+                <Route path="api-guide" element={<ApiGuidePage />} />
             </Route>
 
             {/* 기본 리다이렉트 */}

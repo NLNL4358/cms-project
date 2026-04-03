@@ -17,6 +17,7 @@ import {
     Webhook,
     ArrowDownToLine,
     HardDrive,
+    Code,
     LogOut,
     ChevronDown,
     Layers,
@@ -37,6 +38,7 @@ const mainMenuItems = [
     { title: 'Webhook', path: '/webhooks', icon: Webhook },
     { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine },
     { title: '백업/복원', path: '/backups', icon: HardDrive },
+    { title: 'API 가이드', path: '/api-guide', icon: Code },
     { title: '시스템 설정', path: '/settings', icon: Settings },
 ];
 

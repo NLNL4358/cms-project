@@ -1,0 +1,282 @@
+/* ===== API Guide Page ===== */
+
+.apiGuideWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.apiSwaggerLink {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--primary);
+    text-decoration: none;
+    margin-left: auto;
+}
+
+.apiSwaggerLink:hover {
+    text-decoration: underline;
+}
+
+/* 2단 레이아웃 */
+.apiGuideLayout {
+    display: flex;
+    gap: 20px;
+    min-height: 600px;
+}
+
+/* 왼쪽 네비게이션 */
+.apiNav {
+    width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+}
+
+.apiNavItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.1s;
+}
+
+.apiNavItem:hover {
+    background-color: var(--muted);
+    color: var(--foreground);
+}
+
+.apiNavItemActive {
+    background-color: oklch(from var(--primary) l c h / 0.1);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.apiNavCount {
+    font-size: 11px;
+    background-color: var(--muted);
+    padding: 1px 6px;
+    border-radius: 9999px;
+}
+
+.apiNavItemActive .apiNavCount {
+    background-color: oklch(from var(--primary) l c h / 0.2);
+}
+
+/* 오른쪽 콘텐츠 */
+.apiContent {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.apiSectionTitle {
+    font-size: 18px;
+    font-weight: 700;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary);
+}
+
+/* 콘텐츠 타입 선택 */
+.apiTypeSelect {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.apiTypeSelectTrigger {
+    max-width: 300px;
+}
+
+.apiTypeHint {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+/* 그룹 소제목 */
+.apiGroupTitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 0 4px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.apiGroupTitle:first-of-type {
+    margin-top: 0;
+    border-top: none;
+}
+
+/* 엔드포인트 */
+.apiEndpoint {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--card);
+}
+
+.apiEndpointHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.apiMethod {
+    padding: 2px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: monospace;
+    flex-shrink: 0;
+}
+
+.apiMethodGet { background-color: oklch(0.9 0.08 240); color: oklch(0.4 0.15 240); }
+.apiMethodPost { background-color: oklch(0.87 0.1 148); color: oklch(0.35 0.12 148); }
+.apiMethodPatch { background-color: oklch(0.94 0.08 85); color: oklch(0.4 0.12 85); }
+.apiMethodDelete { background-color: oklch(0.9 0.08 25); color: oklch(0.45 0.18 25); }
+
+.apiPath {
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.apiEndpointTitle {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.apiEndpointDesc {
+    font-size: 13px;
+    color: var(--muted-foreground);
+    padding-left: 2px;
+}
+
+/* 코드 블록 */
+.apiCodeBlock {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.apiCodeHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background-color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+}
+
+.apiCopyBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.apiCopyBtn:hover {
+    color: var(--foreground);
+}
+
+.apiCodePre {
+    padding: 12px;
+    font-size: 12px;
+    font-family: monospace;
+    overflow-x: auto;
+    line-height: 1.5;
+    margin: 0;
+    background-color: var(--card);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* 파라미터 테이블 */
+.apiParams {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.apiParamsLabel {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+}
+
+.apiParamsTable {
+    width: 100%;
+    font-size: 13px;
+}
+
+.apiParamsTable td {
+    padding: 4px 8px;
+}
+
+.apiParamsTable code {
+    padding: 1px 5px;
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+}
+
+.apiParamType {
+    color: var(--muted-foreground);
+    font-size: 12px;
+    font-style: italic;
+}
+
+.apiEmpty {
+    padding: 48px 16px;
+    text-align: center;
+    color: var(--muted-foreground);
+    font-size: 14px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .apiGuideLayout {
+        flex-direction: column;
+    }
+
+    .apiNav {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        position: static;
+    }
+
+    .apiNavItem {
+        flex: 0 0 auto;
+    }
+}
