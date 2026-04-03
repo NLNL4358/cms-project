@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
 import { ChevronRight, Menu } from 'lucide-react';
+import SearchBar from '@/Components/layout/SearchBar.jsx';
 import NotificationBell from '@/Components/layout/NotificationBell.jsx';
 
 /** 경로 → 브레드크럼 라벨 매핑 */
@@ -90,8 +91,11 @@ function AppHeader() {
                 ))}
             </div>
 
-            {/* 알림 벨 */}
-            <NotificationBell />
+            {/* 검색 + 알림 */}
+            <div className="headerActions">
+                <SearchBar />
+                <NotificationBell />
+            </div>
         </header>
     );
 }

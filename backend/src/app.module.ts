@@ -23,6 +23,7 @@ import { WebhookModule } from './webhook/webhook.module';
 import { ImportExportModule } from './import-export/import-export.module';
 import { BackupModule } from './backup/backup.module';
 import { NotificationModule } from './notification/notification.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -72,6 +73,8 @@ import { NotificationModule } from './notification/notification.module';
     BackupModule,
     // 알림 모듈
     NotificationModule,
+    // 검색 모듈
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [

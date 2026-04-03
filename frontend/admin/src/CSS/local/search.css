@@ -1,0 +1,71 @@
+/* ===== Search Page ===== */
+
+.searchPageWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.searchFilterBox {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 20px;
+}
+
+.searchPageInputWrap {
+    display: flex;
+    gap: 8px;
+}
+
+.searchPageInput {
+    flex: 1;
+}
+
+.searchFilterRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.searchFilterSelect {
+    width: 160px;
+    flex-shrink: 0;
+}
+
+.searchResultCount {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+}
+
+/* 결과 목록 */
+.searchResultList {
+    display: flex;
+    flex-direction: column;
+}
+
+.searchEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 48px 16px;
+    color: var(--muted-foreground);
+    font-size: 14px;
+}
+
+.searchPagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.searchPageInfo {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}

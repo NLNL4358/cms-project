@@ -21,6 +21,8 @@ import {
     Send,
     Save,
     EyeOff,
+    Archive,
+    ArchiveRestore,
     History,
     RotateCcw,
 } from 'lucide-react';
@@ -243,6 +245,38 @@ function ContentForm() {
         },
     });
 
+    // 보관
+    const archiveMutation = useMutation({
+        mutationFn: () => api.post(`/contents/${id}/archive`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['contents'] });
+            queryClient.invalidateQueries({ queryKey: ['contents', id] });
+            makePopup(
+                <AlertPopup
+                    title="보관 완료"
+                    body={<p>콘텐츠가 보관되었습니다.</p>}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
+        },
+    });
+
+    // 보관 해제
+    const unarchiveMutation = useMutation({
+        mutationFn: () => api.post(`/contents/${id}/unarchive`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['contents'] });
+            queryClient.invalidateQueries({ queryKey: ['contents', id] });
+            makePopup(
+                <AlertPopup
+                    title="보관 해제"
+                    body={<p>콘텐츠가 초안 상태로 복원되었습니다.</p>}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
+        },
+    });
+
     // 버전 복원
     const restoreMutation = useMutation({
         mutationFn: (version) =>
@@ -347,6 +381,7 @@ function ContentForm() {
     // 현재 상태 정보
     const currentStatus = existingContent?.status || 'DRAFT';
     const isPublished = currentStatus === 'PUBLISHED';
+    const isArchived = currentStatus === 'ARCHIVED';
     const statusConfig = STATUS_MAP[currentStatus] || {
         label: currentStatus,
         variant: 'secondary',
@@ -354,7 +389,9 @@ function ContentForm() {
     const isMutating =
         saveMutation.isPending ||
         saveAndPublishMutation.isPending ||
-        unpublishMutation.isPending;
+        unpublishMutation.isPending ||
+        archiveMutation.isPending ||
+        unarchiveMutation.isPending;
 
     // 콘텐츠 타입 로딩 대기
     if (!contentType) {
@@ -608,6 +645,32 @@ function ContentForm() {
                         >
                             <EyeOff className="size-4 mr-1.5" />
                             미발행 전환
+                        </Button>
+                    )}
+
+                    {/* 보관 버튼 (초안/발행 → 보관) */}
+                    {isEdit && !isArchived && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => archiveMutation.mutate()}
+                            disabled={isMutating}
+                        >
+                            <Archive className="size-4 mr-1.5" />
+                            보관
+                        </Button>
+                    )}
+
+                    {/* 보관 해제 버튼 (보관됨 → 초안) */}
+                    {isEdit && isArchived && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => unarchiveMutation.mutate()}
+                            disabled={isMutating}
+                        >
+                            <ArchiveRestore className="size-4 mr-1.5" />
+                            보관 해제
                         </Button>
                     )}
 

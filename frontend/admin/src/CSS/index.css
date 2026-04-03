@@ -75,6 +75,12 @@
     border-bottom: 1px solid var(--border);
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .breadcrumb {
     display: flex;
     align-items: center;

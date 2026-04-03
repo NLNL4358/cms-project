@@ -14,11 +14,14 @@ import {
     Users,
     ArrowRight,
     HardDrive,
+    Search,
 } from 'lucide-react';
 
+import { useState } from 'react';
 import { useAPI } from '@/Providers/APIContext.jsx';
 import { Badge } from '@/Components/ui/badge.jsx';
 import { Button } from '@/Components/ui/Button.jsx';
+import { Input } from '@/Components/ui/Input.jsx';
 import { formatFileSize } from '@/lib/media-utils.js';
 import '@/CSS/local/dashboard.css';
 
@@ -35,6 +38,7 @@ const STATUS_MAP = {
 function Dashboard() {
     const api = useAPI();
     const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
 
     const { data: stats, isLoading } = useQuery({
         queryKey: ['dashboard', 'stats'],
@@ -87,7 +91,6 @@ function Dashboard() {
     return (
         <div className="dashboardPage">
             <h1 className="dashboardTitle">대시보드</h1>
-
             {/* 통계 카드 */}
             <div className="dashboardGrid">
                 {statCards.map((card) => (
@@ -107,6 +110,32 @@ function Dashboard() {
                     </div>
                 ))}
             </div>
+
+            {/* 통합 검색 */}
+            <div className="dashboardSearchBox">
+                <Search className="dashboardSearchIcon" />
+                <Input
+                    placeholder="콘텐츠 통합 검색..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                            navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                        }
+                    }}
+                    className="dashboardSearchInput"
+                />
+                <Button
+                    onClick={() => {
+                        if (searchQuery.trim()) {
+                            navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                        }
+                    }}
+                >
+                    검색
+                </Button>
+            </div>
+
 
             {/* 콘텐츠 상태 요약 */}
             <div className="dashboardSection">

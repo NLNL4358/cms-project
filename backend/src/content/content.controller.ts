@@ -199,6 +199,20 @@ export class ContentController {
     return this.contentService.unpublish(id, userId);
   }
 
+  @Post(':id/archive')
+  @Permissions('content:update', 'content:*', '*')
+  @HttpCode(HttpStatus.OK)
+  archive(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.contentService.archive(id, userId);
+  }
+
+  @Post(':id/unarchive')
+  @Permissions('content:update', 'content:*', '*')
+  @HttpCode(HttpStatus.OK)
+  unarchive(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.contentService.unarchive(id, userId);
+  }
+
   @Get(':id/versions')
   @Permissions('content:read', 'content:*', '*')
   @ApiOperation({

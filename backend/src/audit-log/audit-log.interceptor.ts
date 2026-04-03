@@ -104,7 +104,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     // /contents/:id/versions/:v/restore → RESTORE
     if (parts.length >= 3) {
       const subAction = parts[parts.length - 1].toUpperCase();
-      if (['PUBLISH', 'UNPUBLISH', 'RESTORE'].includes(subAction)) {
+      if (['PUBLISH', 'UNPUBLISH', 'ARCHIVE', 'UNARCHIVE', 'RESTORE'].includes(subAction)) {
         return subAction;
       }
     }
@@ -139,7 +139,7 @@ export class AuditLogInterceptor implements NestInterceptor {
   private async createNotification(action: string, entity: string, data: any) {
     const ACTION_LABELS: Record<string, string> = {
       CREATE: '생성', UPDATE: '수정', DELETE: '삭제',
-      PUBLISH: '발행', UNPUBLISH: '미발행', RESTORE: '복원',
+      PUBLISH: '발행', UNPUBLISH: '미발행', ARCHIVE: '보관', UNARCHIVE: '보관 해제', RESTORE: '복원',
     };
     const ENTITY_LABELS: Record<string, string> = {
       content: '콘텐츠', 'content-type': '콘텐츠 타입',

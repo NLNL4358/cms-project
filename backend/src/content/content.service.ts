@@ -9,10 +9,14 @@ import { CreateContentDto } from './dto/create-content.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
 import { ContentStatus } from '@prisma/client';
 import { sanitizeContentData } from '../common/utils/sanitize.util';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class ContentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private searchService: SearchService,
+  ) {}
 
   async create(createContentDto: CreateContentDto, userId: string) {
     const { contentTypeId, slug, status, scheduledAt, ...rest } =
@@ -84,6 +88,9 @@ export class ContentService {
         version: 1,
       },
     });
+
+    // 검색 인덱스 업데이트
+    this.searchService.indexContent(content.id).catch(() => {});
 
     return content;
   }
@@ -269,6 +276,9 @@ export class ContentService {
       });
     }
 
+    // 검색 인덱스 업데이트
+    this.searchService.indexContent(updated.id).catch(() => {});
+
     return updated;
   }
 
@@ -280,6 +290,9 @@ export class ContentService {
       where: { id },
       data: { deletedAt: new Date() },
     });
+
+    // 검색 인덱스에서 제거
+    this.searchService.removeContent(id).catch(() => {});
 
     return { message: '콘텐츠가 삭제되었습니다' };
   }
@@ -337,6 +350,55 @@ export class ContentService {
       },
     });
 
+    return updated;
+  }
+
+  async archive(id: string, userId: string) {
+    const content = await this.findOne(id);
+
+    if (content.status === ContentStatus.ARCHIVED) {
+      throw new BadRequestException('이미 보관된 콘텐츠입니다');
+    }
+
+    const updated = await this.prisma.content.update({
+      where: { id },
+      data: {
+        status: ContentStatus.ARCHIVED,
+        publishedAt: null,
+        updatedById: userId,
+      },
+      include: {
+        contentType: true,
+        createdBy: { select: { id: true, name: true, email: true } },
+        updatedBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    this.searchService.indexContent(updated.id).catch(() => {});
+    return updated;
+  }
+
+  async unarchive(id: string, userId: string) {
+    const content = await this.findOne(id);
+
+    if (content.status !== ContentStatus.ARCHIVED) {
+      throw new BadRequestException('보관된 콘텐츠만 복원할 수 있습니다');
+    }
+
+    const updated = await this.prisma.content.update({
+      where: { id },
+      data: {
+        status: ContentStatus.DRAFT,
+        updatedById: userId,
+      },
+      include: {
+        contentType: true,
+        createdBy: { select: { id: true, name: true, email: true } },
+        updatedBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    this.searchService.indexContent(updated.id).catch(() => {});
     return updated;
   }
 
