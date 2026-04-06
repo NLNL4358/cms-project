@@ -1,7 +1,7 @@
 /**
  * @description
  * 관리자 사이드바 컴포넌트
- * 다크 슬레이트 배경, 인디고 활성 표시기, 섹션 분리 디자인
+ * 2뎁스 그룹 메뉴 + 동적 콘텐츠 타입
  */
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -22,26 +22,88 @@ import {
     LogOut,
     ChevronDown,
     Layers,
+    Plug,
+    Wrench,
+    UserCog,
+    FolderKanban,
 } from 'lucide-react';
 
 import { useUser } from '@/Providers/UserContext.jsx';
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
 import { getMediaUrl } from '@/lib/media-utils.js';
 
-/** 고정 메뉴 정의 */
-const mainMenuItems = [
-    { title: '대시보드', path: '/', icon: LayoutDashboard },
-    { title: '콘텐츠 타입', path: '/content-types', icon: AppWindow },
-    { title: '파일 관리', path: '/media', icon: Image },
-    { title: '역할/권한', path: '/roles', icon: Shield },
-    { title: '사용자 관리', path: '/users', icon: Users },
-    { title: '감사 로그', path: '/audit-logs', icon: ScrollText },
-    { title: 'Webhook', path: '/webhooks', icon: Webhook },
-    { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine },
-    { title: '백업/복원', path: '/backups', icon: HardDrive },
-    { title: 'API 가이드', path: '/api-guide', icon: Code },
-    { title: 'API 키 관리', path: '/api-keys', icon: Key },
-    { title: '시스템 설정', path: '/settings', icon: Settings },
+/**
+ * 메뉴 그룹 정의
+ * - 단일 메뉴: { type: 'item', title, path, icon }
+ * - 그룹 메뉴: { type: 'group', title, icon, children: [...] }
+ * - 동적 콘텐츠: { type: 'dynamic-contents' } (콘텐츠 타입 그룹 안에 자동 삽입)
+ */
+const menuStructure = [
+    {
+        type: 'item',
+        title: '대시보드',
+        path: '/',
+        icon: LayoutDashboard,
+    },
+    {
+        type: 'item',
+        title: '콘텐츠 타입',
+        path: '/content-types',
+        icon: AppWindow,
+    },
+    {
+        type: 'item',
+        title: '파일 관리',
+        path: '/media',
+        icon: Image,
+    },
+    {
+        type: 'group',
+        id: 'content',
+        title: '콘텐츠',
+        icon: FolderKanban,
+        children: [
+            { type: 'dynamic-contents' },
+        ],
+    },
+    {
+        type: 'group',
+        id: 'users',
+        title: '사용자 / 권한',
+        icon: UserCog,
+        children: [
+            { title: '사용자 관리', path: '/users', icon: Users },
+            { title: '역할/권한', path: '/roles', icon: Shield },
+        ],
+    },
+    {
+        type: 'group',
+        id: 'integration',
+        title: '외부 연동',
+        icon: Plug,
+        children: [
+            { title: 'API 가이드', path: '/api-guide', icon: Code },
+            { title: 'API 키 관리', path: '/api-keys', icon: Key },
+            { title: 'Webhook', path: '/webhooks', icon: Webhook },
+        ],
+    },
+    {
+        type: 'group',
+        id: 'operations',
+        title: '운영 / 데이터',
+        icon: Wrench,
+        children: [
+            { title: '감사 로그', path: '/audit-logs', icon: ScrollText },
+            { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine },
+            { title: '백업/복원', path: '/backups', icon: HardDrive },
+        ],
+    },
+    {
+        type: 'item',
+        title: '시스템 설정',
+        path: '/settings',
+        icon: Settings,
+    },
 ];
 
 function AppSidebar() {
@@ -49,11 +111,28 @@ function AppSidebar() {
     const { contentTypes, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
-    const [contentOpen, setContentOpen] = useState(true);
+
+    // 한 번에 하나의 그룹만 펼쳐짐 (아코디언 방식)
+    const [openGroup, setOpenGroup] = useState('content');
 
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
         return location.pathname.startsWith(path);
+    };
+
+    /** 그룹 내에 활성 메뉴가 있는지 확인 (자동 펼침용) */
+    const isGroupActive = (group) => {
+        if (group.type !== 'group') return false;
+        return group.children.some((child) => {
+            if (child.type === 'dynamic-contents') {
+                return location.pathname.startsWith('/contents/');
+            }
+            return child.path && isActive(child.path);
+        });
+    };
+
+    const toggleGroup = (id) => {
+        setOpenGroup((prev) => (prev === id ? null : id));
     };
 
     const handleNavigate = (path) => {
@@ -72,6 +151,43 @@ function AppSidebar() {
         user?.username?.charAt(0)?.toUpperCase() ||
         user?.email?.charAt(0)?.toUpperCase() ||
         '?';
+
+    /** 단일 메뉴 항목 렌더링 */
+    const renderItem = (item, isChild = false) => (
+        <li key={item.path}>
+            <a
+                href={item.path}
+                className={`menuItem ${isChild ? 'menuItemChild' : ''} ${isActive(item.path) ? 'active' : ''}`}
+                onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigate(item.path);
+                }}
+            >
+                {item.icon && <item.icon className="menuIcon" />}
+                <span>{item.title}</span>
+            </a>
+        </li>
+    );
+
+    /** 동적 콘텐츠 타입 목록 렌더링 (그룹 안에서) */
+    const renderDynamicContents = () => {
+        if (contentTypes.length === 0) return null;
+        return contentTypes.map((ct) => (
+            <li key={ct.id}>
+                <a
+                    href={`/contents/${ct.slug}`}
+                    className={`menuItem menuItemChild ${isActive(`/contents/${ct.slug}`) ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigate(`/contents/${ct.slug}`);
+                    }}
+                >
+                    <FileText className="menuIcon" />
+                    <span>{ct.name}</span>
+                </a>
+            </li>
+        ));
+    };
 
     return (
         <aside className={`sidebar ${isMobile && sidebarOpen ? 'open' : ''}`}>
@@ -98,66 +214,56 @@ function AppSidebar() {
 
             {/* 네비게이션 */}
             <nav className="sidebarNav">
-                {/* 메뉴 섹션 */}
-                <div className="sidebarSection">
-                    <p className="sidebarSectionTitle">메뉴</p>
-                    <ul className="menuList">
-                        {mainMenuItems.map((item) => (
-                            <li key={item.path}>
-                                <a
-                                    href={item.path}
-                                    className={`menuItem ${isActive(item.path) ? 'active' : ''}`}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleNavigate(item.path);
-                                    }}
-                                >
-                                    <item.icon className="menuIcon" />
-                                    <span>{item.title}</span>
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <ul className="menuList">
+                    {menuStructure.map((entry, idx) => {
+                        // 단일 메뉴
+                        if (entry.type === 'item') {
+                            return renderItem(entry);
+                        }
 
-                {/* 동적 콘텐츠 섹션 */}
-                {contentTypes.length > 0 && (
-                    <div className="sidebarSection">
-                        <button
-                            className="sidebarSectionTitle clickable"
-                            onClick={() => setContentOpen(!contentOpen)}
-                        >
-                            <span>콘텐츠</span>
-                            <span className="sidebarSectionBadge">
-                                {contentTypes.length}
-                            </span>
-                            <ChevronDown
-                                className={`sidebarSectionChevron ${contentOpen ? 'open' : ''}`}
-                            />
-                        </button>
-                        {contentOpen && (
-                            <ul className="menuList">
-                                {contentTypes.map((ct) => (
-                                    <li key={ct.id}>
-                                        <a
-                                            href={`/contents/${ct.slug}`}
-                                            className={`menuItem ${isActive(`/contents/${ct.slug}`) ? 'active' : ''}`}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleNavigate(
-                                                    `/contents/${ct.slug}`,
+                        // 동적 콘텐츠만 있는 그룹은 콘텐츠 타입이 없으면 숨김
+                        const hasOnlyDynamic = entry.children.every(
+                            (c) => c.type === 'dynamic-contents',
+                        );
+                        if (hasOnlyDynamic && contentTypes.length === 0) {
+                            return null;
+                        }
+
+                        // 그룹 메뉴
+                        const groupActive = isGroupActive(entry);
+                        const isOpen = openGroup === entry.id || groupActive;
+
+                        return (
+                            <li key={entry.id || idx} className="menuGroup">
+                                <button
+                                    type="button"
+                                    className={`menuItem menuGroupHeader ${groupActive ? 'groupActive' : ''}`}
+                                    onClick={() => toggleGroup(entry.id)}
+                                >
+                                    {entry.icon && <entry.icon className="menuIcon" />}
+                                    <span>{entry.title}</span>
+                                    <ChevronDown
+                                        className={`menuGroupChevron ${isOpen ? 'open' : ''}`}
+                                    />
+                                </button>
+                                <div className={`menuGroupCollapse ${isOpen ? 'open' : ''}`}>
+                                    <ul className="menuChildList">
+                                        {entry.children.map((child, ci) => {
+                                            if (child.type === 'dynamic-contents') {
+                                                return (
+                                                    <span key={`dyn-${ci}`}>
+                                                        {renderDynamicContents()}
+                                                    </span>
                                                 );
-                                            }}
-                                        >
-                                            <FileText className="menuIcon" />
-                                            <span>{ct.name}</span>
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                )}
+                                            }
+                                            return renderItem(child, true);
+                                        })}
+                                    </ul>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
             </nav>
 
             {/* 푸터 — 사용자 정보 + 로그아웃 */}
