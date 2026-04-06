@@ -1,18 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { encrypt } from '../common/utils/crypto.util';
+
+/** 암호화 저장이 필요한 키 목록 */
+const ENCRYPTED_KEYS = ['smtpPassword'];
 
 @Injectable()
 export class SettingsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * 모든 설정을 { key: value } 형태로 반환
+   * 모든 설정을 { key: value } 형태로 반환 (내부용 - 암호화된 값 그대로)
    */
   async findAll(): Promise<Record<string, any>> {
     const rows = await this.prisma.setting.findMany();
     const result: Record<string, any> = {};
     for (const row of rows) {
       result[row.key] = row.value;
+    }
+    return result;
+  }
+
+  /**
+   * 클라이언트 노출용 — 민감 정보 마스킹
+   */
+  async findAllForClient(): Promise<Record<string, any>> {
+    const result = await this.findAll();
+    for (const key of ENCRYPTED_KEYS) {
+      if (result[key]) {
+        result[key] = '***'; // 마스킹
+      }
     }
     return result;
   }
@@ -32,13 +49,26 @@ export class SettingsService {
     const entries = Object.entries(settings);
 
     await this.prisma.$transaction(
-      entries.map(([key, value]) =>
-        this.prisma.setting.upsert({
+      entries.map(([key, value]) => {
+        // 민감 키는 암호화 (빈 문자열은 변경 없는 것으로 간주하여 스킵)
+        let storedValue = value;
+        if (ENCRYPTED_KEYS.includes(key)) {
+          if (value === '' || value === null) {
+            // 빈 값은 기존 값 유지하기 위해 noop upsert
+            return this.prisma.setting.upsert({
+              where: { key },
+              update: {},
+              create: { key, value: '' },
+            });
+          }
+          storedValue = encrypt(String(value));
+        }
+        return this.prisma.setting.upsert({
           where: { key },
-          update: { value },
-          create: { key, value },
-        }),
-      ),
+          update: { value: storedValue },
+          create: { key, value: storedValue },
+        });
+      }),
     );
 
     return this.findAll();

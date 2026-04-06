@@ -69,12 +69,24 @@ function SettingsPage() {
             dateFormat: 'YYYY-MM-DD',
             postsPerPage: 10,
             maintenanceMode: false,
+            // 이메일 설정
+            emailEnabled: false,
+            smtpHost: '',
+            smtpPort: 587,
+            smtpUser: '',
+            smtpPassword: '',
+            smtpSecure: false,
+            fromName: '',
+            fromEmail: '',
         },
     });
 
     const logoUrl = watch('logoUrl');
     const faviconUrl = watch('faviconUrl');
     const maintenanceMode = watch('maintenanceMode');
+    const emailEnabled = watch('emailEnabled');
+    const smtpSecure = watch('smtpSecure');
+    const adminEmail = watch('adminEmail');
 
     // 설정 불러오기
     const { data: settings, isLoading } = useQuery({
@@ -96,6 +108,14 @@ function SettingsPage() {
                 dateFormat: toStr(settings.dateFormat, 'YYYY-MM-DD'),
                 postsPerPage: settings.postsPerPage ?? 10,
                 maintenanceMode: Boolean(settings.maintenanceMode),
+                emailEnabled: Boolean(settings.emailEnabled),
+                smtpHost: toStr(settings.smtpHost),
+                smtpPort: settings.smtpPort ?? 587,
+                smtpUser: toStr(settings.smtpUser),
+                smtpPassword: '', // 마스킹된 값 표시 안 함, 비워두면 기존 값 유지
+                smtpSecure: Boolean(settings.smtpSecure),
+                fromName: toStr(settings.fromName),
+                fromEmail: toStr(settings.fromEmail),
             });
         }
     }, [settings, reset]);
@@ -128,10 +148,16 @@ function SettingsPage() {
     });
 
     const onSubmit = (data) => {
-        saveMutation.mutate({
+        const payload = {
             ...data,
             postsPerPage: Number(data.postsPerPage),
-        });
+            smtpPort: Number(data.smtpPort) || 587,
+        };
+        // smtpPassword가 비어있으면 보내지 않음 (기존 값 유지)
+        if (!payload.smtpPassword) {
+            delete payload.smtpPassword;
+        }
+        saveMutation.mutate(payload);
     };
 
     // 미디어 선택 팝업
@@ -476,6 +502,163 @@ function SettingsPage() {
                             }
                         />
                     </div>
+                </div>
+
+                {/* 이메일 발송 (SMTP) */}
+                <div className="sectionBox">
+                    <div className="sectionTitle">
+                        <div className="sectionTitleBar" />
+                        <h5>이메일 발송 설정 (SMTP)</h5>
+                    </div>
+
+                    <div className="settingsMaintenanceRow">
+                        <div className="settingsMaintenanceInfo">
+                            <span className="settingsMaintenanceLabel">
+                                이메일 발송 활성화
+                            </span>
+                            <span className="settingsMaintenanceDesc">
+                                회원 가입 인증, 비밀번호 재설정, 알림 등에 이메일을 사용합니다.
+                                비활성화 시 콘솔에 출력만 됩니다.
+                            </span>
+                        </div>
+                        <Switch
+                            checked={Boolean(emailEnabled)}
+                            onCheckedChange={(v) => setValue('emailEnabled', v)}
+                        />
+                    </div>
+
+                    {emailEnabled && (
+                        <>
+                            <div className="settingsEmailGuide">
+                                <strong>📚 SMTP 설정 가이드</strong>
+                                <ul>
+                                    <li>
+                                        <b>Gmail:</b> smtp.gmail.com / 587 / 2단계 인증 후{' '}
+                                        <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer">앱 비밀번호 발급</a>
+                                    </li>
+                                    <li>
+                                        <b>Naver:</b> smtp.naver.com / 587 / 메일 환경설정에서 IMAP/SMTP 사용 ON
+                                    </li>
+                                    <li>
+                                        <b>SendGrid:</b> smtp.sendgrid.net / 587 / API 키 발급 후 사용자명: apikey
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="contentColumnWrap">
+                                <div className="settingsRow">
+                                    <div className="flex flex-col flex-1">
+                                        <Label>SMTP 호스트</Label>
+                                        <Input
+                                            placeholder="smtp.gmail.com"
+                                            {...register('smtpHost')}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col" style={{ width: '120px' }}>
+                                        <Label>포트</Label>
+                                        <Input
+                                            type="number"
+                                            placeholder="587"
+                                            {...register('smtpPort')}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="settingsRow">
+                                    <div className="flex flex-col flex-1">
+                                        <Label>SMTP 사용자명 (이메일)</Label>
+                                        <Input
+                                            placeholder="your@gmail.com"
+                                            {...register('smtpUser')}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col flex-1">
+                                        <Label>SMTP 비밀번호 / 앱 비밀번호</Label>
+                                        <Input
+                                            type="password"
+                                            placeholder="새로 입력 시에만 변경됨"
+                                            {...register('smtpPassword')}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="settingsRow">
+                                    <div className="flex flex-col flex-1">
+                                        <Label>발신자 이름</Label>
+                                        <Input
+                                            placeholder="ContentCMS"
+                                            {...register('fromName')}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col flex-1">
+                                        <Label>발신자 이메일</Label>
+                                        <Input
+                                            placeholder="noreply@example.com"
+                                            {...register('fromEmail')}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="settingsMaintenanceRow">
+                                    <div className="settingsMaintenanceInfo">
+                                        <span className="settingsMaintenanceLabel">
+                                            SSL/TLS 사용
+                                        </span>
+                                        <span className="settingsMaintenanceDesc">
+                                            465 포트는 ON, 587 포트는 보통 OFF (STARTTLS 자동)
+                                        </span>
+                                    </div>
+                                    <Switch
+                                        checked={Boolean(smtpSecure)}
+                                        onCheckedChange={(v) =>
+                                            setValue('smtpSecure', v)
+                                        }
+                                    />
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={async () => {
+                                        if (!adminEmail) {
+                                            makePopup(
+                                                <AlertPopup
+                                                    title="테스트 이메일 주소 필요"
+                                                    body="먼저 '관리자 연락 이메일' 필드에 테스트 받을 이메일을 입력하세요."
+                                                    buttonFunction={() => closePopup()}
+                                                />,
+                                            );
+                                            return;
+                                        }
+                                        try {
+                                            const res = await api.post('/email/test', { to: adminEmail });
+                                            makePopup(
+                                                <AlertPopup
+                                                    title="테스트 발송 완료"
+                                                    body={
+                                                        res.data?.fallback
+                                                            ? '이메일 발송이 비활성화되어 있어 콘솔에 출력되었습니다. 백엔드 로그를 확인하세요.'
+                                                            : `${adminEmail}로 테스트 메일을 발송했습니다. 받은편지함을 확인하세요.`
+                                                    }
+                                                    buttonFunction={() => closePopup()}
+                                                />,
+                                            );
+                                        } catch (error) {
+                                            makePopup(
+                                                <AlertPopup
+                                                    title="테스트 발송 실패"
+                                                    body={error.response?.data?.message || '발송에 실패했습니다. 설정을 먼저 저장하세요.'}
+                                                    buttonFunction={() => closePopup()}
+                                                />,
+                                            );
+                                        }
+                                    }}
+                                >
+                                    📧 테스트 이메일 발송
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* 하단 버튼 */}

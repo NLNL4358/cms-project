@@ -21,7 +21,7 @@ export class SettingsController {
   @UseGuards(PermissionsGuard)
   @Permissions('settings:read', '*')
   findAll() {
-    return this.settingsService.findAll();
+    return this.settingsService.findAllForClient();
   }
 
   /** 설정 일괄 업데이트 */

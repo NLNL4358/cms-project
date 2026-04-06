@@ -24,6 +24,9 @@ import { ImportExportModule } from './import-export/import-export.module';
 import { BackupModule } from './backup/backup.module';
 import { NotificationModule } from './notification/notification.module';
 import { SearchModule } from './search/search.module';
+import { ApiKeyModule } from './api-key/api-key.module';
+import { PublicApiModule } from './public-api/public-api.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -75,6 +78,12 @@ import { SearchModule } from './search/search.module';
     NotificationModule,
     // 검색 모듈
     SearchModule,
+    // API 키 모듈
+    ApiKeyModule,
+    // Public API 모듈 (외부 통합용)
+    PublicApiModule,
+    // 이메일 모듈
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

@@ -23,9 +23,168 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 function buildApiSections(contentTypes, selectedType) {
     const sections = [];
 
+    // ─── Public API (외부 통합용) ───
+    sections.push({
+        id: 'public-api',
+        category: 'public',
+        title: 'Public API',
+        endpoints: [
+            {
+                id: 'pub-types', group: '콘텐츠 타입', method: 'GET', path: '/public/content-types',
+                title: '콘텐츠 타입 목록', desc: '발행된 콘텐츠 타입 목록 (외부 앱용)',
+                authNote: 'API 키 필요: Authorization: Bearer sk_live_xxxxx',
+            },
+            {
+                id: 'pub-type-detail', group: '콘텐츠 타입', method: 'GET', path: '/public/content-types/:slug',
+                title: '콘텐츠 타입 상세', desc: 'slug로 콘텐츠 타입 조회',
+                authNote: 'API 키 필요',
+            },
+            {
+                id: 'pub-list', group: '콘텐츠', method: 'GET', path: '/public/contents/:contentTypeSlug',
+                title: '발행된 콘텐츠 목록', desc: '발행된 콘텐츠만 반환합니다. 동적 필드 필터링 지원',
+                authNote: 'API 키 필요',
+                params: [
+                    { name: 'page', type: 'number', desc: '페이지 번호' },
+                    { name: 'limit', type: 'number', desc: '페이지당 개수 (최대 100)' },
+                    { name: 'sort', type: 'string', desc: 'createdAt | updatedAt | publishedAt' },
+                    { name: 'order', type: 'string', desc: 'asc | desc (기본: desc)' },
+                    { name: 'search', type: 'string', desc: '제목/슬러그 검색' },
+                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링 (예: filter[category]=tech)' },
+                ],
+            },
+            {
+                id: 'pub-detail', group: '콘텐츠', method: 'GET', path: '/public/contents/:contentTypeSlug/:slug',
+                title: '발행된 콘텐츠 상세', desc: 'slug로 단건 조회 (발행된 것만)',
+                authNote: 'API 키 필요',
+            },
+        ],
+    });
+
+    // ─── Member 인증 (외부 회원용) ───
+    sections.push({
+        id: 'member-auth',
+        category: 'public',
+        title: '회원 인증',
+        endpoints: [
+            {
+                id: 'mauth-register', group: '회원가입/로그인', method: 'POST', path: '/public/auth/register',
+                title: '회원가입', desc: '외부 사이트 일반 회원가입 (MEMBER 타입). 분당 5회 제한',
+                body: json({ email: 'user@example.com', password: 'password123', name: '홍길동' }),
+            },
+            {
+                id: 'mauth-login', group: '회원가입/로그인', method: 'POST', path: '/public/auth/login',
+                title: '로그인', desc: '회원 로그인. JWT 토큰 발급',
+                body: json({ email: 'user@example.com', password: 'password123' }),
+            },
+            {
+                id: 'mauth-refresh', group: '토큰 관리', method: 'POST', path: '/public/auth/refresh',
+                title: '토큰 갱신', desc: 'Refresh Token으로 새 Access Token 발급',
+                body: json({ refreshToken: 'your_refresh_token' }),
+            },
+            {
+                id: 'mauth-logout', group: '토큰 관리', method: 'POST', path: '/public/auth/logout',
+                title: '로그아웃', desc: '로그아웃 (Refresh Token 무효화)', auth: true,
+            },
+            {
+                id: 'mauth-me', group: '프로필', method: 'GET', path: '/public/auth/me',
+                title: '내 정보 조회', desc: '현재 로그인한 회원의 프로필', auth: true,
+            },
+            {
+                id: 'mauth-update', group: '프로필', method: 'PATCH', path: '/public/auth/me',
+                title: '내 정보 수정', desc: '이름이나 비밀번호 수정', auth: true,
+                body: json({ name: '새 이름', currentPassword: '현재 비밀번호', password: '새 비밀번호' }),
+            },
+            {
+                id: 'mauth-forgot', group: '비밀번호 재설정', method: 'POST', path: '/public/auth/forgot-password',
+                title: '비밀번호 재설정 요청', desc: '재설정 링크가 담긴 이메일을 발송합니다 (분당 3회 제한)',
+                body: json({ email: 'user@example.com' }),
+            },
+            {
+                id: 'mauth-reset', group: '비밀번호 재설정', method: 'POST', path: '/public/auth/reset-password',
+                title: '비밀번호 재설정 실행', desc: '이메일에 받은 토큰으로 새 비밀번호 설정',
+                body: json({ token: 'reset-token-from-email', password: 'new-password' }),
+            },
+            {
+                id: 'mauth-verify', group: '이메일 인증', method: 'POST', path: '/public/auth/verify-email',
+                title: '이메일 인증', desc: '가입 시 받은 이메일의 토큰으로 인증',
+                body: json({ token: 'verification-token' }),
+            },
+            {
+                id: 'mauth-resend', group: '이메일 인증', method: 'POST', path: '/public/auth/resend-verification',
+                title: '인증 메일 재발송', desc: '인증 메일을 다시 보냅니다 (분당 2회 제한)', auth: true,
+            },
+        ],
+    });
+
+    // ─── Member 콘텐츠 (외부 회원이 글 작성) ───
+    sections.push({
+        id: 'member-contents',
+        category: 'public',
+        title: '회원 콘텐츠',
+        endpoints: [
+            {
+                id: 'mc-mine', group: '조회', method: 'GET', path: '/public/member/contents/my',
+                title: '내가 작성한 글 목록', desc: '본인이 작성한 콘텐츠 목록 (모든 상태 포함)', auth: true,
+                params: [
+                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 타입 슬러그 (선택)' },
+                    { name: 'page', type: 'number', desc: '페이지 번호' },
+                    { name: 'limit', type: 'number', desc: '페이지당 개수' },
+                ],
+            },
+            {
+                id: 'mc-create', group: '작성', method: 'POST', path: '/public/member/contents/:contentTypeSlug',
+                title: '글 작성', desc: '회원이 글을 작성합니다. 콘텐츠 타입의 "회원 작성 가능" 옵션이 켜져있어야 합니다',
+                auth: true,
+                body: json({ title: '내 글 제목', slug: 'my-post', data: { content: '<p>본문</p>' } }),
+            },
+            {
+                id: 'mc-update', group: '수정', method: 'PATCH', path: '/public/member/contents/:id',
+                title: '본인 글 수정', desc: '본인이 작성한 글만 수정 가능', auth: true,
+                body: json({ title: '수정된 제목', data: { content: '<p>수정 본문</p>' } }),
+            },
+            {
+                id: 'mc-delete', group: '삭제', method: 'DELETE', path: '/public/member/contents/:id',
+                title: '본인 글 삭제', desc: '본인이 작성한 글만 삭제 가능 (소프트 삭제)', auth: true,
+            },
+        ],
+    });
+
+    // ─── Member 파일 업로드 ───
+    sections.push({
+        id: 'member-media',
+        category: 'public',
+        title: '회원 파일 업로드',
+        endpoints: [
+            {
+                id: 'mm-upload', group: '업로드', method: 'POST', path: '/public/member/media/upload',
+                title: '파일 업로드', desc: '회원이 파일을 업로드합니다 (프로필 사진, 게시글 첨부 등). multipart/form-data 사용',
+                auth: true,
+                body: 'Content-Type: multipart/form-data\nfield: file (파일, 최대 50MB)',
+            },
+        ],
+    });
+
+    // ─── API 키 관리 ───
+    sections.push({
+        id: 'api-keys',
+        category: 'admin',
+        title: 'API 키 관리',
+        endpoints: [
+            { id: 'ak-list', group: '조회', method: 'GET', path: '/api-keys', title: '키 목록', auth: true, desc: '발급된 API 키 목록' },
+            {
+                id: 'ak-create', group: '생성', method: 'POST', path: '/api-keys', title: '키 발급', auth: true,
+                desc: '새 API 키를 발급합니다 (평문은 한 번만 표시)',
+                body: json({ name: '메인 사이트', permissions: ['public:read'], expiresAt: null }),
+            },
+            { id: 'ak-toggle', group: '관리', method: 'PATCH', path: '/api-keys/:id/toggle', title: '활성/비활성', auth: true, desc: '키를 활성화/비활성화합니다', body: json({ isActive: true }) },
+            { id: 'ak-delete', group: '관리', method: 'DELETE', path: '/api-keys/:id', title: '키 삭제', auth: true, desc: '키를 영구 삭제합니다 (외부 앱 즉시 차단)' },
+        ],
+    });
+
     // ─── 인증 ───
     sections.push({
         id: 'auth',
+        category: 'admin',
         title: '인증',
         endpoints: [
             {
@@ -77,6 +236,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 콘텐츠 타입 ───
     sections.push({
         id: 'content-types',
+        category: 'admin',
         title: '콘텐츠 타입',
         endpoints: [
             {
@@ -189,6 +349,7 @@ function buildApiSections(contentTypes, selectedType) {
     }
     sections.push({
         id: 'contents',
+        category: 'admin',
         title: '콘텐츠',
         dynamic: true,
         endpoints: contentEndpoints,
@@ -197,6 +358,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 미디어 ───
     sections.push({
         id: 'media',
+        category: 'admin',
         title: '파일 관리',
         endpoints: [
             {
@@ -242,6 +404,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 미디어 폴더 ───
     sections.push({
         id: 'media-folders',
+        category: 'admin',
         title: '미디어 폴더',
         endpoints: [
             { id: 'mf-list', group: '조회', method: 'GET', path: '/media/folders', title: '폴더 목록', auth: true, desc: '계층형 폴더 목록을 조회합니다' },
@@ -261,6 +424,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 역할/권한 ───
     sections.push({
         id: 'roles',
+        category: 'admin',
         title: '역할/권한',
         endpoints: [
             { id: 'r-list', group: '조회', method: 'GET', path: '/roles', title: '역할 목록', auth: true, desc: '모든 역할을 조회합니다' },
@@ -277,6 +441,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 사용자 역할 관리 ───
     sections.push({
         id: 'user-roles',
+        category: 'admin',
         title: '사용자 역할',
         endpoints: [
             { id: 'ur-request', group: '요청', method: 'POST', path: '/user-roles/request', title: '역할 요청', auth: true, desc: '사용자가 역할을 요청합니다',
@@ -297,6 +462,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 사용자 ───
     sections.push({
         id: 'users',
+        category: 'admin',
         title: '사용자 관리',
         endpoints: [
             { id: 'u-list', group: '조회', method: 'GET', path: '/users', title: '사용자 목록', auth: true, desc: '모든 사용자를 조회합니다' },
@@ -313,6 +479,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 검색 ───
     sections.push({
         id: 'search',
+        category: 'admin',
         title: '검색',
         endpoints: [
             {
@@ -333,6 +500,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 감사 로그 ───
     sections.push({
         id: 'audit-logs',
+        category: 'admin',
         title: '감사 로그',
         endpoints: [
             {
@@ -358,6 +526,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── Webhook ───
     sections.push({
         id: 'webhooks',
+        category: 'admin',
         title: 'Webhook',
         endpoints: [
             { id: 'wh-list', group: '조회', method: 'GET', path: '/webhooks', title: '목록 조회', auth: true, desc: '등록된 Webhook 목록' },
@@ -375,6 +544,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── Import/Export ───
     sections.push({
         id: 'import-export',
+        category: 'admin',
         title: 'Import/Export',
         endpoints: [
             {
@@ -408,12 +578,17 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 설정 ───
     sections.push({
         id: 'settings',
+        category: 'admin',
         title: '시스템 설정',
         endpoints: [
-            { id: 'set-get', method: 'GET', path: '/settings', title: '설정 조회', auth: true, desc: '모든 시스템 설정을 조회합니다' },
+            { id: 'set-get', group: '조회', method: 'GET', path: '/settings', title: '설정 조회', auth: true, desc: '모든 시스템 설정을 조회합니다 (SMTP 비밀번호는 마스킹)' },
             {
-                id: 'set-update', method: 'PATCH', path: '/settings', title: '설정 수정', auth: true, desc: '설정을 일괄 수정합니다',
+                id: 'set-update', group: '수정', method: 'PATCH', path: '/settings', title: '설정 수정', auth: true, desc: '설정을 일괄 수정합니다 (smtpPassword 빈값이면 기존 유지)',
                 body: json({ settings: { siteName: '내 사이트', adminEmail: 'admin@site.com', timezone: 'Asia/Seoul' } }),
+            },
+            {
+                id: 'set-test-email', group: '이메일', method: 'POST', path: '/email/test', title: '이메일 테스트 발송', auth: true, desc: 'SMTP 설정 검증용 테스트 메일 발송',
+                body: json({ to: 'admin@example.com' }),
             },
         ],
     });
@@ -421,6 +596,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 백업 ───
     sections.push({
         id: 'backups',
+        category: 'admin',
         title: '백업/복원',
         endpoints: [
             { id: 'bk-list', group: '조회', method: 'GET', path: '/backups', title: '백업 목록', auth: true, desc: '생성된 백업 목록을 조회합니다' },
@@ -435,6 +611,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 알림 ───
     sections.push({
         id: 'notifications',
+        category: 'admin',
         title: '알림',
         endpoints: [
             { id: 'n-list', group: '조회', method: 'GET', path: '/notifications', title: '알림 목록', auth: true, desc: '내 알림을 조회합니다', params: [{ name: 'page', type: 'number', desc: '페이지' }, { name: 'limit', type: 'number', desc: '개수' }] },
@@ -448,6 +625,7 @@ function buildApiSections(contentTypes, selectedType) {
     // ─── 대시보드 ───
     sections.push({
         id: 'dashboard',
+        category: 'admin',
         title: '대시보드',
         endpoints: [
             {
@@ -466,13 +644,22 @@ function json(obj) {
 
 function ApiGuidePage() {
     const { contentTypes } = useGlobal();
-    const [activeSection, setActiveSection] = useState('auth');
+    const [activeCategory, setActiveCategory] = useState('public');
+    const [activeSection, setActiveSection] = useState('public-api');
     const [selectedSlug, setSelectedSlug] = useState('');
     const [copiedId, setCopiedId] = useState(null);
 
     const selectedType = contentTypes.find((ct) => ct.slug === selectedSlug);
-    const sections = buildApiSections(contentTypes, selectedType);
-    const currentSection = sections.find((s) => s.id === activeSection);
+    const allSections = buildApiSections(contentTypes, selectedType);
+    const sections = allSections.filter((s) => s.category === activeCategory);
+    const currentSection = sections.find((s) => s.id === activeSection) || sections[0];
+
+    // 카테고리 전환 시 첫 섹션으로 자동 이동
+    const switchCategory = (cat) => {
+        setActiveCategory(cat);
+        const firstSection = allSections.find((s) => s.category === cat);
+        if (firstSection) setActiveSection(firstSection.id);
+    };
 
     const copyToClipboard = (text, id) => {
         navigator.clipboard.writeText(text);
@@ -493,7 +680,11 @@ function ApiGuidePage() {
 
     const buildCurl = (ep) => {
         let curl = `curl -X ${ep.method} "${API_BASE}${ep.path}"`;
-        if (ep.auth) curl += ` \\\n  -H "Authorization: Bearer YOUR_TOKEN"`;
+        if (ep.authNote) {
+            curl += ` \\\n  -H "Authorization: Bearer sk_live_YOUR_API_KEY"`;
+        } else if (ep.auth) {
+            curl += ` \\\n  -H "Authorization: Bearer YOUR_TOKEN"`;
+        }
         if (ep.body && ep.body.startsWith('{')) {
             curl += ` \\\n  -H "Content-Type: application/json"`;
             curl += ` \\\n  -d '${ep.body.replace(/\n/g, '')}'`;
@@ -515,8 +706,38 @@ function ApiGuidePage() {
                     </a>
                 </div>
                 <p className="pageDescription">
-                    이 CMS의 모든 REST API 사용법을 확인합니다. 모든 요청에는 JWT 인증이 필요합니다.
+                    이 CMS의 모든 REST API 사용법을 확인합니다
                 </p>
+            </div>
+
+            {/* 카테고리 탭 */}
+            <div className="apiCategoryTabs">
+                <button
+                    type="button"
+                    className={`apiCategoryTab apiCategoryTabPublic ${activeCategory === 'public' ? 'active' : ''}`}
+                    onClick={() => switchCategory('public')}
+                >
+                    <div className="apiCategoryTabIcon">🌐</div>
+                    <div className="apiCategoryTabText">
+                        <span className="apiCategoryTabTitle">외부 API</span>
+                        <span className="apiCategoryTabDesc">
+                            외부 프론트엔드/앱에서 발행된 콘텐츠를 가져갈 때 사용 (API 키 필요)
+                        </span>
+                    </div>
+                </button>
+                <button
+                    type="button"
+                    className={`apiCategoryTab apiCategoryTabAdmin ${activeCategory === 'admin' ? 'active' : ''}`}
+                    onClick={() => switchCategory('admin')}
+                >
+                    <div className="apiCategoryTabIcon">🔐</div>
+                    <div className="apiCategoryTabText">
+                        <span className="apiCategoryTabTitle">관리자 API</span>
+                        <span className="apiCategoryTabDesc">
+                            CMS 관리 기능 (콘텐츠 작성, 사용자 관리 등) — JWT 토큰 필요
+                        </span>
+                    </div>
+                </button>
             </div>
 
             <div className="apiGuideLayout">

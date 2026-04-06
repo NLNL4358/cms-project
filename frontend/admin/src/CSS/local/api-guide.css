@@ -22,6 +22,77 @@
     text-decoration: underline;
 }
 
+/* 카테고리 탭 */
+.apiCategoryTabs {
+    display: flex;
+    gap: 12px;
+}
+
+.apiCategoryTab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--card);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+}
+
+.apiCategoryTab:hover {
+    border-color: var(--primary);
+}
+
+.apiCategoryTab.active.apiCategoryTabPublic {
+    border-color: oklch(0.55 0.18 200);
+    background-color: oklch(0.55 0.18 200 / 0.05);
+}
+
+.apiCategoryTab.active.apiCategoryTabAdmin {
+    border-color: var(--primary);
+    background-color: oklch(from var(--primary) l c h / 0.05);
+}
+
+.apiCategoryTabIcon {
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.apiCategoryTabText {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.apiCategoryTabTitle {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.apiCategoryTab.active.apiCategoryTabPublic .apiCategoryTabTitle {
+    color: oklch(0.45 0.18 200);
+}
+
+.apiCategoryTab.active.apiCategoryTabAdmin .apiCategoryTabTitle {
+    color: var(--primary);
+}
+
+.apiCategoryTabDesc {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .apiCategoryTabs {
+        flex-direction: column;
+    }
+}
+
 /* 2단 레이아웃 */
 .apiGuideLayout {
     display: flex;
