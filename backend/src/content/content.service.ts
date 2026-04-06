@@ -10,12 +10,14 @@ import { UpdateContentDto } from './dto/update-content.dto';
 import { ContentStatus } from '@prisma/client';
 import { sanitizeContentData } from '../common/utils/sanitize.util';
 import { SearchService } from '../search/search.service';
+import { WebhookService } from '../webhook/webhook.service';
 
 @Injectable()
 export class ContentService {
   constructor(
     private prisma: PrismaService,
     private searchService: SearchService,
+    private webhookService: WebhookService,
   ) {}
 
   async create(createContentDto: CreateContentDto, userId: string) {
@@ -92,6 +94,9 @@ export class ContentService {
     // 검색 인덱스 업데이트
     this.searchService.indexContent(content.id).catch(() => {});
 
+    // Webhook 발사
+    this.webhookService.dispatch('content:create', { id: content.id, title: content.title, slug: content.slug }).catch(() => {});
+
     return content;
   }
 
@@ -101,6 +106,7 @@ export class ContentService {
     search?: string;
     page?: number;
     limit?: number;
+    filter?: Record<string, any>;
   }) {
     const {
       contentTypeId,
@@ -108,6 +114,7 @@ export class ContentService {
       search,
       page = 1,
       limit = 20,
+      filter,
     } = query || {};
 
     const where: any = {
@@ -127,6 +134,23 @@ export class ContentService {
         { title: { contains: search, mode: 'insensitive' } },
         { slug: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // 동적 필드 필터링: filter[fieldName]=value → data->>'fieldName' = value
+    if (filter && typeof filter === 'object') {
+      const conditions: any[] = [];
+      for (const [key, value] of Object.entries(filter)) {
+        if (value === '' || value === undefined) continue;
+        conditions.push({
+          data: {
+            path: [key],
+            equals: this.coerceFilterValue(value as string),
+          },
+        });
+      }
+      if (conditions.length > 0) {
+        where.AND = conditions;
+      }
     }
 
     const [contents, total] = await Promise.all([
@@ -157,6 +181,15 @@ export class ContentService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  /** 필터값을 적절한 타입으로 변환 (true/false/숫자/문자열) */
+  private coerceFilterValue(value: string): any {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (/^\d+$/.test(value)) return parseInt(value);
+    if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
+    return value;
   }
 
   async findOne(id: string) {
@@ -279,6 +312,9 @@ export class ContentService {
     // 검색 인덱스 업데이트
     this.searchService.indexContent(updated.id).catch(() => {});
 
+    // Webhook 발사
+    this.webhookService.dispatch('content:update', { id: updated.id, title: updated.title }).catch(() => {});
+
     return updated;
   }
 
@@ -293,6 +329,9 @@ export class ContentService {
 
     // 검색 인덱스에서 제거
     this.searchService.removeContent(id).catch(() => {});
+
+    // Webhook 발사
+    this.webhookService.dispatch('content:delete', { id }).catch(() => {});
 
     return { message: '콘텐츠가 삭제되었습니다' };
   }
@@ -322,6 +361,9 @@ export class ContentService {
       },
     });
 
+    // Webhook 발사
+    this.webhookService.dispatch('content:publish', { id: updated.id, title: updated.title }).catch(() => {});
+
     return updated;
   }
 
@@ -349,6 +391,9 @@ export class ContentService {
         },
       },
     });
+
+    // Webhook 발사
+    this.webhookService.dispatch('content:unpublish', { id: updated.id }).catch(() => {});
 
     return updated;
   }

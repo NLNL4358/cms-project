@@ -84,19 +84,22 @@ export class ContentController {
   @ApiResponse({ status: 200, description: '조회 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
-  findAll(
-    @Query('contentTypeId') contentTypeId?: string,
-    @Query('status') status?: ContentStatus,
-    @Query('search') search?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  findAll(@Query() query: any) {
+    // filter[fieldName]=value 파싱
+    const filter: Record<string, any> = {};
+    for (const [key, value] of Object.entries(query)) {
+      if (key.startsWith('filter[') && key.endsWith(']')) {
+        filter[key.slice(7, -1)] = value;
+      }
+    }
+
     return this.contentService.findAll({
-      contentTypeId,
-      status,
-      search,
-      page: page ? parseInt(page) : undefined,
-      limit: limit ? parseInt(limit) : undefined,
+      contentTypeId: query.contentTypeId,
+      status: query.status,
+      search: query.search,
+      page: query.page ? parseInt(query.page) : undefined,
+      limit: query.limit ? parseInt(query.limit) : undefined,
+      filter,
     });
   }
 

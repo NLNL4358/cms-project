@@ -76,7 +76,18 @@ export class AuditLogInterceptor implements NestInterceptor {
   /** URL에서 엔티티명/ID 추출 */
   private parseUrl(url: string): { entity: string | null; entityId: string | null } {
     // 로그 제외 경로
-    const excludePaths = ['/auth', '/dashboard', '/audit-logs', '/backups', '/notifications'];
+    // 감사 로그 제외 경로
+    // - 의미 없는 작업: dashboard, audit-logs(자기 참조), notifications(본인 알림 읽음)
+    // - 폭증 위험: public/auth (회원가입 폭주), public 콘텐츠 GET
+    // - 보안 감사 필요(로그 기록 대상): auth(로그인), api-keys, backups, public/member
+    const excludePaths = [
+      '/dashboard',
+      '/audit-logs',
+      '/notifications',
+      '/public/auth',
+      '/public/content-types',
+      '/public/contents',
+    ];
     if (excludePaths.some((p) => url.startsWith(p))) {
       return { entity: null, entityId: null };
     }

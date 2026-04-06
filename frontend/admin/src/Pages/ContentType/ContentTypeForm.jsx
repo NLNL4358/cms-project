@@ -106,6 +106,8 @@ function ContentTypeForm() {
             name: '',
             slug: '',
             description: '',
+            memberWritable: false,
+            memberAutoPublish: false,
             fields: [{ name: '', label: '', type: 'text', required: false }],
         },
     });
@@ -151,10 +153,13 @@ function ContentTypeForm() {
             const fields = Array.isArray(existingData.fields)
                 ? existingData.fields
                 : [];
+            const opts = (existingData.options || {});
             reset({
                 name: existingData.name,
                 slug: existingData.slug,
                 description: existingData.description || '',
+                memberWritable: Boolean(opts.memberWritable),
+                memberAutoPublish: Boolean(opts.memberAutoPublish),
                 fields:
                     fields.length > 0
                         ? fields.map((f) => ({
@@ -214,7 +219,15 @@ function ContentTypeForm() {
     });
 
     const onSubmit = (data) => {
-        saveMutation.mutate(data);
+        const { memberWritable, memberAutoPublish, ...rest } = data;
+        const payload = {
+            ...rest,
+            options: {
+                memberWritable: Boolean(memberWritable),
+                memberAutoPublish: Boolean(memberAutoPublish),
+            },
+        };
+        saveMutation.mutate(payload);
     };
 
     /** 항목 추가 헬퍼 */
@@ -326,6 +339,47 @@ function ContentTypeForm() {
                         </div>
                     </div>
                 </div>
+
+                {/* 외부 사용자 권한 */}
+                <div className="sectionBox">
+                    <div className="sectionTitle">
+                        <div className="sectionTitleBar" />
+                        <h5>외부 사용자 권한</h5>
+                    </div>
+                    <div className="contentColumnWrap">
+                        <label className="ctOptionRow">
+                            <input
+                                type="checkbox"
+                                {...register('memberWritable')}
+                            />
+                            <div className="ctOptionText">
+                                <span className="ctOptionLabel">
+                                    회원이 작성 가능
+                                </span>
+                                <span className="ctOptionDesc">
+                                    체크하면 외부 사이트의 일반 회원이 이 콘텐츠 타입에
+                                    글을 작성할 수 있습니다 (예: 게시판, 댓글)
+                                </span>
+                            </div>
+                        </label>
+                        <label className="ctOptionRow">
+                            <input
+                                type="checkbox"
+                                {...register('memberAutoPublish')}
+                            />
+                            <div className="ctOptionText">
+                                <span className="ctOptionLabel">
+                                    회원 작성 시 자동 발행
+                                </span>
+                                <span className="ctOptionDesc">
+                                    체크하면 회원이 작성한 글이 즉시 발행됩니다.
+                                    체크하지 않으면 관리자 검토 후 발행됩니다.
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 {/* 입력 항목 정의 */}
                 <div className="sectionBox">
                     <div className="sectionTitle">

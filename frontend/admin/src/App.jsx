@@ -20,6 +20,7 @@ import WebhookList from '@pages/Webhook/WebhookList.jsx';
 import ImportExportPage from '@pages/ImportExport/ImportExportPage.jsx';
 import SearchPage from '@pages/Search/SearchPage.jsx';
 import ApiGuidePage from '@pages/ApiGuide/ApiGuidePage.jsx';
+import ApiKeyList from '@pages/ApiKey/ApiKeyList.jsx';
 import BackupList from '@pages/Backup/BackupList.jsx';
 
 /* Routers */
@@ -89,6 +90,7 @@ function App() {
                 <Route path="backups" element={<BackupList />} />
                 <Route path="search" element={<SearchPage />} />
                 <Route path="api-guide" element={<ApiGuidePage />} />
+                <Route path="api-keys" element={<ApiKeyList />} />
             </Route>
 
             {/* 기본 리다이렉트 */}

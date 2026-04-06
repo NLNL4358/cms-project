@@ -3,3 +3,7 @@ node_modules
 .env
 
 /generated/prisma
+
+# 일회성 테스트 스크립트
+test-api.js
+

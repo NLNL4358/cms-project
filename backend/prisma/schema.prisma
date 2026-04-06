@@ -14,14 +14,19 @@ datasource db {
 // =============================================
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  type      UserType @default(ADMIN) // ADMIN or MEMBER
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  name                  String
+  type                  UserType  @default(ADMIN) // ADMIN or MEMBER
+  isActive              Boolean   @default(true)
+  isEmailVerified       Boolean   @default(false)
+  emailVerifyToken      String?
+  emailVerifyExpiresAt  DateTime?
+  passwordResetToken    String?
+  passwordResetExpiresAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   // Relations
   roles            UserRole[]      @relation("UserRoles")
@@ -388,4 +393,23 @@ model Webhook {
   updatedAt DateTime @updatedAt
 
   @@map("webhooks")
+}
+
+// =============================================
+// API 키 (Headless CMS 외부 통합용)
+// =============================================
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String // 키 이름 (예: "프론트엔드 앱")
+  keyHash     String    @unique // bcrypt 해시 (검증용)
+  keyPrefix   String // sk_live_xxxx... 의 앞 8자 (식별용)
+  permissions Json      @default("[\"public:read\"]") // 권한 (public:read, content:read 등)
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime? // null이면 무기한
+  createdAt   DateTime  @default(now())
+
+  @@index([keyPrefix])
+  @@map("api_keys")
 }
