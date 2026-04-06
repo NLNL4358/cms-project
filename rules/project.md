@@ -30,15 +30,16 @@ CMS + Admin Panel + User Site + Page Builder로 구성되는 핵심 제품.
 | **Business** | Starter + User Site + Page Builder | 비개발자도 웹사이트 구축 가능 |
 
 **Starter 에디션 기능:**
-- 콘텐츠 타입/콘텐츠 CRUD, 미디어 관리, 역할/권한, 회원/관리자 관리
-- 버전 관리, 예약 발행, REST API (Swagger 문서 자동 생성)
-- 검색 (MeiliSearch), 알림 센터, 이미지 최적화
-- 로그/Webhook, 백업/복원, Import/Export, 휴지통
-- 시스템 설정
+- 콘텐츠 타입/콘텐츠 CRUD, 미디어 관리(폴더 포함), 역할/권한, 회원/관리자 관리
+- 버전 관리, 예약 발행, 콘텐츠 보관(Archive), REST API (Swagger + API 가이드 페이지)
+- 검색 (MeiliSearch, DB 폴백), 알림 센터 (WebSocket 실시간, 역할 기반 필터링)
+- 이미지 최적화 (Sharp 썸네일/WebP), 감사 로그, Webhook
+- 백업/복원 (DB + 업로드 파일 ZIP 통합), Import/Export (CSV/JSON)
+- 휴지통 (소프트 삭제 + 30일 자동 정리), 시스템 설정, 대시보드 통계
 
 **Business 에디션 추가 기능** (Starter 포함):
 - User Site + 페이지 빌더, 템플릿/컴포넌트 시스템
-- 다국어(i18n) 지원, SEO 관리
+- 다국어(i18n) 지원, SEO 관리 (메타태그, OG, sitemap)
 - 실시간 미리보기
 
 #### 2단계 — Enterprise 에디션

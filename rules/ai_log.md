@@ -76,12 +76,16 @@ project.md
 
 ### 4. 주요 기능 키워드
 
-- 콘텐츠 타입 정의, 페이지 빌더, 드래그앤드롭
-- 역할(Role) 기반 권한 시스템
-- 다국어(i18n), 버전 관리, 예약 발행
-- REST/GraphQL API 자동 생성
-- 워크플로우 (승인 시스템), 알림 센터
-- 이미지 최적화, SEO 관리
+- 콘텐츠 타입 정의, 동적 필드 (17종), 드래그앤드롭 순서 변경
+- 역할(Role) 기반 권한 시스템, 사용자 역할 요청/승인
+- 버전 관리, 예약 발행, 콘텐츠 보관(Archive)
+- REST API + Swagger + API 가이드 페이지 (83개 엔드포인트)
+- 알림 센터 (WebSocket 실시간, 역할 기반 필터링)
+- 이미지 최적화 (Sharp 썸네일/WebP)
+- 감사 로그, Webhook (Slack/Discord 호환)
+- 백업/복원 (DB + 파일 ZIP), Import/Export (CSV/JSON)
+- MeiliSearch 통합 검색 (DB 폴백), 시스템 설정, 대시보드
+- 페이지 빌더 `[Business]`, 다국어 `[Business]`, SEO `[Business]`
 
 ### 5. AI 작업 시 참고사항
 
@@ -828,3 +832,25 @@ YYYY.MM.DD HH:MM
         7. 백업/복원
         8. Import/Export
         9. 검색 (MeiliSearch 연동)
+
+2026.04.01~06
+    - Starter 에디션 남은 기능 전체 구현 완료
+        1. 시스템 설정 (사이트 정보, 로고/파비콘, 타임존, 유지보수 모드)
+        2. 감사 로그 + Webhook (글로벌 인터셉터, Slack/Discord 호환)
+        3. Import/Export (CSV/JSON, 동적 필드 매핑, 덮어쓰기 옵션)
+        4. 백업/복원 (DB + 업로드 파일 ZIP 통합, 파일 업로드 복원)
+        5. 알림 센터 (WebSocket 실시간, 역할 기반 권한 필터링)
+        6. 검색 (MeiliSearch 연동, DB 폴백, 헤더/대시보드 검색 UI)
+        7. API 가이드 페이지 (83개 엔드포인트, 16개 카테고리, 그룹별 정리)
+        8. 콘텐츠 보관(Archive/Unarchive) 기능 추가
+    - 주요 개선사항
+        - API 인터셉터 CUD 캐시 자동 무효화 (중앙 관리)
+        - Switch 컴포넌트 CSS 리팩토링 (Tailwind data-variant 충돌 해결)
+        - 토스트(Sonner) 색상 가시성 개선
+        - 인터셉터 중복 실행 수정 (APP_INTERCEPTOR useExisting 패턴)
+        - Multer 메모리 → 디스크 스트리밍 변경 (대용량 파일 지원)
+        - Refresh Token delete → deleteMany (복원 후 에러 방지)
+    - 기획 문서 업데이트
+        - i18n, SEO → Business 에디션으로 이동
+        - 콘텐츠 보관, API 가이드, WebSocket 알림 등 신규 기능 반영
+    - Starter 에디션 완료 (17/17 핵심 기능 구현)
