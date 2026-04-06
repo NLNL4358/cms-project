@@ -44,8 +44,8 @@ export class MemberContentController {
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ) {
-    const pageNum = parseInt(page);
-    const limitNum = Math.min(parseInt(limit), 100);
+    const pageNum = Math.max(parseInt(page) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
 
     const where: any = {
       createdById: userId,

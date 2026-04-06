@@ -117,25 +117,30 @@ export class AuthService {
         },
       });
 
-      // 저장된 토큰 중 하나라도 일치하는지 확인
-      let isValidToken = false;
+      // 일치하는 토큰 찾기
+      let matchedToken: typeof storedTokens[0] | null = null;
       for (const storedToken of storedTokens) {
         const isMatch = await bcrypt.compare(
           refreshTokenString,
           storedToken.token,
         );
         if (isMatch) {
-          isValidToken = true;
-          // 사용된 토큰 삭제 (Refresh Token Rotation)
-          await this.prisma.refreshToken.deleteMany({
-            where: { id: storedToken.id },
-          });
+          matchedToken = storedToken;
           break;
         }
       }
 
-      if (!isValidToken) {
+      if (!matchedToken) {
         throw new UnauthorizedException('유효하지 않은 Refresh Token입니다');
+      }
+
+      // Rotation: 원자적 삭제 (이미 다른 요청이 처리했으면 0건 반환 → 거부)
+      const deleted = await this.prisma.refreshToken.deleteMany({
+        where: { id: matchedToken.id },
+      });
+      if (deleted.count === 0) {
+        // 동시 요청에서 다른 쪽이 먼저 토큰을 사용함 → 보안 위반
+        throw new UnauthorizedException('Refresh Token이 이미 사용되었습니다');
       }
 
       // 사용자 조회

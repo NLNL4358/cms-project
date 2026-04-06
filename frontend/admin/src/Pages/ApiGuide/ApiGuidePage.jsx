@@ -44,12 +44,12 @@ function buildApiSections(contentTypes, selectedType) {
                 title: '발행된 콘텐츠 목록', desc: '발행된 콘텐츠만 반환합니다. 동적 필드 필터링 지원',
                 authNote: 'API 키 필요',
                 params: [
-                    { name: 'page', type: 'number', desc: '페이지 번호' },
-                    { name: 'limit', type: 'number', desc: '페이지당 개수 (최대 100)' },
+                    { name: 'page', type: 'number', desc: '페이지 번호 (1 이상, 기본: 1)' },
+                    { name: 'limit', type: 'number', desc: '페이지당 개수 (1~100, 기본: 10)' },
                     { name: 'sort', type: 'string', desc: 'createdAt | updatedAt | publishedAt' },
                     { name: 'order', type: 'string', desc: 'asc | desc (기본: desc)' },
                     { name: 'search', type: 'string', desc: '제목/슬러그 검색' },
-                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링 (예: filter[category]=tech)' },
+                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링. 콘텐츠 타입에 정의된 필드만 허용 (정의되지 않은 필드는 무시됨). 예: filter[category]=tech' },
                 ],
             },
             {
@@ -291,12 +291,13 @@ function buildApiSections(contentTypes, selectedType) {
                 id: 'c-list', group: '조회', method: 'GET',
                 path: `/contents?contentTypeId=${selectedType.id}`,
                 title: `${selectedType.name} 목록 조회`, auth: true,
-                desc: '페이지네이션, 검색, 상태 필터 지원',
+                desc: '페이지네이션, 검색, 상태 필터, 동적 필드 필터 지원',
                 params: [
-                    { name: 'page', type: 'number', desc: '페이지 번호 (기본: 1)' },
-                    { name: 'limit', type: 'number', desc: '페이지당 개수 (기본: 10)' },
+                    { name: 'page', type: 'number', desc: '페이지 번호 (1 이상, 기본: 1)' },
+                    { name: 'limit', type: 'number', desc: '페이지당 개수 (1~100, 기본: 20)' },
                     { name: 'search', type: 'string', desc: '제목/슬러그 검색' },
                     { name: 'status', type: 'string', desc: 'DRAFT | PUBLISHED | ARCHIVED' },
+                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터 (예: filter[category]=tech)' },
                 ],
             },
             {

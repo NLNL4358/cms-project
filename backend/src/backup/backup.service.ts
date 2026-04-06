@@ -14,6 +14,24 @@ import AdmZip from 'adm-zip';
 const PG_DUMP_PATH = process.env.PG_DUMP_PATH || '/usr/local/Cellar/postgresql@17/17.7_1/bin/pg_dump';
 const PG_RESTORE_PATH = process.env.PG_RESTORE_PATH || '/usr/local/Cellar/postgresql@17/17.7_1/bin/psql';
 
+/** DATABASE_URL을 파싱하여 PG 환경 변수를 생성 (비밀번호 노출 최소화) */
+function getPgEnv(databaseUrl?: string): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+  if (!databaseUrl) return env;
+
+  try {
+    const url = new URL(databaseUrl);
+    env.PGHOST = url.hostname;
+    env.PGPORT = url.port || '5432';
+    env.PGUSER = decodeURIComponent(url.username);
+    env.PGPASSWORD = decodeURIComponent(url.password);
+    env.PGDATABASE = url.pathname.slice(1).split('?')[0];
+  } catch {
+    // 파싱 실패 시 기본값 유지
+  }
+  return env;
+}
+
 @Injectable()
 export class BackupService {
   private readonly logger = new Logger(BackupService.name);
@@ -40,10 +58,12 @@ export class BackupService {
     const zipPath = path.join(this.backupDir, zipFilename);
 
     try {
-      // 1. pg_dump
+      // 1. pg_dump (DATABASE_URL에서 자격증명 추출)
+      const dbUrl = this.configService.get<string>('database.url');
+      const pgEnv = getPgEnv(dbUrl);
       execSync(
-        `PGPASSWORD=root ${PG_DUMP_PATH} -h localhost -U postgres -d cms_db --clean --if-exists > "${sqlPath}"`,
-        { timeout: 60000 },
+        `${PG_DUMP_PATH} --clean --if-exists > "${sqlPath}"`,
+        { timeout: 60000, env: pgEnv },
       );
 
       // 2. ZIP 생성 (SQL + uploads 폴더)
@@ -94,13 +114,26 @@ export class BackupService {
    * 백업 파일 다운로드 경로
    */
   async getFilePath(filename: string): Promise<string> {
-    const filepath = path.join(this.backupDir, filename);
+    // 경로 순회 방지: filename에 디렉터리 구분자나 ..가 포함되면 거부
+    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      throw new NotFoundException('잘못된 파일명입니다');
+    }
+
+    // basename으로 강제 정규화 (이중 안전장치)
+    const safeName = path.basename(filename);
+    const filepath = path.join(this.backupDir, safeName);
+
+    // realpath로 심볼릭 링크/상대 경로 해석 후 백업 디렉터리 안인지 확인
+    const realBackupDir = fs.realpathSync(this.backupDir);
+    const resolved = path.resolve(filepath);
+    if (!resolved.startsWith(realBackupDir + path.sep) && resolved !== realBackupDir) {
+      throw new NotFoundException('잘못된 파일 경로입니다');
+    }
+
     if (!fs.existsSync(filepath)) {
       throw new NotFoundException('백업 파일을 찾을 수 없습니다');
     }
-    if (!filepath.startsWith(this.backupDir)) {
-      throw new NotFoundException('잘못된 파일 경로입니다');
-    }
+
     return filepath;
   }
 
@@ -191,9 +224,11 @@ export class BackupService {
 
   /** SQL 파일로 DB 복원 */
   private async restoreFromSqlPath(sqlPath: string) {
+    const dbUrl = this.configService.get<string>('database.url');
+    const pgEnv = getPgEnv(dbUrl);
     execSync(
-      `PGPASSWORD=root ${PG_RESTORE_PATH} -h localhost -U postgres -d cms_db -1 < "${sqlPath}"`,
-      { timeout: 120000 },
+      `${PG_RESTORE_PATH} -1 < "${sqlPath}"`,
+      { timeout: 120000, env: pgEnv },
     );
     this.logger.log(`SQL 복원 완료: ${path.basename(sqlPath)}`);
     return { success: true, message: '데이터베이스가 복원되었습니다. 페이지가 새로고침됩니다.' };

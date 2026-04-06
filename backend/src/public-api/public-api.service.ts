@@ -74,8 +74,8 @@ export class PublicApiService {
       throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
     }
 
-    const page = query.page || 1;
-    const limit = Math.min(query.limit || 10, 100); // 최대 100
+    const page = Math.max(query.page || 1, 1);
+    const limit = Math.min(Math.max(query.limit || 10, 1), 100); // 1~100
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -84,29 +84,39 @@ export class PublicApiService {
       deletedAt: null,
     };
 
-    // 검색
+    // 검색 + 필터 조건을 모두 AND로 묶기 (OR/AND 충돌 방지)
+    const andConditions: any[] = [];
+
     if (query.search) {
-      where.OR = [
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { slug: { contains: query.search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { title: { contains: query.search, mode: 'insensitive' } },
+          { slug: { contains: query.search, mode: 'insensitive' } },
+        ],
+      });
     }
 
     // 동적 필드 필터링: filter[fieldName]=value → data->>'fieldName' = value
     if (query.filter && typeof query.filter === 'object') {
-      const conditions: any[] = [];
+      // 콘텐츠 타입의 정의된 필드만 허용 (필드 인젝션 방지)
+      const allowedFields = Array.isArray(contentType.fields)
+        ? (contentType.fields as any[]).map((f) => f.name)
+        : [];
+
       for (const [key, value] of Object.entries(query.filter)) {
         if (value === '' || value === undefined || value === null) continue;
-        conditions.push({
+        if (!allowedFields.includes(key)) continue; // 정의되지 않은 필드는 무시
+        andConditions.push({
           data: {
             path: [key],
             equals: this.coerceValue(value as string),
           },
         });
       }
-      if (conditions.length > 0) {
-        where.AND = conditions;
-      }
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     // 정렬

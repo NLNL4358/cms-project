@@ -112,10 +112,13 @@ export class ContentService {
       contentTypeId,
       status,
       search,
-      page = 1,
-      limit = 20,
+      page: rawPage = 1,
+      limit: rawLimit = 20,
       filter,
     } = query || {};
+
+    const page = Math.max(rawPage || 1, 1);
+    const limit = Math.min(Math.max(rawLimit || 20, 1), 100);
 
     const where: any = {
       deletedAt: null,
@@ -129,28 +132,32 @@ export class ContentService {
       where.status = status;
     }
 
+    // 검색 + 필터 조건을 모두 AND로 묶기 (OR/AND 충돌 방지)
+    const andConditions: any[] = [];
+
     if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { slug: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
-    // 동적 필드 필터링: filter[fieldName]=value → data->>'fieldName' = value
     if (filter && typeof filter === 'object') {
-      const conditions: any[] = [];
       for (const [key, value] of Object.entries(filter)) {
         if (value === '' || value === undefined) continue;
-        conditions.push({
+        andConditions.push({
           data: {
             path: [key],
             equals: this.coerceFilterValue(value as string),
           },
         });
       }
-      if (conditions.length > 0) {
-        where.AND = conditions;
-      }
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     const [contents, total] = await Promise.all([
