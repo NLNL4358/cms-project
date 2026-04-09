@@ -5,9 +5,11 @@
  * 콘텐츠 API는 콘텐츠 타입에 따라 동적으로 생성됩니다.
  */
 import { useState } from 'react';
-import { Code, ExternalLink, Copy, Check } from 'lucide-react';
+import { Code, ExternalLink, Copy, Check, HelpCircle } from 'lucide-react';
 
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
+import { usePopup } from '@/Providers/PopupContext';
+import AlertPopup from '@/Components/common/AlertPopup.jsx';
 import {
     Select,
     SelectContent,
@@ -643,12 +645,108 @@ function json(obj) {
     return JSON.stringify(obj, null, 2);
 }
 
+/** URL 경로에서 :param 추출 (예: '/contents/:id/versions/:version' → ['id', 'version']) */
+function extractUrlParams(path) {
+    const matches = path.match(/:[a-zA-Z][a-zA-Z0-9]*/g);
+    return matches ? matches.map((m) => m.slice(1)) : [];
+}
+
+/** URL 파라미터 설명 매핑 */
+const URL_PARAM_DESCRIPTIONS = {
+    id: '리소스의 고유 ID (cuid 형식)',
+    slug: '리소스의 고유 주소 (소문자/숫자/하이픈)',
+    contentTypeId: '콘텐츠 타입의 ID',
+    contentTypeSlug: '콘텐츠 타입의 고유 주소 (예: blog)',
+    version: '버전 번호 (정수)',
+    filename: '백업 파일명',
+    userId: '사용자 ID',
+    roleId: '역할 ID',
+    token: '인증 토큰',
+};
+
 function ApiGuidePage() {
     const { contentTypes } = useGlobal();
+    const { makePopup, closePopup } = usePopup();
     const [activeCategory, setActiveCategory] = useState('public');
     const [activeSection, setActiveSection] = useState('public-api');
     const [selectedSlug, setSelectedSlug] = useState('');
     const [copiedId, setCopiedId] = useState(null);
+
+    const showQuickGuide = () => {
+        makePopup(
+            <AlertPopup
+                title="시작하기 가이드"
+                body={
+                    <div className="apiQuickGuideBody">
+                        <div className="apiQuickGuideSection">
+                            <strong>1. URL 파라미터 교체</strong>
+                            <p>
+                                <code>:id</code>, <code>:slug</code> 같은 URL 파라미터는 실제 값으로 교체하세요.
+                                <br />
+                                예: <code>/contents/:id</code> → <code>/contents/cmnf12abc...</code>
+                            </p>
+                        </div>
+
+                        <div className="apiQuickGuideSection">
+                            <strong>2. 인증 헤더</strong>
+                            <pre className="apiQuickGuideCode">
+{`# 관리자 API
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+
+# Public API (외부 사이트)
+Authorization: Bearer sk_live_xxxxxxxxxxxx`}
+                            </pre>
+                        </div>
+
+                        <div className="apiQuickGuideSection">
+                            <strong>3. JavaScript (fetch) 예시</strong>
+                            <pre className="apiQuickGuideCode">
+{`// GET 요청
+const res = await fetch('${API_BASE}/contents/CONTENT_ID', {
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+  },
+});
+const data = await res.json();
+
+// POST 요청 (요청 본문 포함)
+const res = await fetch('${API_BASE}/contents', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    contentTypeId: 'cmnf12abc...',
+    title: '제목',
+    slug: 'my-post',
+    data: {},
+  }),
+});`}
+                            </pre>
+                        </div>
+
+                        <div className="apiQuickGuideSection">
+                            <strong>4. 응답 형식</strong>
+                            <p>목록 조회는 페이지네이션 정보를 포함합니다:</p>
+                            <pre className="apiQuickGuideCode">
+{`{
+  "data": [...],
+  "meta": {
+    "total": 42,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 5
+  }
+}`}
+                            </pre>
+                        </div>
+                    </div>
+                }
+                buttonFunction={() => closePopup()}
+            />,
+        );
+    };
 
     const selectedType = contentTypes.find((ct) => ct.slug === selectedSlug);
     const allSections = buildApiSections(contentTypes, selectedType);
@@ -662,14 +760,42 @@ function ApiGuidePage() {
         if (firstSection) setActiveSection(firstSection.id);
     };
 
-    const copyToClipboard = (text, id) => {
-        navigator.clipboard.writeText(text);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 2000);
+    const copyToClipboard = async (text, id) => {
+        try {
+            // 모던 브라우저 (HTTPS/localhost)
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                // 폴백: textarea + execCommand
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000);
+        } catch (err) {
+            console.error('복사 실패:', err);
+            alert('복사에 실패했습니다. 직접 선택하여 복사해주세요.');
+        }
     };
 
     const CopyBtn = ({ text, id }) => (
-        <button className="apiCopyBtn" onClick={() => copyToClipboard(text, id)} title="복사">
+        <button
+            type="button"
+            className="apiCopyBtn"
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                copyToClipboard(text, id);
+            }}
+            title="복사"
+        >
             {copiedId === id ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
         </button>
     );
@@ -702,6 +828,14 @@ function ApiGuidePage() {
                         <Code className="size-5" />
                     </div>
                     <h2 className="text-2xl font-bold">API 가이드</h2>
+                    <button
+                        type="button"
+                        className="apiHelpBtn"
+                        onClick={showQuickGuide}
+                    >
+                        <HelpCircle className="size-4" />
+                        <span>시작하기 가이드</span>
+                    </button>
                     <a href={`${API_BASE}/api-docs`} target="_blank" rel="noopener noreferrer" className="apiSwaggerLink">
                         <ExternalLink className="size-4" /> Swagger 문서
                     </a>
@@ -802,6 +936,28 @@ function ApiGuidePage() {
                                 <span className="apiEndpointTitle">{ep.title}</span>
                             </div>
                             <p className="apiEndpointDesc">{ep.desc}</p>
+
+                            {/* URL 파라미터 자동 추출 */}
+                            {(() => {
+                                const urlParams = extractUrlParams(ep.path);
+                                if (urlParams.length === 0) return null;
+                                return (
+                                    <div className="apiParams">
+                                        <span className="apiParamsLabel">URL 파라미터</span>
+                                        <table className="apiParamsTable">
+                                            <tbody>
+                                                {urlParams.map((name) => (
+                                                    <tr key={name}>
+                                                        <td><code>:{name}</code></td>
+                                                        <td className="apiParamType">path</td>
+                                                        <td>{URL_PARAM_DESCRIPTIONS[name] || '해당 리소스의 식별자'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                );
+                            })()}
 
                             {ep.params && (
                                 <div className="apiParams">

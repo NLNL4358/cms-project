@@ -238,7 +238,6 @@
 
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
     padding: 1.5rem;
     gap: 0.5rem;
 }

@@ -22,6 +22,117 @@
     text-decoration: underline;
 }
 
+/* 시작하기 가이드 버튼 (헤더) */
+.apiHelpBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: oklch(from var(--primary) l c h / 0.1);
+    color: var(--primary);
+    border: 1px solid oklch(from var(--primary) l c h / 0.3);
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.apiHelpBtn span {
+    color: inherit;
+}
+
+.apiHelpBtn:hover,
+.apiHelpBtn:hover span,
+.apiHelpBtn:hover svg {
+    color: white;
+}
+
+.apiHelpBtn:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px oklch(from var(--primary) l c h / 0.25);
+}
+
+/* 시작하기 가이드 (팝업 내부) */
+.apiQuickGuideBody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 480px;
+    max-width: 600px;
+    text-align: left;
+}
+
+.apiQuickGuideSection {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.apiQuickGuideSection strong {
+    font-size: 13px;
+    color: var(--foreground);
+}
+
+.apiQuickGuideSection p {
+    font-size: 13px;
+    color: var(--muted-foreground);
+    line-height: 1.6;
+}
+
+.apiQuickGuideSection code {
+    padding: 1px 6px;
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.apiQuickGuideCode {
+    position: relative;
+    padding: 14px 16px 14px 16px;
+    background-color: oklch(0.18 0.02 264);
+    border: 1px solid oklch(0.28 0.02 264);
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.65;
+    margin: 0;
+    color: oklch(0.92 0.01 264);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.05), 0 2px 8px oklch(0 0 0 / 0.15);
+}
+
+/* macOS 터미널 스타일 점 3개 (장식) */
+.apiQuickGuideCode::before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff5f57;
+    box-shadow:
+        16px 0 0 #febc2e,
+        32px 0 0 #28c840;
+    margin-bottom: 12px;
+}
+
+/* 인라인 코드 (가이드 본문 안의 짧은 코드) */
+.apiQuickGuideSection p code {
+    padding: 2px 7px;
+    background-color: oklch(0.95 0.02 264);
+    color: oklch(0.4 0.18 264);
+    border: 1px solid oklch(0.88 0.02 264);
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-weight: 500;
+}
+
 /* 카테고리 탭 */
 .apiCategoryTabs {
     display: flex;
