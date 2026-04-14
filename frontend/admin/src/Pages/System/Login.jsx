@@ -51,7 +51,7 @@ function Login() {
         setServerError('');
         try {
             await login(data.email, data.password);
-            navigate(from, { replace: true });
+            navigate('/', { replace: true });
         } catch (error) {
             const message =
                 error.response?.data?.message ||
