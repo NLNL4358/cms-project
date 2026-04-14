@@ -107,8 +107,8 @@ function App() {
                 {/* 백업/복원 — 슈퍼관리자 전용 */}
                 <Route path="backups" element={<P permission="*"><BackupList /></P>} />
 
-                {/* 검색 — 항상 접근 가능 */}
-                <Route path="search" element={<SearchPage />} />
+                {/* 검색 — 콘텐츠 조회 권한 필요 */}
+                <Route path="search" element={<P permission="content:read"><SearchPage /></P>} />
 
                 {/* API 가이드 — 슈퍼관리자 전용 */}
                 <Route path="api-guide" element={<P permission="*"><ApiGuidePage /></P>} />
