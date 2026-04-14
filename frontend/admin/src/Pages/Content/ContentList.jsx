@@ -12,6 +12,7 @@ import { ko } from 'date-fns/locale';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
+import { useUser } from '@/Providers/UserContext.jsx';
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
 import { usePopup } from '@/Providers/PopupContext';
 
@@ -75,10 +76,14 @@ const LIMIT = 20;
 
 function ContentList() {
     const api = useAPI();
+    const { hasPermission } = useUser();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { makePopup, closePopup } = usePopup();
     const { contentTypeSlug } = useParams();
+    const canUpdate = hasPermission('content:update');
+    const canCreate = hasPermission('content:create');
+    const canDelete = hasPermission('content:delete');
     const { contentTypes } = useGlobal();
 
     // slug로 콘텐츠 타입 조회
@@ -198,7 +203,7 @@ function ContentList() {
                 </span>
             ),
         },
-        {
+        ...(canUpdate ? [{
             id: 'edit',
             header: '수정',
             cell: ({ row }) => (
@@ -215,8 +220,8 @@ function ContentList() {
                     <Pencil className="size-4" />
                 </Button>
             ),
-        },
-        {
+        }] : []),
+        ...(canDelete ? [{
             id: 'delete',
             header: '삭제',
             cell: ({ row }) => (
@@ -247,7 +252,7 @@ function ContentList() {
                     <Trash2 className="size-4 text-destructive" />
                 </Button>
             ),
-        },
+        }] : []),
     ];
 
     // 컬럼 너비
@@ -288,13 +293,15 @@ function ContentList() {
                             `${contentType.name} 콘텐츠를 관리합니다`}
                     </p>
                 </div>
-                <Button
-                    className="contentPlus"
-                    onClick={() => navigate(`/contents/${contentTypeSlug}/new`)}
-                >
-                    <Plus className="size-5" />
-                    콘텐츠 추가
-                </Button>
+                {canCreate && (
+                    <Button
+                        className="contentPlus"
+                        onClick={() => navigate(`/contents/${contentTypeSlug}/new`)}
+                    >
+                        <Plus className="size-5" />
+                        콘텐츠 추가
+                    </Button>
+                )}
             </div>
 
             {/* 검색 + 필터 */}
@@ -347,7 +354,7 @@ function ContentList() {
                     emptyMessage="등록된 콘텐츠가 없습니다. 새 콘텐츠를 생성해보세요."
                     onRowClick={(row) =>
                         navigate(
-                            `/contents/${contentTypeSlug}/${row.id}/edit`,
+                            `/contents/${contentTypeSlug}/${row.id}/${canUpdate ? 'edit' : 'view'}`,
                         )
                     }
                 />

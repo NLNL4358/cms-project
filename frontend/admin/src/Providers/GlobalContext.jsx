@@ -36,7 +36,8 @@ export function GlobalProvider({ children }) {
     if (!isMobile) setSidebarOpen(false);
   }, [isMobile]);
 
-  const canReadContentTypes = hasPermission('content-type:read');
+  // 콘텐츠 타입 목록은 콘텐츠 조회에도 필요 (사이드바 동적 메뉴)
+  const canReadContentTypes = hasPermission('content-type:read') || hasPermission('content:read');
   const canReadSettings = hasPermission('settings:read');
 
   const { data: contentTypes = [] } = useQuery({

@@ -46,10 +46,10 @@ export class ContentTypeController {
   }
 
   @Get()
-  @Permissions('content-type:read', 'content-type:*', '*')
+  @Permissions('content-type:read', 'content-type:*', 'content:read', 'content:*', '*')
   @ApiOperation({
     summary: '콘텐츠 타입 목록 조회',
-    description: '모든 콘텐츠 타입을 조회합니다',
+    description: '모든 콘텐츠 타입을 조회합니다 (콘텐츠 조회 권한으로도 접근 가능)',
   })
   @ApiResponse({ status: 200, description: '조회 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
@@ -59,7 +59,7 @@ export class ContentTypeController {
   }
 
   @Get(':id')
-  @Permissions('content-type:read', 'content-type:*', '*')
+  @Permissions('content-type:read', 'content-type:*', 'content:read', 'content:*', '*')
   @ApiOperation({
     summary: '콘텐츠 타입 단일 조회',
     description: 'ID 또는 slug로 특정 콘텐츠 타입을 조회합니다',

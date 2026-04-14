@@ -51,7 +51,7 @@ const STATUS_MAP = {
     ARCHIVED: { label: '보관됨', variant: 'secondary' },
 };
 
-function ContentForm() {
+function ContentForm({ readOnly = false }) {
     const api = useAPI();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -429,9 +429,11 @@ function ContentForm() {
                         <ArrowLeft className="size-4" />
                     </Button>
                     <h2 className="text-2xl font-bold">
-                        {isEdit
-                            ? `${contentType.name} 수정`
-                            : `새 ${contentType.name}`}
+                        {readOnly
+                            ? `${contentType.name} 상세`
+                            : isEdit
+                              ? `${contentType.name} 수정`
+                              : `새 ${contentType.name}`}
                     </h2>
                     {/* 수정 모드: 현재 상태 배지 + 버전 */}
                     {isEdit && existingContent && (
@@ -447,9 +449,11 @@ function ContentForm() {
                 </div>
                 <div>
                     <p className="pageDescription">
-                        {isEdit
-                            ? `${contentType.name} 콘텐츠를 수정합니다`
-                            : `새 ${contentType.name} 콘텐츠를 생성합니다`}
+                        {readOnly
+                            ? `${contentType.name} 콘텐츠 상세 보기`
+                            : isEdit
+                              ? `${contentType.name} 콘텐츠를 수정합니다`
+                              : `새 ${contentType.name} 콘텐츠를 생성합니다`}
                     </p>
                 </div>
             </div>
@@ -457,6 +461,7 @@ function ContentForm() {
             <form
                 onSubmit={(e) => e.preventDefault()}
                 className="flex flex-col gap-4"
+                style={readOnly ? { pointerEvents: 'none', opacity: 0.85 } : undefined}
             >
                 {/* 기본 정보 */}
                 <div className="sectionBox">
@@ -543,8 +548,8 @@ function ContentForm() {
                     </div>
                 )}
 
-                {/* 버전 히스토리 (수정 모드에서만) */}
-                {isEdit && (
+                {/* 버전 히스토리 (수정 모드에서만, readOnly에서는 숨김) */}
+                {isEdit && !readOnly && (
                     <div className="sectionBox">
                         <div
                             className="sectionTitle cursor-pointer"
@@ -625,17 +630,19 @@ function ContentForm() {
                     </div>
                 )}
 
-                {/* 하단 버튼 */}
-                <div className="flex items-center justify-end gap-3">
+                {/* 하단 버튼 — readOnly면 목록 돌아가기만 */}
+                <div className="flex items-center justify-end gap-3" style={readOnly ? { pointerEvents: 'auto' } : undefined}>
                     <Button
                         type="button"
                         variant="outline"
                         onClick={() => navigate(`/contents/${contentTypeSlug}`)}
                     >
-                        취소
+                        {readOnly ? '목록으로' : '취소'}
                     </Button>
 
                     {/* 발행된 콘텐츠: 미발행 전환 버튼 */}
+                    {!readOnly && (
+                    <>
                     {isEdit && isPublished && (
                         <Button
                             type="button"
@@ -701,6 +708,8 @@ function ContentForm() {
                                 ? '발행 중...'
                                 : '발행'}
                         </Button>
+                    )}
+                    </>
                     )}
                 </div>
             </form>

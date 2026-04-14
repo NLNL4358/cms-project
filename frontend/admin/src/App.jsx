@@ -71,6 +71,7 @@ function App() {
                     <Route index element={<ContentList />} />
                     <Route path="new" element={<P permission="content:create"><ContentForm /></P>} />
                     <Route path=":id/edit" element={<P permission="content:update"><ContentForm /></P>} />
+                    <Route path=":id/view" element={<P permission="content:read"><ContentForm readOnly /></P>} />
                 </Route>
 
                 {/* 파일 관리 */}
