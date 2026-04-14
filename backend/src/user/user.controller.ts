@@ -97,8 +97,12 @@ export class UserController {
   @ApiResponse({ status: 200, description: '수정 성공' })
   @ApiResponse({ status: 404, description: '사용자를 찾을 수 없음' })
   @ApiResponse({ status: 409, description: '이미 사용 중인 이메일' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser('id') currentUserId: string,
+  ) {
+    return this.userService.update(id, updateUserDto, currentUserId);
   }
 
   @Delete(':id')

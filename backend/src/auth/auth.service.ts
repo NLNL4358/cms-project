@@ -83,10 +83,11 @@ export class AuthService {
       },
     });
 
-    const { password: _, ...userWithoutPassword } = user;
+    // permissions 포함된 사용자 정보 반환
+    const userWithPermissions = await this.validateUser(user.id);
 
     return {
-      user: userWithoutPassword,
+      user: userWithPermissions,
       ...tokens,
     };
   }
@@ -168,10 +169,11 @@ export class AuthService {
         },
       });
 
-      const { password: _, ...userWithoutPassword } = user;
+      // permissions 포함된 사용자 정보 반환
+      const userWithPermissions = await this.validateUser(user.id);
 
       return {
-        user: userWithoutPassword,
+        user: userWithPermissions,
         ...tokens,
       };
     } catch (error) {
@@ -226,12 +228,32 @@ export class AuthService {
         email: true,
         name: true,
         type: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
+        roles: {
+          where: { status: 'ACTIVE' },
+          select: {
+            role: {
+              select: { permissions: true },
+            },
+          },
+        },
       },
     });
 
-    return user;
+    if (!user) return null;
+
+    // 역할들의 권한을 하나의 배열로 병합 (중복 제거)
+    const permissions = [
+      ...new Set(
+        user.roles.flatMap((ur) => ur.role.permissions as string[]),
+      ),
+    ];
+
+    // roles 원본 제거, permissions 배열 추가
+    const { roles, ...userWithoutRoles } = user;
+    return { ...userWithoutRoles, permissions };
   }
 
   /**

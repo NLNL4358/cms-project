@@ -8,13 +8,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useAPI } from "./APIContext.jsx";
 import { useUser } from "./UserContext.jsx";
 
+
 const MOBILE_BREAKPOINT = 768;
 
 const GlobalContext = createContext();
 
 export function GlobalProvider({ children }) {
   const api = useAPI();
-  const { user, accessToken } = useUser();
+  const { user, accessToken, hasPermission } = useUser();
 
   /** 반응형 — isMobile */
   const [isMobile, setIsMobile] = useState(
@@ -35,17 +36,20 @@ export function GlobalProvider({ children }) {
     if (!isMobile) setSidebarOpen(false);
   }, [isMobile]);
 
+  const canReadContentTypes = hasPermission('content-type:read');
+  const canReadSettings = hasPermission('settings:read');
+
   const { data: contentTypes = [] } = useQuery({
     queryKey: ["content-types"],
     queryFn: () => api.get("/content-types").then((r) => r.data),
-    enabled: !!user && !!accessToken,
+    enabled: !!user && !!accessToken && canReadContentTypes,
   });
 
   /** 시스템 설정 */
   const { data: settings = {} } = useQuery({
     queryKey: ["settings"],
     queryFn: () => api.get("/settings").then((r) => r.data),
-    enabled: !!user && !!accessToken,
+    enabled: !!user && !!accessToken && canReadSettings,
   });
 
   /** 파비콘 동적 적용 */

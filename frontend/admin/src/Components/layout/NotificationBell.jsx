@@ -44,12 +44,12 @@ function NotificationBell() {
         };
     }, [user, accessToken, queryClient]);
 
-    // 안 읽은 수
+    // 안 읽은 수 (권한 없으면 호출 안 함)
     const { data: unreadCount = 0 } = useQuery({
         queryKey: ['notifications-unread'],
         queryFn: () =>
             api.get('/notifications/unread-count').then((r) => r.data),
-        enabled: !!user,
+        enabled: !!user && !!accessToken,
     });
 
     // 알림 목록 (드롭다운 열렸을 때만)

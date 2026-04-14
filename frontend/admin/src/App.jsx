@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthGuard } from '@/Components/features/AuthGuard.jsx';
+import { PermissionGuard } from '@/Components/features/PermissionGuard.jsx';
 import AdminLayout from '@/Components/layout/AdminLayout.jsx';
 
 /* Pages */
@@ -35,6 +36,11 @@ import '@/CSS/reset.css';
 import '@/CSS/index.css';
 import '@/CSS/component.css';
 
+/** 권한 래핑 헬퍼 */
+function P({ permission, children }) {
+    return <PermissionGuard permission={permission}>{children}</PermissionGuard>;
+}
+
 function App() {
     return (
         <Routes>
@@ -50,47 +56,65 @@ function App() {
                     </AuthGuard>
                 }
             >
+                {/* 대시보드 — 항상 접근 가능 */}
                 <Route index element={<Dashboard />} />
 
-                <Route path="content-types" element={<ContentTypeRouter />}>
+                {/* 콘텐츠 타입 */}
+                <Route path="content-types" element={<P permission="content-type:read"><ContentTypeRouter /></P>}>
                     <Route index element={<ContentTypeList />} />
-                    <Route path="new" element={<ContentTypeForm />} />
-                    <Route path=":id/edit" element={<ContentTypeForm />} />
+                    <Route path="new" element={<P permission="content-type:create"><ContentTypeForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content-type:update"><ContentTypeForm /></P>} />
                 </Route>
 
-                <Route
-                    path="contents/:contentTypeSlug"
-                    element={<ContentRouter />}
-                >
+                {/* 콘텐츠 */}
+                <Route path="contents/:contentTypeSlug" element={<P permission="content:read"><ContentRouter /></P>}>
                     <Route index element={<ContentList />} />
-                    <Route path="new" element={<ContentForm />} />
-                    <Route path=":id/edit" element={<ContentForm />} />
+                    <Route path="new" element={<P permission="content:create"><ContentForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content:update"><ContentForm /></P>} />
                 </Route>
 
-                <Route path="media" element={<MediaRouter />}>
+                {/* 파일 관리 */}
+                <Route path="media" element={<P permission="media:read"><MediaRouter /></P>}>
                     <Route index element={<MediaList />} />
                 </Route>
 
-                <Route path="roles" element={<RoleRouter />}>
+                {/* 역할/권한 */}
+                <Route path="roles" element={<P permission="role:read"><RoleRouter /></P>}>
                     <Route index element={<RoleList />} />
-                    <Route path="new" element={<RoleForm />} />
-                    <Route path=":id/edit" element={<RoleForm />} />
+                    <Route path="new" element={<P permission="role:create"><RoleForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="role:update"><RoleForm /></P>} />
                 </Route>
 
-                <Route path="users" element={<UserRouter />}>
+                {/* 사용자 관리 */}
+                <Route path="users" element={<P permission="user:read"><UserRouter /></P>}>
                     <Route index element={<UserList />} />
-                    <Route path="new" element={<UserForm />} />
-                    <Route path=":id/edit" element={<UserForm />} />
+                    <Route path="new" element={<P permission="user:create"><UserForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="user:update"><UserForm /></P>} />
                 </Route>
 
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="audit-logs" element={<AuditLogList />} />
-                <Route path="webhooks" element={<WebhookList />} />
-                <Route path="import-export" element={<ImportExportPage />} />
-                <Route path="backups" element={<BackupList />} />
+                {/* 시스템 설정 */}
+                <Route path="settings" element={<P permission="settings:read"><SettingsPage /></P>} />
+
+                {/* 감사 로그 */}
+                <Route path="audit-logs" element={<P permission="audit-log:read"><AuditLogList /></P>} />
+
+                {/* Webhook */}
+                <Route path="webhooks" element={<P permission="webhook:read"><WebhookList /></P>} />
+
+                {/* Import/Export — 콘텐츠 생성 권한 필요 */}
+                <Route path="import-export" element={<P permission="content:create"><ImportExportPage /></P>} />
+
+                {/* 백업/복원 — 슈퍼관리자 전용 */}
+                <Route path="backups" element={<P permission="*"><BackupList /></P>} />
+
+                {/* 검색 — 항상 접근 가능 */}
                 <Route path="search" element={<SearchPage />} />
-                <Route path="api-guide" element={<ApiGuidePage />} />
-                <Route path="api-keys" element={<ApiKeyList />} />
+
+                {/* API 가이드 — 슈퍼관리자 전용 */}
+                <Route path="api-guide" element={<P permission="*"><ApiGuidePage /></P>} />
+
+                {/* API 키 관리 — 슈퍼관리자 전용 */}
+                <Route path="api-keys" element={<P permission="*"><ApiKeyList /></P>} />
             </Route>
 
             {/* 기본 리다이렉트 */}

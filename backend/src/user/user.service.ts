@@ -115,10 +115,17 @@ export class UserService {
     };
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, currentUserId?: string) {
     await this.findOne(id);
 
     const { password, roleIds, ...rest } = updateUserDto;
+
+    // 자기 자신의 역할 변경 방지
+    if (currentUserId === id && roleIds !== undefined) {
+      throw new BadRequestException(
+        '자신의 역할은 직접 변경할 수 없습니다. 다른 관리자에게 요청하세요.',
+      );
+    }
 
     // 이메일 중복 확인
     if (rest.email) {

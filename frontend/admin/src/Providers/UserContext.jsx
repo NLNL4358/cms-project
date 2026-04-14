@@ -79,9 +79,32 @@ export function UserProvider({ children }) {
         tokenRef.current = { accessToken, refresh, logout };
     }, [accessToken, refresh, logout]);
 
+    /** 권한 목록 (user.permissions) */
+    const permissions = user?.permissions || [];
+
+    /**
+     * 권한 확인 유틸
+     * CUD 권한이 있으면 read 자동 포함
+     */
+    const hasPermission = (required) => {
+        if (!required) return true;
+        if (permissions.includes('*')) return true;
+        if (permissions.includes(required)) return true;
+
+        const [resource] = required.split(':');
+        if (permissions.includes(`${resource}:*`)) return true;
+
+        // CUD 보유 시 read 자동 포함
+        if (required.endsWith(':read')) {
+            return permissions.some((p) => p.startsWith(`${resource}:`));
+        }
+
+        return false;
+    };
+
     return (
         <UserContext.Provider
-            value={{ user, accessToken, login, logout, refresh }}
+            value={{ user, accessToken, permissions, hasPermission, login, logout, refresh }}
         >
             {children}
         </UserContext.Provider>

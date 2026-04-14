@@ -38,6 +38,9 @@ tokenRef.current = { accessToken: null, refresh: null, logout: null };
 export const popupRef = createRef();
 popupRef.current = { makeProgressPopup: null, closeProgressPopup: null };
 
+// 403 토스트 쿨다운 (3초 내 중복 방지)
+let lastForbiddenToast = 0;
+
 // 모듈 레벨에서 인스턴스를 한 번만 생성
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
@@ -130,14 +133,19 @@ instance.interceptors.response.use(
       }
     }
 
-    // 에러 유형별 toast 알림
+    // 에러 유형별 toast 알림 (403은 쿨다운으로 중복 방지)
     if (!error.response) {
-      // 네트워크 에러 — 서버 자체에 도달 불가
       toast.error("서버에 연결할 수 없습니다.", {
         description: "백엔드 서버가 실행 중인지 확인해주세요.",
       });
     } else if (error.response.status === 403) {
-      toast.error("접근 권한이 없습니다.");
+      const now = Date.now();
+      if (now - lastForbiddenToast > 3000) {
+        lastForbiddenToast = now;
+        toast.error("접근 권한이 없습니다.", {
+          description: "현재 역할에 이 기능의 권한이 없습니다. 관리자에게 문의하세요.",
+        });
+      }
     } else if (error.response.status === 429) {
       toast.error("요청이 너무 많습니다.", {
         description: "잠시 후 다시 시도해주세요.",

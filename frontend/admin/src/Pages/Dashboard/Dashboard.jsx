@@ -19,6 +19,7 @@ import {
 
 import { useState } from 'react';
 import { useAPI } from '@/Providers/APIContext.jsx';
+import { useUser } from '@/Providers/UserContext.jsx';
 import { Badge } from '@/Components/ui/badge.jsx';
 import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
@@ -37,12 +38,17 @@ const STATUS_MAP = {
 
 function Dashboard() {
     const api = useAPI();
+    const { hasPermission } = useUser();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
+
+    // 콘텐츠 관련 권한이 하나라도 있어야 통계 표시
+    const canViewStats = hasPermission('content:read');
 
     const { data: stats, isLoading } = useQuery({
         queryKey: ['dashboard', 'stats'],
         queryFn: () => api.get('/dashboard/stats').then((r) => r.data),
+        enabled: canViewStats,
     });
 
     if (isLoading) {

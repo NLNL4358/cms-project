@@ -44,24 +44,28 @@ const menuStructure = [
         title: '대시보드',
         path: '/',
         icon: LayoutDashboard,
+        // 대시보드는 항상 표시
     },
     {
         type: 'item',
         title: '콘텐츠 타입',
         path: '/content-types',
         icon: AppWindow,
+        permission: 'content-type:read',
     },
     {
         type: 'item',
         title: '파일 관리',
         path: '/media',
         icon: Image,
+        permission: 'media:read',
     },
     {
         type: 'group',
         id: 'content',
         title: '콘텐츠',
         icon: FolderKanban,
+        permission: 'content:read',
         children: [
             { type: 'dynamic-contents' },
         ],
@@ -72,8 +76,8 @@ const menuStructure = [
         title: '사용자 / 권한',
         icon: UserCog,
         children: [
-            { title: '사용자 관리', path: '/users', icon: Users },
-            { title: '역할/권한', path: '/roles', icon: Shield },
+            { title: '사용자 관리', path: '/users', icon: Users, permission: 'user:read' },
+            { title: '역할/권한', path: '/roles', icon: Shield, permission: 'role:read' },
         ],
     },
     {
@@ -82,9 +86,9 @@ const menuStructure = [
         title: '외부 연동',
         icon: Plug,
         children: [
-            { title: 'API 가이드', path: '/api-guide', icon: Code },
-            { title: 'API 키 관리', path: '/api-keys', icon: Key },
-            { title: 'Webhook', path: '/webhooks', icon: Webhook },
+            { title: 'API 가이드', path: '/api-guide', icon: Code, permission: '*' },
+            { title: 'API 키 관리', path: '/api-keys', icon: Key, permission: '*' },
+            { title: 'Webhook', path: '/webhooks', icon: Webhook, permission: 'webhook:read' },
         ],
     },
     {
@@ -93,9 +97,9 @@ const menuStructure = [
         title: '운영 / 데이터',
         icon: Wrench,
         children: [
-            { title: '감사 로그', path: '/audit-logs', icon: ScrollText },
-            { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine },
-            { title: '백업/복원', path: '/backups', icon: HardDrive },
+            { title: '감사 로그', path: '/audit-logs', icon: ScrollText, permission: 'audit-log:read' },
+            { title: 'Import/Export', path: '/import-export', icon: ArrowDownToLine, permission: 'content:create' },
+            { title: '백업/복원', path: '/backups', icon: HardDrive, permission: '*' },
         ],
     },
     {
@@ -103,11 +107,12 @@ const menuStructure = [
         title: '시스템 설정',
         path: '/settings',
         icon: Settings,
+        permission: 'settings:read',
     },
 ];
 
 function AppSidebar() {
-    const { user, logout } = useUser();
+    const { user, logout, hasPermission } = useUser();
     const { contentTypes, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
@@ -216,18 +221,30 @@ function AppSidebar() {
             <nav className="sidebarNav">
                 <ul className="menuList">
                     {menuStructure.map((entry, idx) => {
-                        // 단일 메뉴
+                        // 단일 메뉴 — 권한 확인
                         if (entry.type === 'item') {
+                            if (entry.permission && !hasPermission(entry.permission)) return null;
                             return renderItem(entry);
                         }
 
+                        // 그룹 전체에 permission이 있으면 확인
+                        if (entry.permission && !hasPermission(entry.permission)) return null;
+
+                        // 하위 메뉴 중 권한 있는 것만 필터링
+                        const visibleChildren = entry.children.filter((child) => {
+                            if (child.type === 'dynamic-contents') return true;
+                            if (child.permission && !hasPermission(child.permission)) return false;
+                            return true;
+                        });
+
                         // 동적 콘텐츠만 있는 그룹은 콘텐츠 타입이 없으면 숨김
-                        const hasOnlyDynamic = entry.children.every(
+                        const hasOnlyDynamic = visibleChildren.every(
                             (c) => c.type === 'dynamic-contents',
                         );
-                        if (hasOnlyDynamic && contentTypes.length === 0) {
-                            return null;
-                        }
+                        if (hasOnlyDynamic && contentTypes.length === 0) return null;
+
+                        // 표시할 하위 메뉴가 없으면 그룹 자체 숨김
+                        if (visibleChildren.length === 0) return null;
 
                         // 그룹 메뉴
                         const groupActive = isGroupActive(entry);
@@ -248,7 +265,7 @@ function AppSidebar() {
                                 </button>
                                 <div className={`menuGroupCollapse ${isOpen ? 'open' : ''}`}>
                                     <ul className="menuChildList">
-                                        {entry.children.map((child, ci) => {
+                                        {visibleChildren.map((child, ci) => {
                                             if (child.type === 'dynamic-contents') {
                                                 return (
                                                     <span key={`dyn-${ci}`}>

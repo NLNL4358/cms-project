@@ -27,13 +27,20 @@ async function main() {
     {
       name: '관리자',
       slug: 'admin',
-      description: '콘텐츠, 미디어, 사용자 관리 권한 (역할 관리 제외)',
+      description: '콘텐츠, 미디어, 사용자 관리 + 운영 기능 (백업/API키 제외)',
       permissions: [
         'content-type:*',
         'content:*',
         'media:*',
         'user:read',
         'role:read',
+        'webhook:read',
+        'webhook:create',
+        'webhook:update',
+        'webhook:delete',
+        'audit-log:read',
+        'settings:read',
+        'settings:update',
       ],
     },
     {

@@ -6,6 +6,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useGlobal } from '@/Providers/GlobalContext.jsx';
+import { useUser } from '@/Providers/UserContext.jsx';
 import { ChevronRight, Menu } from 'lucide-react';
 import SearchBar from '@/Components/layout/SearchBar.jsx';
 import NotificationBell from '@/Components/layout/NotificationBell.jsx';
@@ -20,6 +21,7 @@ const pathLabels = {
 
 function AppHeader() {
     const { contentTypes, isMobile, setSidebarOpen } = useGlobal();
+    const { hasPermission } = useUser();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -93,7 +95,7 @@ function AppHeader() {
 
             {/* 검색 + 알림 */}
             <div className="headerActions">
-                <SearchBar />
+                {hasPermission('content:read') && <SearchBar />}
                 <NotificationBell />
             </div>
         </header>

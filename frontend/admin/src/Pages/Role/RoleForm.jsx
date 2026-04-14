@@ -71,6 +71,32 @@ const PERMISSION_GROUPS = [
             { value: 'role:create', label: '생성' },
             { value: 'role:update', label: '수정' },
             { value: 'role:delete', label: '삭제' },
+            { value: 'role:assign', label: '할당' },
+        ],
+    },
+    {
+        resource: 'webhook',
+        label: 'Webhook',
+        actions: [
+            { value: 'webhook:read', label: '조회' },
+            { value: 'webhook:create', label: '생성' },
+            { value: 'webhook:update', label: '수정' },
+            { value: 'webhook:delete', label: '삭제' },
+        ],
+    },
+    {
+        resource: 'audit-log',
+        label: '감사 로그',
+        actions: [
+            { value: 'audit-log:read', label: '조회' },
+        ],
+    },
+    {
+        resource: 'settings',
+        label: '시스템 설정',
+        actions: [
+            { value: 'settings:read', label: '조회' },
+            { value: 'settings:update', label: '수정' },
         ],
     },
 ];

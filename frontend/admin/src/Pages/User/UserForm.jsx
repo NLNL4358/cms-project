@@ -13,6 +13,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
+import { usePopup } from '@/Providers/PopupContext';
+import AlertPopup from '@/Components/common/AlertPopup.jsx';
 import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Label } from '@/Components/ui/label.jsx';
@@ -46,6 +48,7 @@ const editSchema = z.object({
 
 function UserForm() {
     const api = useAPI();
+    const { makePopup, closePopup } = usePopup();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { id } = useParams();
@@ -126,12 +129,27 @@ function UserForm() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
-            navigate('/users');
+            makePopup(
+                <AlertPopup
+                    title={isEdit ? '수정 완료' : '생성 완료'}
+                    body={isEdit ? '사용자 정보가 수정되었습니다.' : '사용자가 생성되었습니다.'}
+                    buttonFunction={() => {
+                        closePopup();
+                        navigate('/users');
+                    }}
+                />,
+            );
         },
         onError: (error) => {
             const message =
                 error.response?.data?.message || '저장에 실패했습니다';
-            alert(message);
+            makePopup(
+                <AlertPopup
+                    title="저장 실패"
+                    body={message}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
         },
     });
 
