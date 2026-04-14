@@ -4,13 +4,16 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { FileText } from 'lucide-react';
+import { useUser } from '@/Providers/UserContext.jsx';
 
 function SearchResultItem({ item }) {
     const navigate = useNavigate();
+    const { hasPermission } = useUser();
+    const canUpdate = hasPermission('content:update');
 
     const handleClick = () => {
         if (item.contentTypeSlug) {
-            navigate(`/contents/${item.contentTypeSlug}/${item.id}/edit`);
+            navigate(`/contents/${item.contentTypeSlug}/${item.id}/${canUpdate ? 'edit' : 'view'}`);
         }
     };
 

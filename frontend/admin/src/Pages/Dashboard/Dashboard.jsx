@@ -70,27 +70,27 @@ function Dashboard() {
             value: stats.contents.total,
             icon: FileText,
             desc: `발행 ${stats.contents.byStatus.PUBLISHED || 0}건`,
-            onClick: () => navigate('/content-types'),
         },
-        {
+        hasPermission('content-type:read') && {
             title: '콘텐츠 타입',
             value: stats.contentTypes,
             icon: Layers,
             onClick: () => navigate('/content-types'),
         },
-        {
+        hasPermission('media:read') && {
             title: '파일',
             value: stats.media.count,
             icon: Image,
             desc: formatFileSize(stats.media.totalSize),
             onClick: () => navigate('/media'),
         },
-        {
+        hasPermission('user:read') && {
             title: '사용자',
             value: stats.users,
             icon: Users,
+            onClick: () => navigate('/users'),
         },
-    ] : [];
+    ].filter(Boolean) : [];
 
     return (
         <div className="dashboardPage">
