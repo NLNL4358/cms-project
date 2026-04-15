@@ -78,13 +78,18 @@ project.md
 
 - 콘텐츠 타입 정의, 동적 필드 (17종), 드래그앤드롭 순서 변경
 - 역할(Role) 기반 권한 시스템, 사용자 역할 요청/승인
-- 버전 관리, 예약 발행, 콘텐츠 보관(Archive)
-- REST API + Swagger + API 가이드 페이지 (83개 엔드포인트)
-- 알림 센터 (WebSocket 실시간, 역할 기반 필터링)
+- 권한 기반 메뉴/접근/버튼 제어 (hasPermission + PermissionGuard + 역할별 CUD 숨김)
+- 콘텐츠 상세 보기 (readOnly), 버전 관리, 예약 발행, 콘텐츠 보관(Archive)
+- REST API + Swagger + API 가이드 페이지 (83+ 엔드포인트, 시작하기 팝업 포함)
+- Public API + API 키 인증 (외부 프론트엔드 연동, permission 검증)
+- 회원 인증 (가입/로그인/이메일 인증/비밀번호 재설정)
+- 알림 (WebSocket 실시간, 역할 기반 필터링, 헤더 벨 아이콘)
 - 이미지 최적화 (Sharp 썸네일/WebP)
-- 감사 로그, Webhook (Slack/Discord 호환)
-- 백업/복원 (DB + 파일 ZIP), Import/Export (CSV/JSON)
-- MeiliSearch 통합 검색 (DB 폴백), 시스템 설정, 대시보드
+- 감사 로그, Webhook (Slack/Discord 호환, HMAC 서명)
+- 백업/복원 (DB + 파일 ZIP, 업로드 복원, diskStorage), Import/Export (CSV/JSON, 덮어쓰기)
+- MeiliSearch 통합 검색 (DB 폴백), 시스템 설정 (SMTP 이메일 DB 저장), 대시보드
+- 이메일 인프라 (Nodemailer, DB SMTP 설정, 콘솔 폴백)
+- 사이드바 2뎁스 그룹 메뉴 + 아코디언 애니메이션 (grid 0fr→1fr)
 - 페이지 빌더 `[Business]`, 다국어 `[Business]`, SEO `[Business]`
 
 ### 5. AI 작업 시 참고사항
