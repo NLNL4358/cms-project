@@ -172,7 +172,7 @@ export class ContentService {
             select: { id: true, name: true, email: true },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -199,7 +199,29 @@ export class ContentService {
     return value;
   }
 
-  async findOne(id: string) {
+  // 조회수 중복 방지 (IP + 콘텐츠 ID, 1시간 캐시)
+  private viewCache = new Map<string, number>();
+
+  private shouldIncrementView(contentId: string, ip?: string): boolean {
+    const key = `${contentId}:${ip || 'unknown'}`;
+    const lastViewed = this.viewCache.get(key);
+    const now = Date.now();
+
+    if (lastViewed && now - lastViewed < 3600000) return false; // 1시간 내 재조회
+
+    this.viewCache.set(key, now);
+
+    // 캐시 정리 (10000건 초과 시 오래된 것 제거)
+    if (this.viewCache.size > 10000) {
+      for (const [k, v] of this.viewCache) {
+        if (now - v > 3600000) this.viewCache.delete(k);
+      }
+    }
+
+    return true;
+  }
+
+  async findOne(id: string, options?: { incrementView?: boolean; ip?: string }) {
     const content = await this.prisma.content.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -210,6 +232,9 @@ export class ContentService {
         updatedBy: {
           select: { id: true, name: true, email: true },
         },
+        adminReplyBy: {
+          select: { id: true, name: true, email: true },
+        },
       },
     });
 
@@ -217,7 +242,42 @@ export class ContentService {
       throw new NotFoundException('콘텐츠를 찾을 수 없습니다');
     }
 
-    return content;
+    // 조회수 증가 (IP 기반 1시간 중복 방지)
+    if (options?.incrementView && this.shouldIncrementView(id, options.ip)) {
+      await this.prisma.content.update({
+        where: { id },
+        data: { viewCount: { increment: 1 } },
+      });
+      content.viewCount += 1;
+    }
+
+    // 이전글/다음글
+    const [prevContent, nextContent] = await Promise.all([
+      this.prisma.content.findFirst({
+        where: {
+          contentTypeId: content.contentTypeId,
+          deletedAt: null,
+          createdAt: { lt: content.createdAt },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, title: true },
+      }),
+      this.prisma.content.findFirst({
+        where: {
+          contentTypeId: content.contentTypeId,
+          deletedAt: null,
+          createdAt: { gt: content.createdAt },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, title: true },
+      }),
+    ]);
+
+    return {
+      ...content,
+      prevContent,
+      nextContent,
+    };
   }
 
   async findBySlug(contentTypeId: string, slug: string) {
@@ -508,5 +568,66 @@ export class ContentService {
     });
 
     return restored;
+  }
+
+  // ─── 게시판 확장 기능 ───
+
+  /** 관리자 답변 */
+  async adminReply(id: string, reply: string, userId: string, status?: string) {
+    await this.findOne(id);
+
+    const validStatuses = ['RECEIVED', 'PROCESSING', 'COMPLETED', 'REJECTED'];
+    const inquiryStatus = status && validStatuses.includes(status) ? status : 'COMPLETED';
+
+    const updated = await this.prisma.content.update({
+      where: { id },
+      data: {
+        adminReply: reply,
+        adminReplyAt: new Date(),
+        adminReplyById: userId,
+        inquiryStatus,
+      },
+      include: {
+        contentType: true,
+        createdBy: { select: { id: true, name: true, email: true } },
+        adminReplyBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    return updated;
+  }
+
+  /** 상단 고정 토글 */
+  async togglePin(id: string) {
+    const content = await this.findOne(id);
+    return this.prisma.content.update({
+      where: { id },
+      data: { isPinned: !content.isPinned },
+    });
+  }
+
+  /** 비밀글 토글 */
+  async togglePrivate(id: string) {
+    const content = await this.findOne(id);
+    return this.prisma.content.update({
+      where: { id },
+      data: { isPrivate: !content.isPrivate },
+    });
+  }
+
+  /** 처리 상태 변경 */
+  async updateInquiryStatus(id: string, status: string) {
+    const validStatuses = ['RECEIVED', 'PROCESSING', 'COMPLETED', 'REJECTED'];
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException(
+        `유효하지 않은 상태입니다. 가능한 값: ${validStatuses.join(', ')}`,
+      );
+    }
+
+    await this.findOne(id);
+    return this.prisma.content.update({
+      where: { id },
+      data: { inquiryStatus: status },
+    });
   }
 }

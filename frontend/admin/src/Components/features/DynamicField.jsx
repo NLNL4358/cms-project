@@ -215,14 +215,44 @@ function renderField(field, fieldDef, popup) {
                 />
             );
 
-        case 'multiselect':
+        case 'multiselect': {
+            const selectedValues = Array.isArray(field.value)
+                ? field.value
+                : typeof field.value === 'string' && field.value
+                  ? field.value.split(',').map((s) => s.trim())
+                  : [];
+            const msOptions = Array.isArray(options) ? options : [];
+
+            if (msOptions.length === 0) {
+                return (
+                    <p className="text-sm text-muted-foreground">
+                        콘텐츠 타입에서 선택 옵션을 정의해주세요
+                    </p>
+                );
+            }
+
+            const toggleOption = (opt) => {
+                const next = selectedValues.includes(opt)
+                    ? selectedValues.filter((v) => v !== opt)
+                    : [...selectedValues, opt];
+                field.onChange(next);
+            };
+
             return (
-                <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    placeholder="쉼표로 구분하여 입력 (예: 값1, 값2, 값3)"
-                />
+                <div className="flex flex-wrap gap-2">
+                    {msOptions.map((opt) => (
+                        <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={selectedValues.includes(opt)}
+                                onChange={() => toggleOption(opt)}
+                            />
+                            <span className="text-sm">{opt}</span>
+                        </label>
+                    ))}
+                </div>
             );
+        }
 
         case 'json':
             return (
@@ -304,6 +334,62 @@ function renderField(field, fieldDef, popup) {
                         >
                             <X className="size-3.5" />
                         </Button>
+                    </div>
+                </div>
+            );
+        }
+
+        case 'images':
+        case 'files': {
+            const mode = type === 'images' ? 'image' : 'file';
+            const currentList = Array.isArray(field.value) ? field.value : [];
+
+            const addItem = () => {
+                popup.makePopup(
+                    <MediaPickerPopup
+                        mode={mode}
+                        onSelect={(media) => {
+                            field.onChange([...currentList, media.url]);
+                            popup.closePopup();
+                        }}
+                        onClose={() => popup.closePopup()}
+                    />,
+                );
+            };
+
+            const removeItem = (index) => {
+                field.onChange(currentList.filter((_, i) => i !== index));
+            };
+
+            return (
+                <div className="dynamicFieldMultiMedia">
+                    {currentList.map((url, i) => {
+                        const isImg = type === 'images' || url.match(/\.(jpe?g|png|gif|webp|svg)$/i);
+                        return (
+                            <div key={`${url}-${i}`} className="dynamicFieldMediaPreview">
+                                {isImg ? (
+                                    <img src={getMediaUrl(url)} alt="" className="dynamicFieldMediaThumb" />
+                                ) : (
+                                    <div className="dynamicFieldMediaThumbIcon">
+                                        <FileText className="size-5" />
+                                    </div>
+                                )}
+                                <span className="dynamicFieldMediaName">{url.split('/').pop()}</span>
+                                <Button type="button" variant="outline" size="icon-sm" onClick={() => removeItem(i)} title="제거">
+                                    <X className="size-3.5" />
+                                </Button>
+                            </div>
+                        );
+                    })}
+                    <div className="dynamicFieldMediaEmpty" onClick={addItem}>
+                        {type === 'images' ? (
+                            <Image className="size-6 text-muted-foreground" />
+                        ) : (
+                            <FileText className="size-6 text-muted-foreground" />
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                            {type === 'images' ? '이미지 추가' : '파일 추가'}
+                        </span>
                     </div>
                 </div>
             );

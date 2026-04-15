@@ -82,6 +82,7 @@ export class PublicApiService {
       contentTypeId: contentType.id,
       status: ContentStatus.PUBLISHED,
       deletedAt: null,
+      isPrivate: false, // 비밀글은 Public API에서 제외
     };
 
     // 검색 + 필터 조건을 모두 AND로 묶기 (OR/AND 충돌 방지)

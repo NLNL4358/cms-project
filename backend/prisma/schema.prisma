@@ -34,6 +34,7 @@ model User {
   rejectedRoles    UserRole[]      @relation("RoleRejecter")
   createdContents  Content[]       @relation("ContentCreator")
   updatedContents  Content[]       @relation("ContentUpdater")
+  repliedContents  Content[]       @relation("ContentReplier")
   createdPages     Page[]          @relation("PageCreator")
   updatedPages     Page[]          @relation("PageUpdater")
   uploadedMedia    Media[]
@@ -144,10 +145,20 @@ model Content {
   deletedAt       DateTime? // Soft delete
   version         Int           @default(1)
 
+  // 게시판 확장 필드
+  viewCount       Int           @default(0) // 조회수
+  isPinned        Boolean       @default(false) // 상단 고정
+  isPrivate       Boolean       @default(false) // 비밀글
+  inquiryStatus   String?       // 처리 상태: RECEIVED, PROCESSING, COMPLETED, REJECTED
+  adminReply      String?       // 관리자 답변
+  adminReplyAt    DateTime?     // 답변 일시
+  adminReplyById  String?       // 답변 작성자
+
   // Relations
   contentType     ContentType      @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
   createdBy       User             @relation("ContentCreator", fields: [createdById], references: [id])
   updatedBy       User             @relation("ContentUpdater", fields: [updatedById], references: [id])
+  adminReplyBy    User?            @relation("ContentReplier", fields: [adminReplyById], references: [id])
   versions        ContentVersion[]
   comments        Comment[]
   workflowActions WorkflowAction[]
@@ -156,6 +167,7 @@ model Content {
   @@index([contentTypeId])
   @@index([status])
   @@index([deletedAt])
+  @@index([isPinned])
   @@map("contents")
 }
 

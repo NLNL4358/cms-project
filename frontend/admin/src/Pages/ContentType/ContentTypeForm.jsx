@@ -29,23 +29,25 @@ import "@/CSS/local/content.css"
 
 /** 필드 타입 목록 */
 export const FIELD_TYPES = [
-    { value: 'text', label: '텍스트' },
-    { value: 'textarea', label: '텍스트 영역' },
-    { value: 'richtext', label: '텍스트 에디터' },
-    { value: 'integer', label: '정수' },
-    { value: 'decimal', label: '소수' },
-    { value: 'boolean', label: '예/아니오' },
-    { value: 'date', label: '날짜' },
-    { value: 'datetime', label: '날짜/시간' },
-    { value: 'email', label: '이메일' },
-    { value: 'url', label: 'URL' },
-    { value: 'select', label: '선택' },
-    { value: 'multiselect', label: '다중 선택' },
-    { value: 'image', label: '이미지' },
-    { value: 'file', label: '파일' },
-    { value: 'json', label: 'JSON' },
-    { value: 'slug', label: '고유주소' },
-    { value: 'color', label: '색상' },
+    { value: 'text', label: '텍스트', desc: '한 줄 텍스트 입력 (제목, 이름 등)' },
+    { value: 'textarea', label: '텍스트 영역', desc: '여러 줄 텍스트 입력 (요약, 메모 등)' },
+    { value: 'richtext', label: '텍스트 에디터', desc: '서식 지원 에디터 (본문, 상세 설명 등)' },
+    { value: 'integer', label: '정수', desc: '정수 입력 (수량, 순서, 정원 등)' },
+    { value: 'decimal', label: '소수', desc: '소수점 숫자 입력 (가격, 비율 등)' },
+    { value: 'boolean', label: '예/아니오', desc: '켜기/끄기 토글 (공개 여부, 활성화 등)' },
+    { value: 'date', label: '날짜', desc: '날짜 선택 (생년월일, 시작일 등)' },
+    { value: 'datetime', label: '날짜/시간', desc: '날짜 + 시간 선택 (일정, 마감 기한 등)' },
+    { value: 'email', label: '이메일', desc: '이메일 주소 입력' },
+    { value: 'url', label: 'URL', desc: '웹 주소 입력 (링크, 영상 URL 등)' },
+    { value: 'select', label: '선택', desc: '미리 정의한 옵션 중 1개 선택 (카테고리 등)' },
+    { value: 'multiselect', label: '다중 선택', desc: '미리 정의한 옵션 중 여러 개 선택 (태그 등)' },
+    { value: 'image', label: '이미지', desc: '이미지 1장 첨부 (썸네일, 대표 이미지 등)' },
+    { value: 'images', label: '이미지 (다중)', desc: '이미지 여러 장 첨부 (갤러리, 슬라이드 등)' },
+    { value: 'file', label: '파일', desc: '파일 1개 첨부 (문서, PDF 등)' },
+    { value: 'files', label: '파일 (다중)', desc: '파일 여러 개 첨부 (첨부파일 목록 등)' },
+    { value: 'json', label: 'JSON', desc: '자유 형식 JSON 데이터 (고급 설정 등)' },
+    { value: 'slug', label: '고유주소', desc: 'URL용 고유 식별자 (영문/숫자/하이픈)' },
+    { value: 'color', label: '색상', desc: '색상 선택 (테마 색, 배경색 등)' },
 ];
 
 /** 필드 타입 라벨 검색용 맵 */
@@ -65,6 +67,7 @@ const fieldSchema = z.object({
     label: z.string().min(1, '표시 이름을 입력하세요'),
     type: z.string().min(1, '종류를 선택하세요'),
     required: z.boolean(),
+    options: z.array(z.string()).optional(),
 });
 
 const contentTypeSchema = z.object({
@@ -108,7 +111,9 @@ function ContentTypeForm() {
             description: '',
             memberWritable: false,
             memberAutoPublish: false,
-            fields: [{ name: '', label: '', type: 'text', required: false }],
+            useSlug: true,
+            useInquiry: false,
+            fields: [{ name: '', label: '', type: 'text', required: false, options: [] }],
         },
     });
 
@@ -160,6 +165,8 @@ function ContentTypeForm() {
                 description: existingData.description || '',
                 memberWritable: Boolean(opts.memberWritable),
                 memberAutoPublish: Boolean(opts.memberAutoPublish),
+                useSlug: opts.useSlug !== false,
+                useInquiry: Boolean(opts.useInquiry),
                 fields:
                     fields.length > 0
                         ? fields.map((f) => ({
@@ -167,6 +174,7 @@ function ContentTypeForm() {
                               label: f.label || '',
                               type: f.type || 'text',
                               required: Boolean(f.required),
+                              options: Array.isArray(f.options) ? f.options : [],
                           }))
                         : [
                               {
@@ -219,12 +227,14 @@ function ContentTypeForm() {
     });
 
     const onSubmit = (data) => {
-        const { memberWritable, memberAutoPublish, ...rest } = data;
+        const { memberWritable, memberAutoPublish, useSlug, useInquiry, ...rest } = data;
         const payload = {
             ...rest,
             options: {
                 memberWritable: Boolean(memberWritable),
                 memberAutoPublish: Boolean(memberAutoPublish),
+                useSlug: Boolean(useSlug),
+                useInquiry: Boolean(useInquiry),
             },
         };
         saveMutation.mutate(payload);
@@ -374,6 +384,48 @@ function ContentTypeForm() {
                                 <span className="ctOptionDesc">
                                     체크하면 회원이 작성한 글이 즉시 발행됩니다.
                                     체크하지 않으면 관리자 검토 후 발행됩니다.
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {/* 콘텐츠 옵션 */}
+                <div className="sectionBox">
+                    <div className="sectionTitle">
+                        <div className="sectionTitleBar" />
+                        <h5>콘텐츠 옵션</h5>
+                    </div>
+                    <div className="contentColumnWrap">
+                        <label className="ctOptionRow">
+                            <input
+                                type="checkbox"
+                                {...register('useSlug')}
+                            />
+                            <div className="ctOptionText">
+                                <span className="ctOptionLabel">
+                                    글 작성 시 고유주소(URL) 직접 입력
+                                </span>
+                                <span className="ctOptionDesc">
+                                    체크하면 이 타입의 글을 작성할 때 URL용 고유주소를 직접 입력합니다.
+                                    (예: /blog/<strong>react-guide</strong>)
+                                    블로그, 매거진처럼 SEO가 중요한 경우 권장합니다.
+                                    해제하면 고유주소가 자동 생성되어, 게시판/문의처럼 작성자가 신경 쓸 필요 없는 경우에 적합합니다.
+                                </span>
+                            </div>
+                        </label>
+                        <label className="ctOptionRow">
+                            <input
+                                type="checkbox"
+                                {...register('useInquiry')}
+                            />
+                            <div className="ctOptionText">
+                                <span className="ctOptionLabel">
+                                    처리 상태 사용
+                                </span>
+                                <span className="ctOptionDesc">
+                                    체크하면 콘텐츠에 처리 상태(접수됨/처리중/처리완료/반려)와
+                                    관리자 답변 기능이 활성화됩니다. 문의/신청/상담 게시판에 적합합니다.
                                 </span>
                             </div>
                         </label>

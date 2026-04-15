@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -113,8 +114,9 @@ export class ContentController {
   @ApiResponse({ status: 404, description: '콘텐츠를 찾을 수 없음' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
-  findOne(@Param('id') id: string) {
-    return this.contentService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+    return this.contentService.findOne(id, { incrementView: true, ip });
   }
 
   @Get(':contentTypeId/slug/:slug')
@@ -250,5 +252,43 @@ export class ContentController {
     @CurrentUser('id') userId: string,
   ) {
     return this.contentService.restoreVersion(id, parseInt(version), userId);
+  }
+
+  // ─── 게시판 확장 기능 ───
+
+  @Post(':id/reply')
+  @Permissions('content:update', 'content:*', '*')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '관리자 답변 작성', description: '콘텐츠에 관리자 답변을 등록하고 처리 상태를 변경합니다' })
+  adminReply(
+    @Param('id') id: string,
+    @Body() body: { reply: string; status?: string },
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.contentService.adminReply(id, body.reply, userId, body.status);
+  }
+
+  @Patch(':id/pin')
+  @Permissions('content:update', 'content:*', '*')
+  @ApiOperation({ summary: '상단 고정 토글', description: '콘텐츠의 상단 고정 상태를 변경합니다' })
+  togglePin(@Param('id') id: string) {
+    return this.contentService.togglePin(id);
+  }
+
+  @Patch(':id/private')
+  @Permissions('content:update', 'content:*', '*')
+  @ApiOperation({ summary: '비밀글 토글', description: '콘텐츠의 비밀글 상태를 변경합니다' })
+  togglePrivate(@Param('id') id: string) {
+    return this.contentService.togglePrivate(id);
+  }
+
+  @Patch(':id/inquiry-status')
+  @Permissions('content:update', 'content:*', '*')
+  @ApiOperation({ summary: '처리 상태 변경', description: '콘텐츠의 처리 상태를 변경합니다 (접수됨/처리중/처리완료/반려)' })
+  updateInquiryStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
+    return this.contentService.updateInquiryStatus(id, body.status);
   }
 }

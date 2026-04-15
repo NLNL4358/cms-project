@@ -164,16 +164,21 @@ function ContentList() {
             accessorKey: 'title',
             header: '제목',
             cell: ({ row }) => (
-                <span className="font-medium">{row.original.title}</span>
+                <span className="font-medium">
+                    {row.original.isPinned && <span title="상단 고정">📌 </span>}
+                    {row.original.isPrivate && <span title="비밀글">🔒 </span>}
+                    {row.original.title}
+                </span>
             ),
         },
-        {
+        // slug 컬럼 (useSlug 옵션 활성화 시에만 표시)
+        ...(contentType?.options?.useSlug !== false ? [{
             accessorKey: 'slug',
             header: '고유주소',
             cell: ({ row }) => (
                 <Badge variant="secondary">{row.original.slug}</Badge>
             ),
-        },
+        }] : []),
         // 동적 필드 컬럼 (최대 2개)
         ...displayFields.map((field) => ({
             id: `data_${field.name}`,
@@ -191,6 +196,13 @@ function ContentList() {
             accessorKey: 'status',
             header: '상태',
             cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        },
+        {
+            accessorKey: 'viewCount',
+            header: '조회',
+            cell: ({ row }) => (
+                <span className="text-muted-foreground">{row.original.viewCount || 0}</span>
+            ),
         },
         {
             accessorKey: 'createdAt',

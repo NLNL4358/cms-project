@@ -157,6 +157,11 @@ function SortableFieldItem({
                                 {errors.fields[index].type.message}
                             </p>
                         )}
+                        {typeValue && (
+                            <p className="helpText">
+                                {FIELD_TYPES.find((ft) => ft.value === typeValue)?.desc}
+                            </p>
+                        )}
                     </div>
 
                     {/* 필수 여부 */}
@@ -180,6 +185,33 @@ function SortableFieldItem({
                         </div>
                     </div>
                 </div>
+
+                {/* select/multiselect 옵션 정의 */}
+                {(typeValue === 'select' || typeValue === 'multiselect') && (
+                    <div className="flex flex-col gap-1.5 mt-3">
+                        <Label>선택 옵션 (쉼표로 구분)</Label>
+                        <Controller
+                            control={control}
+                            name={`fields.${index}.options`}
+                            render={({ field: f }) => (
+                                <Input
+                                    placeholder="옵션1, 옵션2, 옵션3"
+                                    value={Array.isArray(f.value) ? f.value.join(', ') : (f.value || '')}
+                                    onChange={(e) => {
+                                        const opts = e.target.value
+                                            .split(',')
+                                            .map((s) => s.trim())
+                                            .filter(Boolean);
+                                        f.onChange(opts);
+                                    }}
+                                />
+                            )}
+                        />
+                        <p className="helpText">
+                            드롭다운에 표시될 옵션을 쉼표(,)로 구분하여 입력하세요
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

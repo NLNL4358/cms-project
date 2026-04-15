@@ -34,6 +34,15 @@ import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Label } from '@/Components/ui/label.jsx';
 import { Badge } from '@/Components/ui/badge.jsx';
+import { Switch } from '@/Components/ui/switch.jsx';
+import { Textarea } from '@/Components/ui/textarea.jsx';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/Select.jsx';
 import DynamicField from '@/Components/features/DynamicField.jsx';
 import YesNoPopup from '@/Components/common/YesNoPopup';
 import AlertPopup from '@/Components/common/AlertPopup';
@@ -65,7 +74,8 @@ function ContentForm({ readOnly = false }) {
     const fields = contentType?.fields || [];
 
     // 동적 Zod 스키마
-    const schema = useMemo(() => buildContentSchema(fields), [fields]);
+    const useSlugOption = contentType?.options?.useSlug !== false;
+    const schema = useMemo(() => buildContentSchema(fields, { useSlug: useSlugOption }), [fields, useSlugOption]);
 
     // 슬러그 수동 편집 여부
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
@@ -150,10 +160,13 @@ function ContentForm({ readOnly = false }) {
     // 저장 (초안)
     const saveMutation = useMutation({
         mutationFn: (formData) => {
+            const slug = useSlugOption
+                ? formData.slug
+                : formData.slug || `auto-${Date.now()}`;
             const payload = {
                 contentTypeId: contentType.id,
                 title: formData.title,
-                slug: formData.slug,
+                slug,
                 data: formData.data,
             };
             if (isEdit) {
@@ -488,40 +501,88 @@ function ContentForm({ readOnly = false }) {
                             )}
                         </div>
 
-                        {/* 고유주소 */}
-                        <div className="flex flex-col">
-                            <Label htmlFor="slug">
-                                고유주소{' '}
-                                <span className="text-destructive">*</span>
-                            </Label>
-                            <div className="slugPreviewWrap">
-                                <Input
-                                    id="slug"
-                                    className="font-mono"
-                                    placeholder="content-slug"
-                                    {...register('slug', {
-                                        onChange: () =>
-                                            setSlugManuallyEdited(true),
-                                    })}
-                                />
-                                {slugValue && (
-                                    <span className="slugPreview">
-                                        /{slugValue}
-                                    </span>
+                        {/* 고유주소 (useSlug 옵션에 따라 표시) */}
+                        {contentType?.options?.useSlug !== false && (
+                            <div className="flex flex-col">
+                                <Label htmlFor="slug">
+                                    고유주소{' '}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="slugPreviewWrap">
+                                    <Input
+                                        id="slug"
+                                        className="font-mono"
+                                        placeholder="content-slug"
+                                        {...register('slug', {
+                                            onChange: () =>
+                                                setSlugManuallyEdited(true),
+                                        })}
+                                    />
+                                    {slugValue && (
+                                        <span className="slugPreview">
+                                            /{slugValue}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="helpText text-muted-foreground">
+                                    URL에 사용됩니다. 소문자, 숫자, 하이픈만
+                                    가능합니다.
+                                </p>
+                                {errors.slug && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.slug.message}
+                                    </p>
                                 )}
                             </div>
-                            <p className="helpText text-muted-foreground">
-                                URL에 사용됩니다. 소문자, 숫자, 하이픈만
-                                가능합니다.
-                            </p>
-                            {errors.slug && (
-                                <p className="text-sm text-destructive">
-                                    {errors.slug.message}
-                                </p>
-                            )}
-                        </div>
+                        )}
                     </div>
                 </div>
+
+                {/* 게시판 옵션 */}
+                {!readOnly && (
+                    <div className="sectionBox">
+                        <div className="sectionTitle">
+                            <div className="sectionTitleBar" />
+                            <h5>게시판 옵션</h5>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <label className="ctOptionRow">
+                                <Switch
+                                    checked={isEdit ? existingContent?.isPinned : false}
+                                    onCheckedChange={() => {
+                                        if (isEdit) {
+                                            api.patch(`/contents/${id}/pin`).then(() => queryClient.invalidateQueries({ queryKey: ['contents', id] }));
+                                        }
+                                    }}
+                                    disabled={!isEdit}
+                                />
+                                <div className="ctOptionText">
+                                    <span className="ctOptionLabel">상단 고정</span>
+                                    <span className="ctOptionDesc">
+                                        {isEdit ? '목록에서 항상 최상단에 표시됩니다' : '저장 후 수정 페이지에서 설정 가능합니다'}
+                                    </span>
+                                </div>
+                            </label>
+                            <label className="ctOptionRow">
+                                <Switch
+                                    checked={isEdit ? existingContent?.isPrivate : false}
+                                    onCheckedChange={() => {
+                                        if (isEdit) {
+                                            api.patch(`/contents/${id}/private`).then(() => queryClient.invalidateQueries({ queryKey: ['contents', id] }));
+                                        }
+                                    }}
+                                    disabled={!isEdit}
+                                />
+                                <div className="ctOptionText">
+                                    <span className="ctOptionLabel">비밀글</span>
+                                    <span className="ctOptionDesc">
+                                        {isEdit ? '작성자와 관리자만 확인할 수 있습니다' : '저장 후 수정 페이지에서 설정 가능합니다'}
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                )}
 
                 {/* 입력 항목 */}
                 {fields.length > 0 && (
@@ -713,6 +774,101 @@ function ContentForm({ readOnly = false }) {
                     )}
                 </div>
             </form>
+
+            {/* 처리 상태 + 관리자 답변 (useInquiry 옵션 활성화 시) */}
+            {isEdit && existingContent && contentType?.options?.useInquiry && (
+                <div className="sectionBox" style={{ marginTop: '1rem' }}>
+                    <div className="sectionTitle">
+                        <div className="sectionTitleBar" />
+                        <h5>처리 상태 / 답변</h5>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        {!readOnly && (
+                            <div className="flex items-center gap-3">
+                                <Label>처리 상태</Label>
+                                <Select
+                                    value={existingContent.inquiryStatus || 'RECEIVED'}
+                                    onValueChange={(v) => api.patch(`/contents/${id}/inquiry-status`, { status: v }).then(() => queryClient.invalidateQueries({ queryKey: ['contents', id] }))}
+                                >
+                                    <SelectTrigger className="w-[160px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="RECEIVED">접수됨</SelectItem>
+                                        <SelectItem value="PROCESSING">처리중</SelectItem>
+                                        <SelectItem value="COMPLETED">처리완료</SelectItem>
+                                        <SelectItem value="REJECTED">반려</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        {readOnly && existingContent.inquiryStatus && (
+                            <div className="flex items-center gap-2">
+                                <Label>처리 상태:</Label>
+                                <Badge variant={existingContent.inquiryStatus === 'COMPLETED' ? 'default' : 'secondary'}>
+                                    {{ RECEIVED: '접수됨', PROCESSING: '처리중', COMPLETED: '처리완료', REJECTED: '반려' }[existingContent.inquiryStatus] || existingContent.inquiryStatus}
+                                </Badge>
+                            </div>
+                        )}
+                        {existingContent.adminReply && (
+                            <div className="flex flex-col gap-1 p-3 bg-muted rounded-md">
+                                <span className="text-xs text-muted-foreground">
+                                    관리자 답변 ({existingContent.adminReplyBy?.name || '관리자'})
+                                </span>
+                                <p className="text-sm">{existingContent.adminReply}</p>
+                            </div>
+                        )}
+                        {!readOnly && (
+                            <div className="flex flex-col gap-2">
+                                <Textarea
+                                    id="adminReplyInput"
+                                    placeholder="관리자 답변을 입력하세요..."
+                                    rows={3}
+                                    defaultValue={existingContent.adminReply || ''}
+                                />
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => {
+                                        const reply = document.getElementById('adminReplyInput')?.value;
+                                        if (reply?.trim()) {
+                                            api.post(`/contents/${id}/reply`, { reply }).then(() =>
+                                                queryClient.invalidateQueries({ queryKey: ['contents', id] })
+                                            );
+                                        }
+                                    }}
+                                >
+                                    답변 저장
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* 이전글 / 다음글 */}
+            {isEdit && existingContent && (existingContent.prevContent || existingContent.nextContent) && (
+                <div className="flex justify-between items-center mt-4 p-3 border rounded-md">
+                    {existingContent.prevContent ? (
+                        <button
+                            type="button"
+                            className="text-sm text-muted-foreground hover:text-foreground"
+                            onClick={() => navigate(`/contents/${contentTypeSlug}/${existingContent.prevContent.id}/${readOnly ? 'view' : 'edit'}`)}
+                        >
+                            ← {existingContent.prevContent.title}
+                        </button>
+                    ) : <span />}
+                    {existingContent.nextContent ? (
+                        <button
+                            type="button"
+                            className="text-sm text-muted-foreground hover:text-foreground"
+                            onClick={() => navigate(`/contents/${contentTypeSlug}/${existingContent.nextContent.id}/${readOnly ? 'view' : 'edit'}`)}
+                        >
+                            {existingContent.nextContent.title} →
+                        </button>
+                    ) : <span />}
+                </div>
+            )}
         </div>
     );
 }

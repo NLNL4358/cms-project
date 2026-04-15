@@ -5,7 +5,8 @@ import { z } from 'zod';
  * @param {Array} fields - [{ name, label, type, required }]
  * @returns {z.ZodObject} - { title, slug, data: { ...dynamicFields } } 스키마
  */
-export function buildContentSchema(fields) {
+export function buildContentSchema(fields, options = {}) {
+    const { useSlug = true } = options;
     const dataShape = {};
 
     for (const field of fields) {
@@ -73,12 +74,13 @@ export function buildContentSchema(fields) {
         dataShape[field.name] = fieldSchema;
     }
 
+    const slugSchema = useSlug
+        ? z.string().min(1, '고유주소를 입력하세요').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, '소문자, 숫자, 하이픈만 가능')
+        : z.string().optional().or(z.literal(''));
+
     return z.object({
         title: z.string().min(1, '제목을 입력하세요'),
-        slug: z
-            .string()
-            .min(1, '고유주소를 입력하세요')
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, '소문자, 숫자, 하이픈만 가능'),
+        slug: slugSchema,
         data: z.object(dataShape),
     });
 }

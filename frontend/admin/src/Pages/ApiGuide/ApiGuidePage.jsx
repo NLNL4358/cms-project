@@ -348,6 +348,25 @@ function buildApiSections(contentTypes, selectedType) {
                 id: 'c-by-slug', method: 'GET', path: `/contents/${selectedType?.id}/slug/:slug`,
                 title: 'slug로 조회', auth: true, desc: '콘텐츠 타입 ID + slug로 단건 조회합니다',
             },
+            // 게시판 확장
+            {
+                id: 'c-reply', group: '게시판', method: 'POST', path: '/contents/:id/reply',
+                title: '관리자 답변', auth: true, desc: '콘텐츠에 관리자 답변을 등록하고 처리 상태를 변경합니다',
+                body: json({ reply: '답변 내용', status: 'COMPLETED' }),
+            },
+            {
+                id: 'c-pin', method: 'PATCH', path: '/contents/:id/pin',
+                title: '상단 고정 토글', auth: true, desc: '콘텐츠의 상단 고정 상태를 변경합니다',
+            },
+            {
+                id: 'c-private', method: 'PATCH', path: '/contents/:id/private',
+                title: '비밀글 토글', auth: true, desc: '콘텐츠의 비밀글 상태를 변경합니다',
+            },
+            {
+                id: 'c-inquiry', method: 'PATCH', path: '/contents/:id/inquiry-status',
+                title: '처리 상태 변경', auth: true, desc: '처리 상태를 변경합니다 (RECEIVED/PROCESSING/COMPLETED/REJECTED)',
+                body: json({ status: 'COMPLETED' }),
+            },
         );
     }
     sections.push({
