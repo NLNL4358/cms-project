@@ -1625,28 +1625,11 @@ table {
     overflow-y: auto;
 }
 
-.searchDropdownEmpty {
-    padding: 24px 16px;
+.searchDropdownHint {
+    padding: 10px 16px;
     text-align: center;
     color: var(--muted-foreground);
-    font-size: 13px;
-}
-
-.searchViewAll {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--primary);
-    background: none;
-    border: none;
-    border-top: 1px solid var(--border);
-    cursor: pointer;
-}
-
-.searchViewAll:hover {
-    background-color: var(--muted);
+    font-size: 12px;
 }
 
 /* ─── Search Result Item (공통) ─── */

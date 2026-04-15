@@ -5,32 +5,18 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Search, X } from 'lucide-react';
 
-import { useAPI } from '@/Providers/APIContext.jsx';
 import { useUser } from '@/Providers/UserContext.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
-import SearchResultItem from '@/Components/features/SearchResultItem.jsx';
 
 function SearchBar() {
-    const api = useAPI();
     const { user } = useUser();
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
-
-    // 검색 쿼리 (300ms 디바운스 대신 Enter/최소 2자)
-    const { data: searchData, isLoading } = useQuery({
-        queryKey: ['search-preview', query],
-        queryFn: () =>
-            api.get(`/search?q=${encodeURIComponent(query)}&limit=5`).then((r) => r.data),
-        enabled: !!user && query.length >= 2,
-    });
-
-    const results = searchData?.data || [];
 
     // 열릴 때 포커스
     useEffect(() => {
@@ -58,11 +44,6 @@ function SearchBar() {
         if (e.key === 'Escape') {
             setOpen(false);
         }
-    };
-
-    const handleViewAll = () => {
-        setOpen(false);
-        navigate(`/search?q=${encodeURIComponent(query)}`);
     };
 
     return (
@@ -97,34 +78,9 @@ function SearchBar() {
                         )}
                     </div>
 
-                    {query.length >= 2 && (
-                        <div className="searchDropdownResults">
-                            {isLoading ? (
-                                <div className="searchDropdownEmpty">
-                                    검색 중...
-                                </div>
-                            ) : results.length === 0 ? (
-                                <div className="searchDropdownEmpty">
-                                    검색 결과가 없습니다
-                                </div>
-                            ) : (
-                                <>
-                                    {results.map((item) => (
-                                        <SearchResultItem
-                                            key={item.id}
-                                            item={item}
-                                        />
-                                    ))}
-                                    {searchData?.meta?.total > 5 && (
-                                        <button
-                                            className="searchViewAll"
-                                            onClick={handleViewAll}
-                                        >
-                                            전체 {searchData.meta.total}건 보기
-                                        </button>
-                                    )}
-                                </>
-                            )}
+                    {query.length > 0 && (
+                        <div className="searchDropdownHint">
+                            Enter를 눌러 검색
                         </div>
                     )}
                 </div>
