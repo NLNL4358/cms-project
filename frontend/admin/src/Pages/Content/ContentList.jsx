@@ -67,6 +67,32 @@ function renderFieldValue(value, type) {
             </div>
         );
     }
+    // richtext: HTML 태그 제거 후 텍스트만 표시
+    if (type === 'richtext' || type === 'textarea') {
+        const text = String(value).replace(/<[^>]*>/g, '');
+        return text.length > 50 ? text.slice(0, 50) + '...' : text;
+    }
+    // 이미지: 썸네일 표시
+    if (type === 'image') {
+        const url = String(value);
+        if (!url) return '-';
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const src = url.startsWith('http') ? url : `${base}${url}`;
+        return <img src={src} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4 }} />;
+    }
+    // 다중 이미지: 개수 표시
+    if (type === 'images') {
+        return Array.isArray(value) ? `${value.length}장` : '-';
+    }
+    // 파일: 파일명 표시
+    if (type === 'file') {
+        const url = String(value);
+        return url ? url.split('/').pop() : '-';
+    }
+    // 다중 파일: 개수 표시
+    if (type === 'files') {
+        return Array.isArray(value) ? `${value.length}개` : '-';
+    }
     if (typeof value === 'object') return JSON.stringify(value);
     const str = String(value);
     return str.length > 50 ? str.slice(0, 50) + '...' : str;

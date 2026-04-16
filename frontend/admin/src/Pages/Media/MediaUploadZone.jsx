@@ -4,7 +4,7 @@
  * 파일별 업로드 진행률을 표시하고, 완료 시 미디어 쿼리를 갱신한다.
  */
 import { useState, useRef, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Upload, X } from 'lucide-react';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
@@ -55,16 +55,38 @@ function MediaUploadZone({ onClose }) {
         }
     };
 
+    // 백엔드에서 허용 타입 목록 가져오기
+    const { data: allowedTypes } = useQuery({
+        queryKey: ['media', 'allowed-types'],
+        queryFn: () => api.get('/media/allowed-types').then((r) => r.data),
+        staleTime: 1000 * 60 * 30, // 30분 캐시
+    });
+
+    const maxFileSize = allowedTypes?.maxFileSize || 50 * 1024 * 1024;
+    const allowedMimeTypes = allowedTypes?.mimeTypes || [];
+
     const handleFiles = (files) => {
-        const newUploads = files.map((file) => ({
-            id: crypto.randomUUID(),
-            file,
-            progress: 0,
-            status: 'pending',
-            error: null,
-        }));
+        const newUploads = files.map((file) => {
+            let error = null;
+
+            if (allowedMimeTypes.length > 0 && !allowedMimeTypes.includes(file.type)) {
+                error = `허용되지 않는 파일 형식\n(${file.type || '알 수 없음'})`;
+            } else if (file.size > maxFileSize) {
+                error = `크기 초과\n(${(file.size / 1024 / 1024).toFixed(1)}MB / 최대 ${allowedTypes?.maxFileSizeFormatted || '50MB'})`;
+            }
+
+            return {
+                id: crypto.randomUUID(),
+                file,
+                progress: 0,
+                status: error ? 'error' : 'pending',
+                error,
+            };
+        });
         setUploads((prev) => [...prev, ...newUploads]);
-        newUploads.forEach((upload) => uploadFile(upload));
+        newUploads
+            .filter((u) => u.status !== 'error')
+            .forEach((upload) => uploadFile(upload));
     };
 
     const handleDragOver = (e) => {
@@ -141,7 +163,7 @@ function MediaUploadZone({ onClose }) {
                                 {upload.status === 'uploading' &&
                                     `${upload.progress}%`}
                                 {upload.status === 'done' && '완료'}
-                                {upload.status === 'error' && '실패'}
+                                {upload.status === 'error' && (upload.error || '실패')}
                             </span>
                         </div>
                     ))}

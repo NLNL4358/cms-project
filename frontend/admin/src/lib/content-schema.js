@@ -28,6 +28,20 @@ export function buildContentSchema(fields, options = {}) {
             case 'boolean':
                 dataShape[field.name] = z.boolean().optional();
                 continue;
+            case 'images':
+            case 'files':
+                dataShape[field.name] = z.array(z.string()).optional().default([]);
+                continue;
+            case 'image':
+            case 'file':
+                dataShape[field.name] = z.string().optional().or(z.literal(''));
+                continue;
+            case 'multiselect':
+                dataShape[field.name] = z.union([
+                    z.array(z.string()),
+                    z.string().transform((v) => v ? v.split(',').map((s) => s.trim()).filter(Boolean) : []),
+                ]).optional().default([]);
+                continue;
             case 'email':
                 fieldSchema = z.string().email('올바른 이메일을 입력하세요');
                 break;

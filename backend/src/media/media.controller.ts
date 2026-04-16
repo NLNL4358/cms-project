@@ -33,6 +33,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../role/guards/permissions.guard';
 import { Permissions } from '../role/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ALLOWED_MIME_TYPES } from './utils/file.utils';
 
 @ApiTags('Media')
 @Controller('media')
@@ -40,6 +41,20 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 @ApiBearerAuth('access-token')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
+
+  @Get('allowed-types')
+  @Permissions('media:read', 'media:create', 'media:*', '*')
+  @ApiOperation({
+    summary: '허용 파일 타입 조회',
+    description: '업로드 가능한 MIME 타입 목록과 최대 파일 크기를 반환합니다',
+  })
+  getAllowedTypes() {
+    return {
+      mimeTypes: ALLOWED_MIME_TYPES,
+      maxFileSize: 50 * 1024 * 1024, // 50MB
+      maxFileSizeFormatted: '50MB',
+    };
+  }
 
   @Post('upload')
   @Permissions('media:create', 'media:*', '*')

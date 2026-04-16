@@ -746,7 +746,7 @@ function ContentForm({ readOnly = false }) {
                     <Button
                         type="button"
                         variant="secondary"
-                        onClick={handleSubmit(onSaveDraft)}
+                        onClick={handleSubmit(onSaveDraft, (errors) => console.error('폼 검증 실패:', errors))}
                         disabled={isMutating}
                     >
                         <Save className="size-4 mr-1.5" />

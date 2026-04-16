@@ -17,26 +17,75 @@ export function generateUniqueFilename(originalName: string): string {
  * Allowed MIME types for upload
  */
 export const ALLOWED_MIME_TYPES = [
-  // Images
+  // ─── 이미지 ───
   'image/jpeg',
   'image/jpg',
   'image/png',
   'image/gif',
   'image/webp',
   'image/svg+xml',
-  // Documents
+  'image/bmp',
+  'image/tiff',
+  'image/x-icon',
+  'image/vnd.microsoft.icon',
+
+  // ─── 문서 (오피스) ───
   'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  // Videos
+  'application/msword',                                                          // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',      // .docx
+  'application/vnd.ms-excel',                                                    // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',            // .xlsx
+  'application/vnd.ms-powerpoint',                                               // .ppt
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',   // .pptx
+
+  // ─── 문서 (한글) ───
+  'application/x-hwp',
+  'application/haansofthwp',
+  'application/vnd.hancom.hwp',
+  'application/vnd.hancom.hwpx',
+
+  // ─── 텍스트 ───
+  'text/plain',                 // .txt
+  'text/csv',                   // .csv
+  'text/html',                  // .html
+  'text/css',                   // .css
+  'text/xml',                   // .xml
+  'application/json',           // .json
+  'application/xml',            // .xml
+  'text/markdown',              // .md
+  'application/rtf',            // .rtf
+
+  // ─── 압축 ───
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/x-rar-compressed',
+  'application/x-7z-compressed',
+  'application/gzip',
+  'application/x-tar',
+
+  // ─── 영상 ───
   'video/mp4',
   'video/mpeg',
-  'video/quicktime',
-  // Audio
-  'audio/mpeg',
+  'video/quicktime',            // .mov
+  'video/x-msvideo',            // .avi
+  'video/webm',
+  'video/x-matroska',           // .mkv
+
+  // ─── 오디오 ───
+  'audio/mpeg',                 // .mp3
   'audio/wav',
+  'audio/ogg',
+  'audio/flac',
+  'audio/aac',
+  'audio/webm',
+
+  // ─── 폰트 ───
+  'font/woff',
+  'font/woff2',
+  'font/ttf',
+  'font/otf',
+  'application/font-woff',
+  'application/font-woff2',
 ];
 
 /**

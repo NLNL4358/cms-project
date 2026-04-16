@@ -27,6 +27,7 @@ export function UserProvider({ children }) {
     });
 
     const [accessToken, setAccessToken] = useState(null);
+    const [isReady, setIsReady] = useState(false);
 
     const [refreshToken, setRefreshToken] = useState(
         () => localStorage.getItem('cms-admin-refresh-token') || null,
@@ -70,7 +71,11 @@ export function UserProvider({ children }) {
     // 앱 시작 시 refreshToken이 있으면 자동으로 accessToken 갱신
     useEffect(() => {
         if (refreshToken && !accessToken) {
-            refresh().catch(() => logout());
+            refresh()
+                .catch(() => logout())
+                .finally(() => setIsReady(true));
+        } else {
+            setIsReady(true);
         }
     }, []); // 마운트 시 1회만 실행
 
@@ -104,7 +109,7 @@ export function UserProvider({ children }) {
 
     return (
         <UserContext.Provider
-            value={{ user, accessToken, permissions, hasPermission, login, logout, refresh }}
+            value={{ user, accessToken, permissions, hasPermission, login, logout, refresh, isReady }}
         >
             {children}
         </UserContext.Provider>

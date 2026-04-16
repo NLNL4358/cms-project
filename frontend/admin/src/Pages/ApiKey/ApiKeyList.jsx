@@ -20,6 +20,13 @@ import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Label } from '@/Components/ui/label.jsx';
 import { Switch } from '@/Components/ui/switch.jsx';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/Select.jsx';
 import AlertPopup from '@/Components/common/AlertPopup.jsx';
 import YesNoPopup from '@/Components/common/YesNoPopup.jsx';
 import '@/CSS/local/api-key.css';
@@ -29,6 +36,8 @@ function ApiKeyList() {
     const queryClient = useQueryClient();
     const { makePopup, closePopup } = usePopup();
     const [name, setName] = useState('');
+    const [permissions, setPermissions] = useState(['public:read']);
+    const [expiresIn, setExpiresIn] = useState('');
     const [copiedKey, setCopiedKey] = useState(null);
 
     const { data: keys = [], isLoading } = useQuery({
@@ -38,11 +47,21 @@ function ApiKeyList() {
     });
 
     const createMutation = useMutation({
-        mutationFn: () =>
-            api.post('/api-keys', { name }).then((r) => r.data),
+        mutationFn: () => {
+            const payload = { name, permissions };
+            if (expiresIn) {
+                const days = parseInt(expiresIn);
+                if (days > 0) {
+                    payload.expiresAt = new Date(Date.now() + days * 86400000).toISOString();
+                }
+            }
+            return api.post('/api-keys', payload).then((r) => r.data);
+        },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['api-keys'] });
             setName('');
+            setPermissions(['public:read']);
+            setExpiresIn('');
             makePopup(
                 <AlertPopup
                     title="API 키가 생성되었습니다"
@@ -139,12 +158,52 @@ function ApiKeyList() {
                     <div className="sectionTitleBar" />
                     <h5>새 API 키 발급</h5>
                 </div>
-                <div className="apiKeyCreateRow">
-                    <Input
-                        placeholder="키 이름 (예: 메인 사이트 프론트엔드)"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                <div className="apiKeyCreateForm">
+                    <div className="apiKeyCreateRow">
+                        <Input
+                            placeholder="키 이름 (예: 메인 사이트 프론트엔드)"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </div>
+                    <div className="apiKeyCreateRow">
+                        <div className="flex flex-wrap gap-2">
+                            {['public:read', 'public:write', '*'].map((perm) => (
+                                <label key={perm} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={permissions.includes(perm)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setPermissions([...permissions, perm]);
+                                            } else {
+                                                setPermissions(permissions.filter((p) => p !== perm));
+                                            }
+                                        }}
+                                    />
+                                    <span className="text-sm">
+                                        {perm === 'public:read' && '읽기 (public:read)'}
+                                        {perm === 'public:write' && '쓰기 (public:write)'}
+                                        {perm === '*' && '전체 권한 (*)'}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="apiKeyCreateRow">
+                        <Select value={expiresIn || 'none'} onValueChange={(v) => setExpiresIn(v === 'none' ? '' : v)}>
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue placeholder="만료 기간" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">만료 없음</SelectItem>
+                                <SelectItem value="30">30일</SelectItem>
+                                <SelectItem value="90">90일</SelectItem>
+                                <SelectItem value="180">180일</SelectItem>
+                                <SelectItem value="365">1년</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Button
                         onClick={() => {
                             if (!name.trim()) {

@@ -17,6 +17,18 @@ const pathLabels = {
     contents: '콘텐츠',
     media: '파일 관리',
     roles: '역할/권한',
+    users: '사용자 관리',
+    settings: '시스템 설정',
+    'audit-logs': '감사 로그',
+    webhooks: 'Webhook',
+    'import-export': 'Import/Export',
+    backups: '백업/복원',
+    'api-guide': 'API 가이드',
+    'api-keys': 'API 키 관리',
+    search: '검색',
+    new: '신규',
+    edit: '수정',
+    view: '상세',
 };
 
 function AppHeader() {

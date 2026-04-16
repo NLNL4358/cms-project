@@ -66,6 +66,7 @@ function MediaList() {
     const [search, setSearch] = useState('');
     const [viewMode, setViewMode] = useState('grid');
     const [uploadOpen, setUploadOpen] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
 
     // 미디어 목록 조회
     const { data: response, isLoading } = useQuery({
@@ -111,6 +112,74 @@ function MediaList() {
         },
     });
 
+    // 일괄 삭제 뮤테이션
+    const bulkDeleteMutation = useMutation({
+        mutationFn: async (ids) => {
+            await Promise.all(ids.map((id) => api.delete(`/media/${id}`)));
+        },
+        onSuccess: () => {
+            const count = selectedIds.length;
+            setSelectedIds([]);
+            queryClient.invalidateQueries({ queryKey: ['media'] });
+            closePopup();
+            makePopup(
+                <AlertPopup
+                    title="일괄 삭제 완료"
+                    body={<p>{count}개 파일이 삭제되었습니다.</p>}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
+        },
+        onError: (error) => {
+            const message = error.response?.data?.message || '일괄 삭제에 실패했습니다';
+            closePopup();
+            makePopup(
+                <AlertPopup
+                    title="일괄 삭제 실패"
+                    body={<p>{message}</p>}
+                    buttonFunction={() => closePopup()}
+                />,
+            );
+        },
+    });
+
+    // 선택 토글
+    const toggleSelect = (id) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === items.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(items.map((i) => i.id));
+        }
+    };
+
+    // 일괄 삭제 확인 팝업
+    const handleBulkDelete = () => {
+        if (selectedIds.length === 0) return;
+        makePopup(
+            <YesNoPopup
+                title="파일 일괄 삭제"
+                body={
+                    <p>
+                        선택한 <strong>{selectedIds.length}개</strong> 파일을 삭제하시겠습니까?
+                        <br />
+                        이 작업은 되돌릴 수 없습니다.
+                    </p>
+                }
+                buttonText={{ left: '삭제', right: '취소' }}
+                buttonFunction={{
+                    left: () => bulkDeleteMutation.mutate(selectedIds),
+                    right: () => closePopup(),
+                }}
+            />,
+        );
+    };
+
     // 삭제 확인 팝업
     const handleDelete = (mediaItem) => {
         makePopup(
@@ -148,7 +217,27 @@ function MediaList() {
     // 테이블 컬럼 정의
     const columns = [
         {
+            id: 'select',
+            align: 'center',
+            header: () => (
+                <input
+                    type="checkbox"
+                    checked={items.length > 0 && selectedIds.length === items.length}
+                    onChange={toggleSelectAll}
+                />
+            ),
+            cell: ({ row }) => (
+                <input
+                    type="checkbox"
+                    checked={selectedIds.includes(row.original.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleSelect(row.original.id)}
+                />
+            ),
+        },
+        {
             id: 'thumbnail',
+            align: 'center',
             header: '',
             cell: ({ row }) => {
                 const media = row.original;
@@ -227,12 +316,13 @@ function MediaList() {
     ];
 
     const colWidths = [
-        { width: '60px' },
-        { width: 'auto' },
-        { width: '10%' },
-        { width: '10%' },
-        { width: '12%' },
-        { width: '5%', align: 'center' },
+        { width: '40px', align: 'center' },   // 체크박스
+        { width: '60px', align: 'center' },   // 썸네일
+        { width: 'auto' },                    // 파일명
+        { width: '10%' },                     // 타입
+        { width: '10%' },                     // 크기
+        { width: '12%', align: 'center' },    // 업로드일
+        { width: '5%', align: 'center' },     // 삭제
     ];
 
     return (
@@ -245,10 +335,22 @@ function MediaList() {
                         이미지, 영상, 문서 등 업로드된 파일을 관리합니다
                     </p>
                 </div>
-                <Button onClick={() => setUploadOpen((o) => !o)}>
-                    <Upload className="size-5" />
-                    {uploadOpen ? '업로드 닫기' : '업로드'}
-                </Button>
+                <div className="flex items-center gap-2">
+                    {selectedIds.length > 0 && (
+                        <Button
+                            variant="destructive"
+                            onClick={handleBulkDelete}
+                            disabled={bulkDeleteMutation.isPending}
+                        >
+                            <Trash2 className="size-4" />
+                            선택 {selectedIds.length}개 삭제
+                        </Button>
+                    )}
+                    <Button onClick={() => setUploadOpen((o) => !o)}>
+                        <Upload className="size-5" />
+                        {uploadOpen ? '업로드 닫기' : '업로드'}
+                    </Button>
+                </div>
             </div>
 
             {/* 업로드 영역 */}
@@ -348,12 +450,20 @@ function MediaList() {
                               const isImage =
                                   media.mimeType?.startsWith('image/');
                               const Icon = getTypeIcon(media.mimeType);
+                              const isSelected = selectedIds.includes(media.id);
                               return (
                                   <div
                                       key={media.id}
-                                      className="mediaCard"
+                                      className={`mediaCard${isSelected ? ' mediaCardSelected' : ''}`}
                                       onClick={() => openDetail(media)}
                                   >
+                                      <input
+                                          type="checkbox"
+                                          className="mediaCardCheck"
+                                          checked={isSelected}
+                                          onClick={(e) => e.stopPropagation()}
+                                          onChange={() => toggleSelect(media.id)}
+                                      />
                                       <div className="mediaCardThumb">
                                           {isImage ? (
                                               <img
