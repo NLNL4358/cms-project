@@ -795,6 +795,95 @@ table {
     display: none !important;
 }
 
+/* 카테고리 서브그룹 (콘텐츠 그룹 내부) */
+.menuSubGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.menuSubGroupHeader {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: oklch(from var(--sidebar-foreground) l c h / 0.6);
+    font-size: calc(var(--label-size) - 2px);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    transition: color 0.15s;
+    text-align: left;
+}
+
+.menuSubGroupHeader:hover {
+    color: var(--sidebar-foreground);
+}
+
+.menuSubGroupLabel {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menuSubGroupCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 8px;
+    background-color: oklch(from var(--sidebar-foreground) l c h / 0.12);
+    color: oklch(from var(--sidebar-foreground) l c h / 0.7);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.menuSubGroupChevron {
+    margin-left: auto;
+    width: 12px;
+    height: 12px;
+    transition: transform 0.2s;
+    opacity: 0.5;
+}
+
+.menuSubGroupChevron.open {
+    transform: rotate(180deg);
+}
+
+/* 서브그룹 펼침/접힘 애니메이션 (상위와 동일 패턴) */
+.menuSubGroupCollapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.22s ease, opacity 0.18s ease;
+    opacity: 0;
+}
+
+.menuSubGroupCollapse.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+.menuSubGroupCollapse > .menuSubGroupList {
+    overflow: hidden;
+    min-height: 0;
+}
+
+.menuSubGroupList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    /* 2depth(서브그룹 헤더) 대비 3depth(콘텐츠 폼)가 시각적으로 구분되도록 추가 들여쓰기 */
+    padding: 0 0 0 12px;
+    margin: 0;
+    list-style: none;
+}
+
 /* 푸터 */
 .sidebarFooter {
     padding: 12px;

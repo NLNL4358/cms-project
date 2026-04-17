@@ -8,6 +8,8 @@ import Login from '@pages/System/Login.jsx';
 import Dashboard from '@pages/Dashboard/Dashboard.jsx';
 import ContentTypeList from '@pages/ContentType/ContentTypeList.jsx';
 import ContentTypeForm from '@pages/ContentType/ContentTypeForm.jsx';
+import FormCategoryList from '@pages/FormCategory/FormCategoryList.jsx';
+import FormCategoryForm from '@pages/FormCategory/FormCategoryForm.jsx';
 import ContentList from '@pages/Content/ContentList.jsx';
 import ContentForm from '@pages/Content/ContentForm.jsx';
 import MediaList from '@pages/Media/MediaList.jsx';
@@ -30,6 +32,7 @@ import ContentRouter from '@pages/Router/ContentRouter.jsx';
 import MediaRouter from '@pages/Router/MediaRouter.jsx';
 import RoleRouter from '@pages/Router/RoleRouter.jsx';
 import UserRouter from '@pages/Router/UserRouter.jsx';
+import FormCategoryRouter from '@pages/Router/FormCategoryRouter.jsx';
 
 /* CSS */
 import '@/CSS/reset.css';
@@ -64,6 +67,13 @@ function App() {
                     <Route index element={<ContentTypeList />} />
                     <Route path="new" element={<P permission="content-type:create"><ContentTypeForm /></P>} />
                     <Route path=":id/edit" element={<P permission="content-type:update"><ContentTypeForm /></P>} />
+                </Route>
+
+                {/* 콘텐츠 폼 카테고리 */}
+                <Route path="form-categories" element={<P permission="content-type:read"><FormCategoryRouter /></P>}>
+                    <Route index element={<FormCategoryList />} />
+                    <Route path="new" element={<P permission="content-type:update"><FormCategoryForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content-type:update"><FormCategoryForm /></P>} />
                 </Route>
 
                 {/* 콘텐츠 */}

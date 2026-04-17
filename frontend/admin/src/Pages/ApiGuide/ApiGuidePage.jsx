@@ -32,13 +32,13 @@ function buildApiSections(contentTypes, selectedType) {
         title: 'Public API',
         endpoints: [
             {
-                id: 'pub-types', group: '콘텐츠 타입', method: 'GET', path: '/public/content-types',
-                title: '콘텐츠 타입 목록', desc: '발행된 콘텐츠 타입 목록 (외부 앱용)',
+                id: 'pub-types', group: '콘텐츠 폼', method: 'GET', path: '/public/content-types',
+                title: '콘텐츠 폼 목록', desc: '발행된 콘텐츠 폼(ContentType) 목록 (외부 앱용)',
                 authNote: 'API 키 필요: Authorization: Bearer sk_live_xxxxx',
             },
             {
-                id: 'pub-type-detail', group: '콘텐츠 타입', method: 'GET', path: '/public/content-types/:slug',
-                title: '콘텐츠 타입 상세', desc: 'slug로 콘텐츠 타입 조회',
+                id: 'pub-type-detail', group: '콘텐츠 폼', method: 'GET', path: '/public/content-types/:slug',
+                title: '콘텐츠 폼 상세', desc: 'slug로 콘텐츠 폼(ContentType) 조회',
                 authNote: 'API 키 필요',
             },
             {
@@ -51,7 +51,7 @@ function buildApiSections(contentTypes, selectedType) {
                     { name: 'sort', type: 'string', desc: 'createdAt | updatedAt | publishedAt' },
                     { name: 'order', type: 'string', desc: 'asc | desc (기본: desc)' },
                     { name: 'search', type: 'string', desc: '제목/슬러그 검색' },
-                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링. 콘텐츠 타입에 정의된 필드만 허용 (정의되지 않은 필드는 무시됨). 예: filter[category]=tech' },
+                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링. 콘텐츠 폼(ContentType)에 정의된 필드만 허용 (정의되지 않은 필드는 무시됨). 예: filter[category]=tech' },
                 ],
             },
             {
@@ -128,14 +128,14 @@ function buildApiSections(contentTypes, selectedType) {
                 id: 'mc-mine', group: '조회', method: 'GET', path: '/public/member/contents/my',
                 title: '내가 작성한 글 목록', desc: '본인이 작성한 콘텐츠 목록 (모든 상태 포함)', auth: true,
                 params: [
-                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 타입 슬러그 (선택)' },
+                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 폼(ContentType)의 슬러그 (선택)' },
                     { name: 'page', type: 'number', desc: '페이지 번호' },
                     { name: 'limit', type: 'number', desc: '페이지당 개수' },
                 ],
             },
             {
                 id: 'mc-create', group: '작성', method: 'POST', path: '/public/member/contents/:contentTypeSlug',
-                title: '글 작성', desc: '회원이 글을 작성합니다. 콘텐츠 타입의 "회원 작성 가능" 옵션이 켜져있어야 합니다',
+                title: '글 작성', desc: '회원이 글을 작성합니다. 콘텐츠 폼(ContentType)의 "회원 작성 가능" 옵션이 켜져있어야 합니다',
                 auth: true,
                 body: json({ title: '내 글 제목', slug: 'my-post', data: { content: '<p>본문</p>' } }),
             },
@@ -235,26 +235,30 @@ function buildApiSections(contentTypes, selectedType) {
         ],
     });
 
-    // ─── 콘텐츠 타입 ───
+    // ─── 콘텐츠 폼 (ContentType) ───
     sections.push({
         id: 'content-types',
         category: 'admin',
-        title: '콘텐츠 타입',
+        title: '콘텐츠 폼 (ContentType)',
         endpoints: [
             {
                 id: 'ct-list', group: '조회', method: 'GET', path: '/content-types',
-                title: '목록 조회', desc: '모든 콘텐츠 타입을 조회합니다', auth: true,
+                title: '목록 조회', desc: '모든 콘텐츠 폼을 조회합니다. 카테고리 필터 지원', auth: true,
+                params: [
+                    { name: 'categoryId', type: 'string', desc: '카테고리 ID로 필터링 (없음 필터는 "null" 전달)' },
+                ],
             },
             {
                 id: 'ct-detail', group: '조회', method: 'GET', path: '/content-types/:id',
-                title: '상세 조회', desc: 'ID 또는 slug로 조회합니다', auth: true,
+                title: '상세 조회', desc: 'ID 또는 slug로 조회합니다 (응답에 소속 category 포함)', auth: true,
             },
             {
                 id: 'ct-create', group: '생성', method: 'POST', path: '/content-types',
-                title: '생성', desc: '새 콘텐츠 타입을 생성합니다', auth: true,
+                title: '생성', desc: '새 콘텐츠 폼을 생성합니다. categoryId는 선택 항목', auth: true,
                 body: json({
                     name: '게시판', slug: 'board',
                     description: '일반 게시판',
+                    categoryId: null,
                     fields: [
                         { name: 'title', label: '제목', type: 'text', required: true },
                         { name: 'content', label: '내용', type: 'richtext', required: true },
@@ -263,12 +267,47 @@ function buildApiSections(contentTypes, selectedType) {
             },
             {
                 id: 'ct-update', group: '수정', method: 'PATCH', path: '/content-types/:id',
-                title: '수정', desc: '콘텐츠 타입을 수정합니다', auth: true,
-                body: json({ name: '수정된 이름', description: '수정된 설명' }),
+                title: '수정', desc: '콘텐츠 폼을 수정합니다. categoryId를 null로 보내면 카테고리 해제', auth: true,
+                body: json({ name: '수정된 이름', description: '수정된 설명', categoryId: null }),
             },
             {
                 id: 'ct-delete', group: '삭제', method: 'DELETE', path: '/content-types/:id',
-                title: '삭제', desc: '콘텐츠 타입을 삭제합니다 (하위 콘텐츠도 삭제)', auth: true,
+                title: '삭제', desc: '콘텐츠 폼을 삭제합니다 (하위 콘텐츠도 삭제)', auth: true,
+            },
+        ],
+    });
+
+    // ─── 콘텐츠 폼 카테고리 (FormCategory) ───
+    sections.push({
+        id: 'form-categories',
+        category: 'admin',
+        title: '콘텐츠 폼 카테고리 (FormCategory)',
+        endpoints: [
+            {
+                id: 'fc-list', group: '조회', method: 'GET', path: '/form-categories',
+                title: '목록 조회', desc: '모든 카테고리를 order 오름차순으로 조회합니다 (소속 콘텐츠 폼 수 포함)', auth: true,
+            },
+            {
+                id: 'fc-detail', group: '조회', method: 'GET', path: '/form-categories/:id',
+                title: '상세 조회', desc: '카테고리 상세 + 소속 콘텐츠 폼 목록을 반환합니다', auth: true,
+            },
+            {
+                id: 'fc-create', group: '생성', method: 'POST', path: '/form-categories',
+                title: '생성', desc: '새 카테고리를 생성합니다 (이름이 고유 식별자 역할)', auth: true,
+                body: json({
+                    name: '유저 게시판',
+                    description: '사용자 참여형 게시판 묶음',
+                    order: 0,
+                }),
+            },
+            {
+                id: 'fc-update', group: '수정', method: 'PATCH', path: '/form-categories/:id',
+                title: '수정', desc: '카테고리 이름/설명/순서를 수정합니다', auth: true,
+                body: json({ name: '수정된 이름', order: 1 }),
+            },
+            {
+                id: 'fc-delete', group: '삭제', method: 'DELETE', path: '/form-categories/:id',
+                title: '삭제', desc: '카테고리 삭제 시 소속 콘텐츠 폼의 categoryId는 NULL로 유지됩니다 (폼은 삭제되지 않음)', auth: true,
             },
         ],
     });
@@ -346,7 +385,7 @@ function buildApiSections(contentTypes, selectedType) {
             },
             {
                 id: 'c-by-slug', method: 'GET', path: `/contents/${selectedType?.id}/slug/:slug`,
-                title: 'slug로 조회', auth: true, desc: '콘텐츠 타입 ID + slug로 단건 조회합니다',
+                title: 'slug로 조회', auth: true, desc: '콘텐츠 폼(ContentType) ID + slug로 단건 조회합니다',
             },
             // 게시판 확장
             {
@@ -509,7 +548,7 @@ function buildApiSections(contentTypes, selectedType) {
                 title: '통합 검색', auth: true, desc: 'MeiliSearch 기반 콘텐츠 통합 검색',
                 params: [
                     { name: 'q', type: 'string', desc: '검색어 (필수)' },
-                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 타입 필터' },
+                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 폼(ContentType) 필터' },
                     { name: 'status', type: 'string', desc: '상태 필터' },
                     { name: 'page', type: 'number', desc: '페이지 번호' },
                     { name: 'limit', type: 'number', desc: '페이지당 개수' },
@@ -572,12 +611,12 @@ function buildApiSections(contentTypes, selectedType) {
             {
                 id: 'ie-json', method: 'GET', path: '/import-export/export/json',
                 title: 'JSON 내보내기', auth: true, desc: '콘텐츠를 JSON으로 내보냅니다',
-                params: [{ name: 'contentTypeId', type: 'string', desc: '콘텐츠 타입 ID (필수)' }, { name: 'status', type: 'string', desc: '상태 필터' }],
+                params: [{ name: 'contentTypeId', type: 'string', desc: '콘텐츠 폼(ContentType) ID (필수)' }, { name: 'status', type: 'string', desc: '상태 필터' }],
             },
             {
                 id: 'ie-csv', method: 'GET', path: '/import-export/export/csv',
                 title: 'CSV 내보내기', auth: true, desc: '콘텐츠를 CSV로 내보냅니다 (엑셀 호환)',
-                params: [{ name: 'contentTypeId', type: 'string', desc: '콘텐츠 타입 ID (필수)' }],
+                params: [{ name: 'contentTypeId', type: 'string', desc: '콘텐츠 폼(ContentType) ID (필수)' }],
             },
             {
                 id: 'ie-preview', method: 'POST', path: '/import-export/import/preview',
@@ -652,7 +691,7 @@ function buildApiSections(contentTypes, selectedType) {
         endpoints: [
             {
                 id: 'dash-stats', method: 'GET', path: '/dashboard/stats',
-                title: '통계 조회', auth: true, desc: '콘텐츠/콘텐츠 타입/파일/사용자 수, 최근 활동, 저장소 사용량 등 대시보드 통계를 반환합니다',
+                title: '통계 조회', auth: true, desc: '콘텐츠/콘텐츠 폼/파일/사용자 수, 최근 활동, 저장소 사용량 등 대시보드 통계를 반환합니다',
             },
         ],
     });
@@ -674,8 +713,8 @@ function extractUrlParams(path) {
 const URL_PARAM_DESCRIPTIONS = {
     id: '리소스의 고유 ID (cuid 형식)',
     slug: '리소스의 고유 주소 (소문자/숫자/하이픈)',
-    contentTypeId: '콘텐츠 타입의 ID',
-    contentTypeSlug: '콘텐츠 타입의 고유 주소 (예: blog)',
+    contentTypeId: '콘텐츠 폼(ContentType)의 ID',
+    contentTypeSlug: '콘텐츠 폼(ContentType)의 고유 주소 (예: blog)',
     version: '버전 번호 (정수)',
     filename: '백업 파일명',
     userId: '사용자 ID',
@@ -921,17 +960,17 @@ const res = await fetch('${API_BASE}/contents', {
                                 onValueChange={(v) => setSelectedSlug(v === 'none' ? '' : v)}
                             >
                                 <SelectTrigger className="apiTypeSelectTrigger">
-                                    <SelectValue placeholder="콘텐츠 타입을 선택하세요" />
+                                    <SelectValue placeholder="콘텐츠 폼을 선택하세요" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="none">콘텐츠 타입을 선택하세요</SelectItem>
+                                    <SelectItem value="none">콘텐츠 폼을 선택하세요</SelectItem>
                                     {contentTypes.map((ct) => (
                                         <SelectItem key={ct.slug} value={ct.slug}>{ct.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             {!selectedType && (
-                                <p className="apiTypeHint">콘텐츠 타입을 선택하면 해당 타입의 API 사용법이 표시됩니다</p>
+                                <p className="apiTypeHint">콘텐츠 폼을 선택하면 해당 폼의 API 사용법이 표시됩니다</p>
                             )}
                         </div>
                     )}
@@ -1031,7 +1070,7 @@ const res = await fetch('${API_BASE}/contents', {
                     {currentSection?.endpoints.length === 0 && (
                         <div className="apiEmpty">
                             {currentSection.dynamic
-                                ? '위에서 콘텐츠 타입을 선택하세요'
+                                ? '위에서 콘텐츠 폼을 선택하세요'
                                 : '엔드포인트가 없습니다'}
                         </div>
                     )}

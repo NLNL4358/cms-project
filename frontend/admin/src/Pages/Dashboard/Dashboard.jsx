@@ -72,7 +72,7 @@ function Dashboard() {
             desc: `발행 ${stats.contents.byStatus.PUBLISHED || 0}건`,
         },
         hasPermission('content-type:read') && {
-            title: '콘텐츠 타입',
+            title: '콘텐츠 폼',
             value: stats.contentTypes,
             icon: Layers,
             onClick: () => navigate('/content-types'),
@@ -176,7 +176,7 @@ function Dashboard() {
                                 <FileText className="size-10 text-muted-foreground" />
                                 <p>아직 콘텐츠가 없습니다</p>
                                 <Button onClick={() => navigate('/content-types')}>
-                                    콘텐츠 타입 만들기
+                                    콘텐츠 폼 만들기
                                 </Button>
                             </div>
                         ) : (
@@ -185,7 +185,7 @@ function Dashboard() {
                                     <thead>
                                         <tr>
                                             <th>제목</th>
-                                            <th>콘텐츠 타입</th>
+                                            <th>콘텐츠 폼</th>
                                             <th>상태</th>
                                             <th>수정자</th>
                                             <th>수정일</th>

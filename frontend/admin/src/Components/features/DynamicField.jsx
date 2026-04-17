@@ -226,7 +226,7 @@ function renderField(field, fieldDef, popup) {
             if (msOptions.length === 0) {
                 return (
                     <p className="text-sm text-muted-foreground">
-                        콘텐츠 타입에서 선택 옵션을 정의해주세요
+                        콘텐츠 폼에서 선택 옵션을 정의해주세요
                     </p>
                 );
             }

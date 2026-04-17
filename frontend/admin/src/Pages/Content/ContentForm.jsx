@@ -194,10 +194,13 @@ function ContentForm({ readOnly = false }) {
     // 저장 후 발행 (생성 모드: 생성 → 발행 / 수정 모드: 저장 → 발행)
     const saveAndPublishMutation = useMutation({
         mutationFn: async (formData) => {
+            const slug = useSlugOption
+                ? formData.slug
+                : formData.slug || `auto-${Date.now()}`;
             const payload = {
                 contentTypeId: contentType.id,
                 title: formData.title,
-                slug: formData.slug,
+                slug,
                 data: formData.data,
             };
 
@@ -413,7 +416,7 @@ function ContentForm({ readOnly = false }) {
                 <div className="text-muted-foreground">
                     {contentTypes.length === 0
                         ? '불러오는 중...'
-                        : '콘텐츠 타입을 찾을 수 없습니다.'}
+                        : '콘텐츠 폼을 찾을 수 없습니다.'}
                 </div>
             </div>
         );

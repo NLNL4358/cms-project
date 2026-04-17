@@ -46,6 +46,13 @@ export function GlobalProvider({ children }) {
     enabled: !!user && !!accessToken && canReadContentTypes,
   });
 
+  /** 콘텐츠 폼 카테고리 — 사이드바 그룹핑 및 폼 드롭다운용 */
+  const { data: formCategories = [] } = useQuery({
+    queryKey: ["form-categories"],
+    queryFn: () => api.get("/form-categories").then((r) => r.data),
+    enabled: !!user && !!accessToken && canReadContentTypes,
+  });
+
   /** 시스템 설정 */
   const { data: settings = {} } = useQuery({
     queryKey: ["settings"],
@@ -71,7 +78,7 @@ export function GlobalProvider({ children }) {
   }, [settings.faviconUrl]);
 
   return (
-    <GlobalContext.Provider value={{ contentTypes, settings, isMobile, sidebarOpen, setSidebarOpen }}>
+    <GlobalContext.Provider value={{ contentTypes, formCategories, settings, isMobile, sidebarOpen, setSidebarOpen }}>
       {children}
     </GlobalContext.Provider>
   );

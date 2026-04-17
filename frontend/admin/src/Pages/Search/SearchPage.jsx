@@ -100,10 +100,10 @@ function SearchPage() {
                         }}
                     >
                         <SelectTrigger className="searchFilterSelect">
-                            <SelectValue placeholder="콘텐츠 타입 전체" />
+                            <SelectValue placeholder="콘텐츠 폼 전체" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">콘텐츠 타입 전체</SelectItem>
+                            <SelectItem value="all">콘텐츠 폼 전체</SelectItem>
                             {contentTypes.map((ct) => (
                                 <SelectItem key={ct.slug} value={ct.slug}>
                                     {ct.name}

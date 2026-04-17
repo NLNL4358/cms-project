@@ -26,6 +26,7 @@ import {
     Wrench,
     UserCog,
     FolderKanban,
+    Tags,
 } from 'lucide-react';
 
 import { useUser } from '@/Providers/UserContext.jsx';
@@ -48,9 +49,18 @@ const menuStructure = [
     },
     {
         type: 'item',
-        title: '콘텐츠 타입',
+        title: '콘텐츠 폼',
         path: '/content-types',
         icon: AppWindow,
+        permission: 'content-type:read',
+    },
+    {
+        type: 'item',
+        title: '카테고리',
+        path: '/form-categories',
+        icon: Tags,
+        // 라우트/목록 조회는 content-type:read로 열려있음 — 메뉴도 동일 권한으로 노출.
+        // 추가/수정/삭제 버튼은 FormCategoryList 내부에서 content-type:update로 분기.
         permission: 'content-type:read',
     },
     {
@@ -111,14 +121,20 @@ const menuStructure = [
     },
 ];
 
+/** 카테고리 없음 그룹을 식별하는 센티넬 키 */
+const UNCATEGORIZED_KEY = '__uncategorized__';
+
 function AppSidebar() {
     const { user, logout, hasPermission } = useUser();
-    const { contentTypes, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
+    const { contentTypes, formCategories, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
 
     // 한 번에 하나의 그룹만 펼쳐짐 (아코디언 방식)
     const [openGroup, setOpenGroup] = useState('content');
+
+    // 카테고리 서브그룹의 접힘 상태 — 기본은 모두 펼침(닫힌 것만 Set에 저장)
+    const [collapsedSubGroups, setCollapsedSubGroups] = useState(() => new Set());
 
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
@@ -174,24 +190,103 @@ function AppSidebar() {
         </li>
     );
 
-    /** 동적 콘텐츠 타입 목록 렌더링 (그룹 안에서) */
+    /** 서브그룹 토글 */
+    const toggleSubGroup = (key) => {
+        setCollapsedSubGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    };
+
+    /** 콘텐츠 폼을 카테고리별로 그룹핑 */
+    const buildContentGroups = () => {
+        if (contentTypes.length === 0) return [];
+
+        // 카테고리 메타 맵
+        const categoryMap = new Map(
+            (formCategories || []).map((c) => [c.id, c]),
+        );
+
+        // categoryId -> { category, items[] }
+        const groups = new Map();
+        contentTypes.forEach((ct) => {
+            const key = ct.categoryId || UNCATEGORIZED_KEY;
+            if (!groups.has(key)) {
+                const category =
+                    key === UNCATEGORIZED_KEY ? null : categoryMap.get(ct.categoryId) || null;
+                groups.set(key, { key, category, items: [] });
+            }
+            groups.get(key).items.push(ct);
+        });
+
+        // 정렬: 카테고리 order 오름차순, 그 다음 생성일, "카테고리 없음"은 맨 마지막
+        return Array.from(groups.values()).sort((a, b) => {
+            if (a.key === UNCATEGORIZED_KEY) return 1;
+            if (b.key === UNCATEGORIZED_KEY) return -1;
+            const aOrder = a.category?.order ?? 0;
+            const bOrder = b.category?.order ?? 0;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+            return (a.category?.name || '').localeCompare(b.category?.name || '');
+        });
+    };
+
+    /** 개별 콘텐츠 폼 링크 렌더링 */
+    const renderContentTypeLink = (ct) => (
+        <li key={ct.id}>
+            <a
+                href={`/contents/${ct.slug}`}
+                className={`menuItem menuItemChild ${isActive(`/contents/${ct.slug}`) ? 'active' : ''}`}
+                onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigate(`/contents/${ct.slug}`);
+                }}
+            >
+                <FileText className="menuIcon" />
+                <span>{ct.name}</span>
+            </a>
+        </li>
+    );
+
+    /** 동적 콘텐츠 목록 렌더링 — 카테고리별 그룹핑 */
     const renderDynamicContents = () => {
-        if (contentTypes.length === 0) return null;
-        return contentTypes.map((ct) => (
-            <li key={ct.id}>
-                <a
-                    href={`/contents/${ct.slug}`}
-                    className={`menuItem menuItemChild ${isActive(`/contents/${ct.slug}`) ? 'active' : ''}`}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleNavigate(`/contents/${ct.slug}`);
-                    }}
-                >
-                    <FileText className="menuIcon" />
-                    <span>{ct.name}</span>
-                </a>
-            </li>
-        ));
+        const groups = buildContentGroups();
+        if (groups.length === 0) return null;
+
+        // 카테고리가 하나도 없고 "카테고리 없음"만 있으면 서브그룹 헤더 없이 평면 렌더
+        const onlyUncategorized =
+            groups.length === 1 && groups[0].key === UNCATEGORIZED_KEY;
+        if (onlyUncategorized) {
+            return groups[0].items.map(renderContentTypeLink);
+        }
+
+        return groups.map(({ key, category, items }) => {
+            const label =
+                key === UNCATEGORIZED_KEY ? '카테고리 없음' : category?.name || '(이름 없음)';
+            const isCollapsed = collapsedSubGroups.has(key);
+
+            return (
+                <li key={key} className="menuSubGroup">
+                    <button
+                        type="button"
+                        className="menuSubGroupHeader"
+                        onClick={() => toggleSubGroup(key)}
+                    >
+                        <span className="menuSubGroupLabel">{label}</span>
+                        <span className="menuSubGroupCount">{items.length}</span>
+                        <ChevronDown
+                            className={`menuSubGroupChevron ${isCollapsed ? '' : 'open'}`}
+                        />
+                    </button>
+                    <div className={`menuSubGroupCollapse ${isCollapsed ? '' : 'open'}`}>
+                        <ul className="menuSubGroupList">
+                            {items.map(renderContentTypeLink)}
+                        </ul>
+                    </div>
+                </li>
+            );
+        });
     };
 
     return (

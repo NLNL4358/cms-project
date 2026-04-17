@@ -119,10 +119,29 @@ model ContentType {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // 카테고리 (선택)
+  categoryId  String?
+  category    FormCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
   // Relations
   contents Content[]
 
+  @@index([categoryId])
   @@map("content_types")
+}
+
+// 콘텐츠 폼(ContentType)을 묶는 카테고리
+model FormCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contentTypes ContentType[]
+
+  @@map("form_categories")
 }
 
 // =============================================

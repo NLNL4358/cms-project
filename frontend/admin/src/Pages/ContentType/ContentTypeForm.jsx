@@ -19,11 +19,22 @@ import {
 } from '@dnd-kit/sortable';
 
 import { useAPI } from '@/Providers/APIContext.jsx';
+import { useGlobal } from '@/Providers/GlobalContext.jsx';
 import { Button } from '@/Components/ui/Button.jsx';
 import { Input } from '@/Components/ui/Input.jsx';
 import { Label } from '@/Components/ui/label.jsx';
 import { Textarea } from '@/Components/ui/textarea.jsx';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/Select.jsx';
 import SortableFieldItem from './SortableFieldItem.jsx';
+
+/** "카테고리 없음"을 나타내는 Select 센티넬 값 (빈 문자열은 shadcn Select가 허용하지 않음) */
+const CATEGORY_NONE = '__none__';
 
 import "@/CSS/local/content.css"
 
@@ -77,6 +88,7 @@ const contentTypeSchema = z.object({
         .min(1, '고유주소를 입력하세요')
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, '소문자, 숫자, 하이픈만 가능'),
     description: z.string().optional(),
+    categoryId: z.string().optional(),
     fields: z.array(fieldSchema).min(1, '최소 1개의 입력 항목을 추가하세요'),
 });
 
@@ -87,6 +99,7 @@ const contentTypeSchema = z.object({
  */
 function ContentTypeForm() {
     const api = useAPI();
+    const { formCategories = [] } = useGlobal();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { id } = useParams();
@@ -109,6 +122,7 @@ function ContentTypeForm() {
             name: '',
             slug: '',
             description: '',
+            categoryId: CATEGORY_NONE,
             memberWritable: false,
             memberAutoPublish: false,
             useSlug: true,
@@ -163,6 +177,7 @@ function ContentTypeForm() {
                 name: existingData.name,
                 slug: existingData.slug,
                 description: existingData.description || '',
+                categoryId: existingData.categoryId || CATEGORY_NONE,
                 memberWritable: Boolean(opts.memberWritable),
                 memberAutoPublish: Boolean(opts.memberAutoPublish),
                 useSlug: opts.useSlug !== false,
@@ -227,9 +242,11 @@ function ContentTypeForm() {
     });
 
     const onSubmit = (data) => {
-        const { memberWritable, memberAutoPublish, useSlug, useInquiry, ...rest } = data;
+        const { memberWritable, memberAutoPublish, useSlug, useInquiry, categoryId, ...rest } = data;
         const payload = {
             ...rest,
+            // "카테고리 없음" 센티넬은 null로 변환 (백엔드에서도 null 또는 "" 모두 카테고리 해제로 처리)
+            categoryId: categoryId && categoryId !== CATEGORY_NONE ? categoryId : null,
             options: {
                 memberWritable: Boolean(memberWritable),
                 memberAutoPublish: Boolean(memberAutoPublish),
@@ -267,14 +284,14 @@ function ContentTypeForm() {
                         <ArrowLeft className="size-4" />
                     </Button>
                     <h2 className="text-2xl font-bold">
-                        {isEdit ? '콘텐츠 타입 수정' : '새 콘텐츠 타입'}
+                        {isEdit ? '콘텐츠 폼 수정' : '새 콘텐츠 폼'}
                     </h2>
                 </div>
                 <div>
                     <p className="pageDescription">
                         {isEdit
-                            ? '콘텐츠 타입의 정보와 입력 항목을 수정합니다'
-                            : '콘텐츠의 구조를 정의하는 새 타입을 생성합니다'}
+                            ? '콘텐츠 폼의 정보와 입력 항목을 수정합니다'
+                            : '콘텐츠의 구조를 정의하는 새 폼을 생성합니다'}
                     </p>
                 </div>
             </div>
@@ -343,10 +360,42 @@ function ContentTypeForm() {
                             <Label htmlFor="description">설명</Label>
                             <Textarea
                                 id="description"
-                                placeholder="콘텐츠 타입에 대한 설명을 입력하세요"
+                                placeholder="콘텐츠 폼에 대한 설명을 입력하세요"
                                 {...register('description')}
                             />
                         </div>
+
+                        {/* 카테고리 — uncontrolled Select (Radix의 controlled 모드 value 덮어쓰기 이슈 회피).
+                            initial value는 defaultValue로 한 번만 주입, 이후 변경은 onValueChange로 rhf에 반영.
+                            existingData 준비 후에만 렌더해서 defaultValue가 올바르게 적용되도록 보장. */}
+                        {(!isEdit || existingData) && (
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="categoryId">카테고리</Label>
+                                <Select
+                                    defaultValue={existingData?.categoryId || CATEGORY_NONE}
+                                    onValueChange={(v) =>
+                                        setValue('categoryId', v, { shouldDirty: true })
+                                    }
+                                >
+                                    <SelectTrigger id="categoryId">
+                                        <SelectValue placeholder="카테고리를 선택하세요" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={CATEGORY_NONE}>
+                                            카테고리 없음
+                                        </SelectItem>
+                                        {formCategories.map((cat) => (
+                                            <SelectItem key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="helpText text-muted-foreground">
+                                    같은 카테고리의 콘텐츠 폼들이 사이드바에서 하나의 그룹으로 묶여 표시됩니다.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -367,7 +416,7 @@ function ContentTypeForm() {
                                     회원이 작성 가능
                                 </span>
                                 <span className="ctOptionDesc">
-                                    체크하면 외부 사이트의 일반 회원이 이 콘텐츠 타입에
+                                    체크하면 외부 사이트의 일반 회원이 이 콘텐츠 폼에
                                     글을 작성할 수 있습니다 (예: 게시판, 댓글)
                                 </span>
                             </div>

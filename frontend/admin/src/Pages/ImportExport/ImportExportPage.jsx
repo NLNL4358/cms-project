@@ -105,7 +105,7 @@ function ExportSection({ api, contentTypes, makePopup, closePopup }) {
             makePopup(
                 <AlertPopup
                     title="선택 필요"
-                    body="내보낼 콘텐츠 타입을 선택하세요."
+                    body="내보낼 콘텐츠 폼을 선택하세요."
                     buttonFunction={() => closePopup()}
                 />,
             );
@@ -161,13 +161,13 @@ function ExportSection({ api, contentTypes, makePopup, closePopup }) {
             <div className="contentColumnWrap">
                 <div className="ieRow">
                     <div className="flex flex-col flex-1">
-                        <Label>콘텐츠 타입</Label>
+                        <Label>콘텐츠 폼</Label>
                         <Select
                             value={contentTypeId}
                             onValueChange={setContentTypeId}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="콘텐츠 타입 선택" />
+                                <SelectValue placeholder="콘텐츠 폼 선택" />
                             </SelectTrigger>
                             <SelectContent>
                                 {contentTypes.map((ct) => (
@@ -294,7 +294,7 @@ function ImportSection({ api, contentTypes, makePopup, closePopup }) {
             makePopup(
                 <AlertPopup
                     title="선택 필요"
-                    body="가져올 콘텐츠 타입을 선택하세요."
+                    body="가져올 콘텐츠 폼을 선택하세요."
                     buttonFunction={() => closePopup()}
                 />,
             );
@@ -356,13 +356,13 @@ function ImportSection({ api, contentTypes, makePopup, closePopup }) {
                 </div>
                 <div className="contentColumnWrap">
                     <div className="flex flex-col">
-                        <Label>콘텐츠 타입</Label>
+                        <Label>콘텐츠 폼</Label>
                         <Select
                             value={contentTypeId}
                             onValueChange={setContentTypeId}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="콘텐츠 타입 선택" />
+                                <SelectValue placeholder="콘텐츠 폼 선택" />
                             </SelectTrigger>
                             <SelectContent>
                                 {contentTypes.map((ct) => (

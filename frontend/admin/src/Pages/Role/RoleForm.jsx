@@ -35,7 +35,7 @@ const PERMISSION_GROUPS = [
     },
     {
         resource: 'content-type',
-        label: '콘텐츠 타입',
+        label: '콘텐츠 폼',
         actions: [
             { value: 'content-type:read', label: '조회' },
             { value: 'content-type:create', label: '생성' },

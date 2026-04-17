@@ -21,7 +21,7 @@ export class RoleService {
     });
 
     if (existingRole) {
-      throw new ConflictException('이미 사용 중인 slug입니다');
+      throw new ConflictException('이미 사용 중인 고유주소입니다');
     }
 
     // Name 중복 확인
@@ -119,7 +119,7 @@ export class RoleService {
       });
 
       if (existingRole) {
-        throw new ConflictException('이미 사용 중인 slug입니다');
+        throw new ConflictException('이미 사용 중인 고유주소입니다');
       }
     }
 

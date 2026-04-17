@@ -9,12 +9,14 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ContentTypeService } from './content-type.service';
 import { CreateContentTypeDto } from './dto/create-content-type.dto';
@@ -38,7 +40,7 @@ export class ContentTypeController {
     description: '새로운 콘텐츠 타입을 생성합니다',
   })
   @ApiResponse({ status: 201, description: '콘텐츠 타입 생성 성공' })
-  @ApiResponse({ status: 409, description: '이미 사용 중인 slug' })
+  @ApiResponse({ status: 409, description: '이미 사용 중인 고유주소' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
   create(@Body() createContentTypeDto: CreateContentTypeDto) {
@@ -49,13 +51,19 @@ export class ContentTypeController {
   @Permissions('content-type:read', 'content-type:*', 'content:read', 'content:*', '*')
   @ApiOperation({
     summary: '콘텐츠 타입 목록 조회',
-    description: '모든 콘텐츠 타입을 조회합니다 (콘텐츠 조회 권한으로도 접근 가능)',
+    description:
+      '모든 콘텐츠 타입을 조회합니다. ?categoryId=xxx로 카테고리 필터, ?categoryId=null로 카테고리 없는 폼만 조회 가능.',
+  })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    description: '카테고리 ID (없음 필터는 "null" 문자열 전달)',
   })
   @ApiResponse({ status: 200, description: '조회 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
-  findAll() {
-    return this.contentTypeService.findAll();
+  findAll(@Query('categoryId') categoryId?: string) {
+    return this.contentTypeService.findAll(categoryId);
   }
 
   @Get(':id')
@@ -80,7 +88,7 @@ export class ContentTypeController {
   })
   @ApiResponse({ status: 200, description: '수정 성공' })
   @ApiResponse({ status: 404, description: '콘텐츠 타입을 찾을 수 없음' })
-  @ApiResponse({ status: 409, description: '이미 사용 중인 slug' })
+  @ApiResponse({ status: 409, description: '이미 사용 중인 고유주소' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
   update(

@@ -19,13 +19,13 @@ export class CreateContentTypeDto {
 
   @ApiProperty({
     example: 'blog-post',
-    description: '콘텐츠 타입 slug (소문자, 숫자, 하이픈만 가능)',
+    description: '고유주소 (소문자, 숫자, 하이픈만 가능)',
     pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '고유주소를 입력하세요' })
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'slug는 소문자, 숫자, 하이픈(-)만 사용 가능합니다',
+    message: '고유주소는 소문자, 숫자, 하이픈(-)만 사용 가능합니다',
   })
   slug: string;
 
@@ -58,4 +58,13 @@ export class CreateContentTypeDto {
   @IsObject()
   @IsOptional()
   options?: Record<string, any>;
+
+  @ApiProperty({
+    example: 'clxxxxxxxx',
+    description: '소속 카테고리 ID (없으면 카테고리 없음)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  categoryId?: string | null;
 }

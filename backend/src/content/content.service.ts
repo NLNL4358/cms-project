@@ -41,7 +41,7 @@ export class ContentService {
       },
     });
     if (existing) {
-      throw new ConflictException('이미 사용 중인 slug입니다');
+      throw new ConflictException('이미 사용 중인 고유주소입니다');
     }
 
     // 예약 발행 검증
@@ -321,7 +321,7 @@ export class ContentService {
         },
       });
       if (duplicate) {
-        throw new ConflictException('이미 사용 중인 slug입니다');
+        throw new ConflictException('이미 사용 중인 고유주소입니다');
       }
     }
 

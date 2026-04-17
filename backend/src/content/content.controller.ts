@@ -44,7 +44,7 @@ export class ContentController {
   })
   @ApiResponse({ status: 201, description: '콘텐츠 생성 성공' })
   @ApiResponse({ status: 404, description: '콘텐츠 타입을 찾을 수 없음' })
-  @ApiResponse({ status: 409, description: '이미 사용 중인 slug' })
+  @ApiResponse({ status: 409, description: '이미 사용 중인 고유주소' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
   create(
@@ -144,7 +144,7 @@ export class ContentController {
   })
   @ApiResponse({ status: 200, description: '수정 성공' })
   @ApiResponse({ status: 404, description: '콘텐츠를 찾을 수 없음' })
-  @ApiResponse({ status: 409, description: '이미 사용 중인 slug' })
+  @ApiResponse({ status: 409, description: '이미 사용 중인 고유주소' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
   update(

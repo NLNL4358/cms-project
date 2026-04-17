@@ -314,7 +314,7 @@ function ContentList() {
                 <div className="text-muted-foreground">
                     {contentTypes.length === 0
                         ? '불러오는 중...'
-                        : '콘텐츠 타입을 찾을 수 없습니다.'}
+                        : '콘텐츠 폼을 찾을 수 없습니다.'}
                 </div>
             </div>
         );

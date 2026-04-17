@@ -40,7 +40,7 @@ function ContentTypeList() {
             makePopup(
                 <AlertPopup
                     title="삭제 완료"
-                    body={<p>콘텐츠 타입이 삭제되었습니다.</p>}
+                    body={<p>콘텐츠 폼이 삭제되었습니다.</p>}
                     buttonFunction={() => closePopup()}
                 />,
             );
@@ -74,6 +74,19 @@ function ContentTypeList() {
             cell: ({ row }) => (
                 <Badge variant="secondary">{row.original.slug}</Badge>
             ),
+        },
+        {
+            id: 'category',
+            header: '카테고리',
+            cell: ({ row }) => {
+                const cat = row.original.category;
+                if (!cat) {
+                    return (
+                        <span className="text-muted-foreground">-</span>
+                    );
+                }
+                return <Badge variant="outline">{cat.name}</Badge>;
+            },
         },
         {
             id: 'fieldCount',
@@ -122,14 +135,14 @@ function ContentTypeList() {
                         e.stopPropagation();
                         makePopup(
                             <YesNoPopup
-                                title="콘텐츠 타입 삭제"
+                                title="콘텐츠 폼 삭제"
                                 body={
                                     <>
                                         <p>
-                                            {`"${row.original.name}" 콘텐츠 타입을 삭제하시겠습니까?`}
+                                            {`"${row.original.name}" 콘텐츠 폼을 삭제하시겠습니까?`}
                                         </p>
                                         <p>
-                                            이 타입에 연결된 콘텐츠가 있으면
+                                            이 폼에 연결된 콘텐츠가 있으면
                                             삭제할 수 없습니다.
                                         </p>
                                     </>
@@ -155,26 +168,13 @@ function ContentTypeList() {
 
     // 테이블 컬럼의 길이와 align방향 colgroup
     const colWidths = [
-        {
-            width: 'auto',
-        },
-        {
-            width: '15%',
-        },
-        {
-            width: '10%',
-        },
-        {
-            width: '15%',
-        },
-        {
-            width: '5%',
-            align: 'center',
-        },
-        {
-            width: '5%',
-            align: 'center',
-        },
+        { width: 'auto' },          // 이름
+        { width: '14%' },           // 고유주소
+        { width: '13%', align: 'center' }, // 카테고리
+        { width: '8%', align: 'center' },  // 항목 수
+        { width: '12%' },           // 생성일
+        { width: '5%', align: 'center' },  // 수정
+        { width: '5%', align: 'center' },  // 삭제
     ];
 
     return (
@@ -182,9 +182,9 @@ function ContentTypeList() {
             {/* 페이지 헤더 */}
             <div className="pageHeadWrap flex items-end justify-between">
                 <div className="pageTitle">
-                    <h2 className="pageHead">콘텐츠 타입</h2>
+                    <h2 className="pageHead">콘텐츠 폼</h2>
                     <p className="pageDescription">
-                        콘텐츠의 구조를 정의하는 타입을 관리합니다
+                        콘텐츠의 구조를 정의하는 폼을 관리합니다
                     </p>
                 </div>
                 <Button
@@ -192,7 +192,7 @@ function ContentTypeList() {
                     onClick={() => navigate('/content-types/new')}
                 >
                     <Plus className="size-5" />
-                    콘텐츠 타입 추가
+                    콘텐츠 폼 추가
                 </Button>
             </div>
 
@@ -203,7 +203,7 @@ function ContentTypeList() {
                     colWidths={colWidths}
                     data={contentTypes}
                     isLoading={isLoading}
-                    emptyMessage="등록된 콘텐츠 타입이 없습니다. 새 콘텐츠 타입을 생성해보세요."
+                    emptyMessage="등록된 콘텐츠 폼이 없습니다. 새 콘텐츠 폼을 생성해보세요."
                     onRowClick={(row) =>
                         navigate(`/content-types/${row.id}/edit`)
                     }

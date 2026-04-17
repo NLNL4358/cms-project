@@ -13,7 +13,8 @@ import NotificationBell from '@/Components/layout/NotificationBell.jsx';
 
 /** 경로 → 브레드크럼 라벨 매핑 */
 const pathLabels = {
-    'content-types': '콘텐츠 타입',
+    'content-types': '콘텐츠 폼',
+    'form-categories': '카테고리',
     contents: '콘텐츠',
     media: '파일 관리',
     roles: '역할/권한',
