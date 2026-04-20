@@ -47,14 +47,14 @@
 | 유형 | 규칙 | 예시 |
 |------|------|------|
 | **파일명** | kebab-case | `user-profile.ts` |
-| **폴더명** | kebab-case | `content-types/` |
+| **폴더명** | kebab-case | `content-form/`, `form-category/` |
 | **컴포넌트 (React)** | PascalCase | `UserProfile.tsx` |
 | **변수** | camelCase | `userName` |
 | **상수** | UPPER_SNAKE_CASE | `API_BASE_URL` |
 | **함수** | camelCase (동사 시작) | `getUserProfile()` |
 | **클래스** | PascalCase | `ContentService` |
 | **인터페이스** | PascalCase | `UserProfile` |
-| **타입** | PascalCase | `ContentType` |
+| **타입** | PascalCase | `ContentForm`, `FormCategory` |
 | **Enum** | PascalCase | `UserRole` |
 | **Enum 멤버** | UPPER_SNAKE_CASE | `SUPER_ADMIN` |
 
@@ -342,27 +342,27 @@ export class ContentsModule {}
 
 ```typescript
 // contents.controller.ts
-@Controller('api/v1/contents/:contentType')
+@Controller('api/v1/contents/:contentForm')
 @UseGuards(JwtAuthGuard)
 export class ContentsController {
   constructor(private readonly contentsService: ContentsService) {}
 
   @Get()
   async findAll(
-    @Param('contentType') contentType: string,
+    @Param('contentForm') contentForm: string,
     @Query() query: ContentQueryDto
   ): Promise<PaginatedResponse<Content>> {
-    return this.contentsService.findAll(contentType, query);
+    return this.contentsService.findAll(contentForm, query);
   }
 
   @Post()
   @Permissions('content:create')
   async create(
-    @Param('contentType') contentType: string,
+    @Param('contentForm') contentForm: string,
     @Body() dto: CreateContentDto,
     @CurrentUser() user: User
   ): Promise<Content> {
-    return this.contentsService.create(contentType, dto, user);
+    return this.contentsService.create(contentForm, dto, user);
   }
 }
 ```
@@ -376,12 +376,12 @@ export class ContentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(
-    contentType: string,
+    contentForm: string,
     query: ContentQueryDto
   ): Promise<PaginatedResponse<Content>> {
     const { page = 1, limit = 20, search, sort } = query;
 
-    const where = this.buildWhereClause(contentType, search);
+    const where = this.buildWhereClause(contentForm, search);
     const orderBy = this.buildOrderBy(sort);
 
     const [items, total] = await Promise.all([
@@ -406,7 +406,7 @@ export class ContentsService {
   }
 
   // Private 메서드는 하단에 배치
-  private buildWhereClause(contentType: string, search?: string) {
+  private buildWhereClause(contentForm: string, search?: string) {
     // ...
   }
 }
@@ -441,7 +441,7 @@ export class CreateContentDto {
 ```typescript
 // 표준 NestJS 예외 사용
 throw new NotFoundException('Content not found');
-throw new BadRequestException('Invalid content type');
+throw new BadRequestException('Invalid content form');
 throw new ForbiddenException('Permission denied');
 throw new UnauthorizedException('Invalid credentials');
 
@@ -537,7 +537,8 @@ enum UserType {
 ### 브랜치 네이밍
 
 ```
-feature/content-type-crud
+feature/content-form-crud
+feature/form-category-crud
 feature/page-builder-dnd
 fix/login-token-refresh
 hotfix/security-patch
@@ -568,9 +569,9 @@ hotfix/security-patch
 #### 예시
 
 ```
-feat(content): 콘텐츠 타입 CRUD 기능 추가
+feat(content-form): 콘텐츠 폼 CRUD 기능 추가
 
-- 콘텐츠 타입 생성/수정/삭제 API 구현
+- 콘텐츠 폼 생성/수정/삭제 API 구현
 - 필드 정의 스키마 검증 추가
 - 관련 테스트 작성
 
@@ -590,7 +591,7 @@ Fixes #456
 
 ```markdown
 ## 변경 사항
-- 콘텐츠 타입 CRUD API 구현
+- 콘텐츠 폼 CRUD API 구현
 - 필드 타입 검증 로직 추가
 
 ## 테스트

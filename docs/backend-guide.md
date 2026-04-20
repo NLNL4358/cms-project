@@ -180,7 +180,8 @@ export class UserModule {}
   imports: [
     PrismaModule,
     AuthModule,
-    ContentTypeModule,
+    FormCategoryModule,
+    ContentFormModule,
     ContentModule,
     MediaModule,
     RoleModule,
@@ -831,5 +832,5 @@ const user = await this.prisma.user.findUnique({
 ## 다음 학습 추천
 
 1. **Swagger UI 확인하기**: `http://localhost:3000/api-docs` 접속 → 모든 API를 브라우저에서 테스트 가능
-2. **기존 모듈 읽어보기**: `backend/src/content/` 폴더의 코드를 이 문서와 대조하며 읽어보기
+2. **기존 모듈 읽어보기**: `backend/src/content/`, `backend/src/content-form/`, `backend/src/form-category/` 폴더의 코드를 이 문서와 대조하며 읽어보기
 3. **Prisma Studio**: `npx prisma studio` 실행 → 브라우저에서 DB 데이터를 직접 확인/수정 가능

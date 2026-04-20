@@ -104,9 +104,9 @@
 | 역할 | 권한 |
 |------|------|
 | **super-admin** | `*` (모든 권한) |
-| **admin** | `content-type:*`, `content:*`, `media:*`, `user:read`, `role:read` |
-| **editor** | `content:read`, `content:create`, `content:update`, `content-type:read`, `media:read`, `media:create`, `media:update` |
-| **viewer** | `content:read`, `content-type:read`, `media:read` |
+| **admin** | `form-category:*`, `content-form:*`, `content:*`, `media:*`, `user:read`, `role:read` |
+| **editor** | `content:read`, `content:create`, `content:update`, `content-form:read`, `form-category:read`, `media:read`, `media:create`, `media:update` |
+| **viewer** | `content:read`, `content-form:read`, `form-category:read`, `media:read` |
 
 #### 엔드포인트별 필요 권한
 
@@ -122,10 +122,15 @@
 | | POST /user-roles/requests/:id/reject | `role:assign`, `*` |
 | | GET /user-roles/users/:id/roles | `user:read`, `*` |
 | | DELETE /user-roles/users/:id/roles/:roleId | `role:assign`, `*` |
-| **Content Types** | POST /content-types | `content-type:create`, `content-type:*`, `*` |
-| | GET /content-types | `content-type:read`, `content-type:*`, `*` |
-| | PATCH /content-types/:id | `content-type:update`, `content-type:*`, `*` |
-| | DELETE /content-types/:id | `content-type:delete`, `content-type:*`, `*` |
+| **Form Categories** | POST /form-categories | `form-category:create`, `content-form:create`, `*` |
+| | GET /form-categories | `form-category:read`, `content-form:read`, `*` |
+| | PATCH /form-categories/:id | `form-category:update`, `content-form:update`, `*` |
+| | DELETE /form-categories/:id | `form-category:delete`, `content-form:delete`, `*` |
+| **Content Forms** | POST /content-forms | `content-form:create`, `content-form:*`, `*` |
+| | GET /content-forms | `content-form:read`, `content-form:*`, `*` |
+| | PATCH /content-forms/:id | `content-form:update`, `content-form:*`, `*` |
+| | DELETE /content-forms/:id | `content-form:delete`, `content-form:*`, `*` |
+| **Public (외부)** | GET /public/content-forms | API 키 + `content-form:read` |
 | **Contents** | POST /contents | `content:create`, `content:*`, `*` |
 | | GET /contents | `content:read`, `content:*`, `*` |
 | | PATCH /contents/:id | `content:update`, `content:*`, `*` |
@@ -164,11 +169,13 @@
 
 ---
 
-## 2. 콘텐츠 타입 시스템 (Content Type System)
+## 2. 콘텐츠 폼 시스템 (Content Form System)
+
+> 이전 명칭: 콘텐츠 타입 시스템. 내부 리네이밍으로 ContentType → ContentForm, `/content-types` → `/content-forms`, 권한 `content-type:*` → `content-form:*`로 일괄 변경됨. FormCategory 엔티티로 그룹핑 지원.
 
 ### 2.1 필드 타입 목록
 
-사용자가 콘텐츠 타입을 정의할 때 선택할 수 있는 필드 타입:
+사용자가 콘텐츠 폼을 정의할 때 선택할 수 있는 필드 타입:
 
 #### 기본 필드
 
@@ -257,17 +264,25 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                 content_types                        │
-│  콘텐츠 타입 정의 (게시글, 상품 등)                    │
+│                 form_categories                      │
+│  콘텐츠 폼 카테고리 (FormCategory)                    │
 ├─────────────────────────────────────────────────────┤
-│  id, name, slug, fields(JSONB), settings(JSONB)     │
+│  id, name, slug, order, created_at, updated_at      │
+└─────────────────────────────────────────────────────┘
+                         ↓ (1:N, SetNull)
+┌─────────────────────────────────────────────────────┐
+│                 content_forms                        │
+│  콘텐츠 폼 정의 (게시글, 상품 등 — 이전: content_types) │
+├─────────────────────────────────────────────────────┤
+│  id, name, slug, category_id, fields(JSONB),        │
+│  settings(JSONB)                                    │
 └─────────────────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────┐
 │                    contents                          │
 │  실제 콘텐츠 데이터                                   │
 ├─────────────────────────────────────────────────────┤
-│  id, content_type_id, data(JSONB), status,          │
+│  id, content_form_id, data(JSONB), status,          │
 │  created_at, updated_at, published_at               │
 └─────────────────────────────────────────────────────┘
 ```
@@ -313,12 +328,22 @@ user_roles
 ├── user_id (FK)
 └── role_id (FK)
 
--- 콘텐츠 타입 정의
-content_types
+-- 콘텐츠 폼 카테고리 (FormCategory)
+form_categories
+├── id (PK)
+├── name
+├── slug (UNIQUE)
+├── order (INT)           -- 사이드바 정렬 순서
+├── created_at
+└── updated_at
+
+-- 콘텐츠 폼 정의 (이전 명칭: content_types)
+content_forms
 ├── id (PK)
 ├── name
 ├── slug (UNIQUE)
 ├── description
+├── category_id (FK, nullable, SetNull)  -- FormCategory 참조
 ├── fields (JSONB)        -- 필드 정의
 ├── settings (JSONB)      -- 추가 설정
 └── created_at
@@ -326,7 +351,7 @@ content_types
 -- 콘텐츠
 contents
 ├── id (PK)
-├── content_type_id (FK)
+├── content_form_id (FK)  -- 이전 명칭: content_type_id
 ├── data (JSONB)          -- 실제 데이터
 ├── status (draft | review | approved | published)
 ├── author_id (FK)
@@ -406,7 +431,7 @@ audit_logs
 
 ### 3.4 JSONB 필드 예시
 
-**content_types.fields 예시:**
+**content_forms.fields 예시:**
 ```json
 [
   {
@@ -697,7 +722,8 @@ interface SearchEngine {
 |-----------|-----|-------------|
 | 콘텐츠 목록 | 5분 | 생성/수정/삭제 시 |
 | 콘텐츠 상세 | 10분 | 수정/삭제 시 |
-| 콘텐츠 타입 정의 | 1시간 | 수정 시 |
+| 콘텐츠 폼 정의 | 1시간 | 수정 시 |
+| 콘텐츠 폼 카테고리 | 1시간 | 수정 시 |
 | 페이지 | 10분 | 수정 시 |
 
 ---
@@ -713,7 +739,7 @@ interface SearchEngine {
 // app.module.ts (개념)
 const edition = process.env.CMS_EDITION || 'starter';
 
-const coreModules = [AuthModule, ContentTypeModule, ContentModule, MediaModule, RoleModule, ...];
+const coreModules = [AuthModule, FormCategoryModule, ContentFormModule, ContentModule, MediaModule, RoleModule, ...];
 const businessModules = edition !== 'starter' ? [PageModule, TemplateModule, ComponentModule, I18nModule, SeoModule] : [];
 const enterpriseModules = edition === 'enterprise' ? [WorkflowModule, InternalCommentModule, SsoModule, MultiSiteModule, GraphqlModule, ...] : [];
 
@@ -728,7 +754,8 @@ src/
 │   ├── auth/            # 인증/인가 [Starter+]
 │   ├── users/           # 사용자 관리 [Starter+]
 │   ├── roles/           # 역할/권한 [Starter+]
-│   ├── content-types/   # 콘텐츠 타입 정의 [Starter+]
+│   ├── form-category/   # 콘텐츠 폼 카테고리 [Starter+]
+│   ├── content-form/    # 콘텐츠 폼 정의 (이전: content-types) [Starter+]
 │   ├── contents/        # 콘텐츠 CRUD [Starter+]
 │   ├── media/           # 미디어 관리 [Starter+]
 │   ├── notifications/   # 알림 [Starter+]
@@ -831,5 +858,5 @@ REDIS_URL=redis://localhost:6379
 - 콘텐츠 생성/수정/삭제 시 비동기로 MeiliSearch 인덱스 업데이트
 - 발행(PUBLISHED) 상태 콘텐츠만 인덱싱
 - 미발행/삭제 시 인덱스에서 제거
-- 인덱싱 대상 필드: title, slug, data(동적 필드), contentType.name
+- 인덱싱 대상 필드: title, slug, data(동적 필드), contentForm.name
 - BullMQ 큐를 통해 비동기 처리 (실패 시 재시도)

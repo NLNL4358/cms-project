@@ -92,7 +92,8 @@ backend/
 │   │   ├── auth/                   # 인증 [Starter+]
 │   │   ├── users/                  # 사용자 (관리자 + 회원) [Starter+]
 │   │   ├── roles/                  # 역할/권한 [Starter+]
-│   │   ├── content-types/          # 콘텐츠 타입 정의 [Starter+]
+│   │   ├── form-category/          # 콘텐츠 폼 카테고리 [Starter+]
+│   │   ├── content-form/           # 콘텐츠 폼 정의 [Starter+]
 │   │   ├── contents/               # 콘텐츠 CRUD [Starter+]
 │   │   ├── media/                  # 미디어 관리 [Starter+]
 │   │   ├── notifications/          # 알림 [Starter+]
@@ -176,24 +177,36 @@ modules/auth/
     └── jwt-payload.interface.ts
 ```
 
-### 콘텐츠 타입 모듈
+### 콘텐츠 폼 모듈
 
 ```
-modules/content-types/
-├── content-types.module.ts
-├── content-types.controller.ts
-├── content-types.service.ts
+modules/content-form/
+├── content-form.module.ts
+├── content-form.controller.ts
+├── content-form.service.ts
 ├── dto/
-│   ├── create-content-type.dto.ts
-│   ├── update-content-type.dto.ts
+│   ├── create-content-form.dto.ts
+│   ├── update-content-form.dto.ts
 │   └── field-definition.dto.ts
 ├── entities/
-│   └── content-type.entity.ts
+│   └── content-form.entity.ts
 ├── validators/                     # 필드 타입 검증
 │   ├── field-validator.ts
 │   └── relation-validator.ts
 └── constants/
     └── field-types.constant.ts
+```
+
+### 콘텐츠 폼 카테고리 모듈
+
+```
+modules/form-category/
+├── form-category.module.ts
+├── form-category.controller.ts
+├── form-category.service.ts
+└── dto/
+    ├── create-form-category.dto.ts
+    └── update-form-category.dto.ts
 ```
 
 ---
@@ -214,20 +227,23 @@ frontend/admin/
 │   │   ├── PopupContext.jsx        # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
 │   │   ├── APIContext.jsx          # Axios 인스턴스 + 인터셉터 (tokenRef + popupRef 패턴)
 │   │   ├── UserContext.jsx         # 인증 상태 (login, logout, refresh, localStorage persist)
-│   │   └── GlobalContext.jsx       # 전역 서버 데이터 (contentTypes, isMobile, sidebarOpen)
+│   │   └── GlobalContext.jsx       # 전역 서버 데이터 (contentForms, formCategories, isMobile, sidebarOpen)
 │   │
 │   ├── Pages/                      # 페이지 컴포넌트
 │   │   ├── System/
 │   │   │   └── Login.jsx           # 로그인 (구현 완료)
 │   │   ├── Router/                 # 섹션별 라우터 (Outlet 래퍼)
-│   │   │   ├── ContentTypeRouter.jsx
+│   │   │   ├── ContentFormRouter.jsx
+│   │   │   ├── FormCategoryRouter.jsx
 │   │   │   ├── ContentRouter.jsx
 │   │   │   ├── MediaRouter.jsx
 │   │   │   └── RoleRouter.jsx
 │   │   ├── Dashboard/
 │   │   │   └── Dashboard.jsx       # 대시보드 (플레이스홀더)
-│   │   ├── ContentType/
-│   │   │   └── ContentTypeList.jsx # 콘텐츠 타입 목록 (플레이스홀더)
+│   │   ├── ContentForm/            # 콘텐츠 폼 관리 (이전: ContentType)
+│   │   │   └── ContentFormList.jsx # 콘텐츠 폼 목록
+│   │   ├── FormCategory/           # 콘텐츠 폼 카테고리 관리
+│   │   │   └── FormCategoryList.jsx
 │   │   ├── Content/
 │   │   │   └── ContentList.jsx     # 콘텐츠 목록 (플레이스홀더)
 │   │   ├── Media/
@@ -341,7 +357,8 @@ packages/types/
 ├── src/
 │   ├── auth.ts                     # 인증 관련 타입
 │   ├── content.ts                  # 콘텐츠 관련 타입
-│   ├── content-type.ts             # 콘텐츠 타입 관련
+│   ├── content-form.ts             # 콘텐츠 폼 관련 (이전: content-type)
+│   ├── form-category.ts            # 콘텐츠 폼 카테고리 관련
 │   ├── page.ts                     # 페이지 관련 타입
 │   ├── media.ts                    # 미디어 관련 타입
 │   ├── user.ts                     # 사용자 관련 타입
@@ -352,10 +369,10 @@ packages/types/
 └── package.json
 ```
 
-**예시 - content-type.ts:**
+**예시 - content-form.ts:**
 
 ```typescript
-// packages/types/src/content-type.ts
+// packages/types/src/content-form.ts
 
 export type FieldType =
   | 'text'
@@ -402,12 +419,22 @@ export interface FieldOptions {
   relationType?: 'oneToOne' | 'oneToMany' | 'manyToMany';
 }
 
-export interface ContentType {
+export interface ContentForm {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  categoryId?: string | null;
   fields: FieldDefinition[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FormCategory {
+  id: string;
+  name: string;
+  slug: string;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -421,7 +448,7 @@ export interface ContentType {
 
 | 유형 | 네이밍 | 예시 |
 |------|--------|------|
-| 디렉토리 | kebab-case | `content-types/`, `page-builder/` |
+| 디렉토리 | kebab-case | `content-form/`, `form-category/`, `page-builder/` |
 | React 컴포넌트 | PascalCase | `ContentList.tsx`, `PageBuilder.tsx` |
 | 훅 | camelCase (use 접두사) | `useContents.ts`, `useAuth.ts` |
 | 유틸 함수 | camelCase | `formatDate.ts`, `parseQuery.ts` |

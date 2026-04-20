@@ -21,7 +21,7 @@
   - `PopupProvider`: 팝업/로딩 스피너 전역 상태 관리
   - `APIProvider`: Axios 인스턴스 제공 (모든 API 요청의 단일 진입점)
   - `UserProvider`: 인증 상태 관리 (useState + localStorage)
-  - `GlobalProvider`: 전역 서버 데이터 캐싱 (TanStack Query)
+  - `GlobalProvider`: 전역 서버 데이터 캐싱 (TanStack Query — contentForms, formCategories)
 
 ### 3. tokenRef 패턴 (순환 의존성 해결)
 - APIProvider와 UserProvider 간 순환 의존성을 모듈 레벨 ref로 해결
@@ -153,7 +153,7 @@ admin/
 │   │   ├── PopupContext.jsx    # 팝업/로딩 스피너 전역 상태 (popupRef 패턴)
 │   │   ├── APIContext.jsx      # Axios 인스턴스 + 인터셉터 (tokenRef + popupRef 패턴)
 │   │   ├── UserContext.jsx     # 인증 상태 (login, logout, refresh, localStorage persist)
-│   │   └── GlobalContext.jsx   # 전역 서버 데이터 (contentTypes, isMobile, sidebarOpen)
+│   │   └── GlobalContext.jsx   # 전역 서버 데이터 (contentForms, formCategories, isMobile, sidebarOpen)
 │   │
 │   ├── hooks/                  # 커스텀 훅
 │   │   └── use-mobile.js      # 모바일 감지 (Shadcn Sidebar 의존)
@@ -166,14 +166,18 @@ admin/
 │   │   ├── System/             # 시스템 필수 페이지
 │   │   │   └── Login.jsx       # 로그인 페이지 (구현 완료)
 │   │   ├── Router/             # 섹션별 라우터 (Outlet 래퍼)
-│   │   │   ├── ContentTypeRouter.jsx
+│   │   │   ├── ContentFormRouter.jsx
+│   │   │   ├── FormCategoryRouter.jsx
 │   │   │   ├── ContentRouter.jsx
 │   │   │   ├── MediaRouter.jsx
 │   │   │   └── RoleRouter.jsx
 │   │   ├── Dashboard/          # 대시보드 (stats cards + 최근 활동)
-│   │   ├── ContentType/        # 콘텐츠 타입 관리
-│   │   │   ├── ContentTypeList.jsx     # 목록 페이지
-│   │   │   ├── ContentTypeForm.jsx     # 생성/수정 폼 (레이아웃 표준)
+│   │   ├── FormCategory/       # 콘텐츠 폼 카테고리 관리
+│   │   │   ├── FormCategoryList.jsx    # 목록 페이지
+│   │   │   └── FormCategoryForm.jsx    # 생성/수정 폼
+│   │   ├── ContentForm/        # 콘텐츠 폼 관리 (이전: ContentType)
+│   │   │   ├── ContentFormList.jsx     # 목록 페이지 (카테고리 배지 컬럼)
+│   │   │   ├── ContentFormForm.jsx     # 생성/수정 폼 (레이아웃 표준, 카테고리 드롭다운)
 │   │   │   └── SortableFieldItem.jsx   # 드래그 앤 드롭 필드 아이템
 │   │   ├── Content/            # 콘텐츠 관리
 │   │   │   ├── ContentList.jsx         # 목록 페이지
@@ -360,9 +364,9 @@ features/content/
 
 | 상태 유형           | 관리 도구       | 예시                     |
 | ------------------- | --------------- | ------------------------ |
-| **서버 상태**       | TanStack Query  | 콘텐츠 목록, 콘텐츠 타입 |
+| **서버 상태**       | TanStack Query  | 콘텐츠 목록, 콘텐츠 폼, 콘텐츠 폼 카테고리 |
 | **인증 상태**       | UserContext (useState + localStorage) | accessToken, user, refreshToken |
-| **전역 서버 데이터**| GlobalContext (useQuery) | contentTypes 목록 |
+| **전역 서버 데이터**| GlobalContext (useQuery) | contentForms, formCategories 목록 |
 | **폼 상태**         | React Hook Form | 입력값, 유효성 검사      |
 | **URL 상태**        | React Router    | 필터, 페이지네이션       |
 
@@ -435,10 +439,15 @@ export const queryKeys = {
     list: (params) => [...queryKeys.contents.lists(), params],
     detail: (id) => [...queryKeys.contents.all, "detail", id],
   },
-  contentTypes: {
-    all: ["content-types"],
-    list: () => [...queryKeys.contentTypes.all, "list"],
-    detail: (slug) => [...queryKeys.contentTypes.all, slug],
+  contentForms: {
+    all: ["content-forms"],
+    list: () => [...queryKeys.contentForms.all, "list"],
+    detail: (slug) => [...queryKeys.contentForms.all, slug],
+  },
+  formCategories: {
+    all: ["form-categories"],
+    list: () => [...queryKeys.formCategories.all, "list"],
+    detail: (id) => [...queryKeys.formCategories.all, id],
   },
 };
 ```
@@ -555,15 +564,21 @@ export function GlobalProvider({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => { if (!isMobile) setSidebarOpen(false); }, [isMobile]);
 
-  // 로그인된 사용자 + accessToken이 있을 때만 콘텐츠 타입 목록 조회
-  const { data: contentTypes = [] } = useQuery({
-    queryKey: ["content-types"],
-    queryFn: () => api.get("/content-types").then((r) => r.data),
+  // 로그인된 사용자 + accessToken이 있을 때만 콘텐츠 폼 / 카테고리 목록 조회
+  const { data: contentForms = [] } = useQuery({
+    queryKey: ["content-forms"],
+    queryFn: () => api.get("/content-forms").then((r) => r.data),
+    enabled: !!user && !!accessToken,
+  });
+
+  const { data: formCategories = [] } = useQuery({
+    queryKey: ["form-categories"],
+    queryFn: () => api.get("/form-categories").then((r) => r.data),
     enabled: !!user && !!accessToken,
   });
 
   return (
-    <GlobalContext.Provider value={{ contentTypes, isMobile, sidebarOpen, setSidebarOpen }}>
+    <GlobalContext.Provider value={{ contentForms, formCategories, isMobile, sidebarOpen, setSidebarOpen }}>
       {children}
     </GlobalContext.Provider>
   );
@@ -698,16 +713,16 @@ export function useAPI() {
 **방법 1: 컴포넌트에서 직접 `useAPI()` 사용**
 
 ```javascript
-// src/pages/content-type/ContentTypeListPage.jsx
+// src/pages/content-form/ContentFormListPage.jsx
 import { useQuery } from "@tanstack/react-query";
 import { useAPI } from "../../Providers/APIContext";
 
-export function ContentTypeListPage() {
+export function ContentFormListPage() {
   const api = useAPI();
 
-  const { data: contentTypes, isLoading } = useQuery({
-    queryKey: ["content-types"],
-    queryFn: () => api.get("/content-types").then((r) => r.data),
+  const { data: contentForms, isLoading } = useQuery({
+    queryKey: ["content-forms"],
+    queryFn: () => api.get("/content-forms").then((r) => r.data),
   });
 
   // ...
@@ -717,39 +732,39 @@ export function ContentTypeListPage() {
 **방법 2: API 함수 분리 (권장 - 재사용성)**
 
 ```javascript
-// src/features/content-type/api.js
+// src/features/content-form/api.js
 // API 함수는 axios 인스턴스를 인자로 받음
-export const contentTypeApi = {
-  getAll: (api) => api.get("/content-types").then((r) => r.data),
-  getById: (api, id) => api.get(`/content-types/${id}`).then((r) => r.data),
-  create: (api, dto) => api.post("/content-types", dto).then((r) => r.data),
-  update: (api, id, dto) => api.patch(`/content-types/${id}`, dto).then((r) => r.data),
-  delete: (api, id) => api.delete(`/content-types/${id}`),
+export const contentFormApi = {
+  getAll: (api) => api.get("/content-forms").then((r) => r.data),
+  getById: (api, id) => api.get(`/content-forms/${id}`).then((r) => r.data),
+  create: (api, dto) => api.post("/content-forms", dto).then((r) => r.data),
+  update: (api, id, dto) => api.patch(`/content-forms/${id}`, dto).then((r) => r.data),
+  delete: (api, id) => api.delete(`/content-forms/${id}`),
 };
 ```
 
 ```javascript
-// src/hooks/useContentTypes.js
+// src/hooks/useContentForms.js
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAPI } from "../Providers/APIContext";
-import { contentTypeApi } from "../features/content-type/api";
+import { contentFormApi } from "../features/content-form/api";
 
-export function useContentTypes() {
+export function useContentForms() {
   const api = useAPI();
   return useQuery({
-    queryKey: ["content-types"],
-    queryFn: () => contentTypeApi.getAll(api),
+    queryKey: ["content-forms"],
+    queryFn: () => contentFormApi.getAll(api),
   });
 }
 
-export function useCreateContentType() {
+export function useCreateContentForm() {
   const api = useAPI();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (dto) => contentTypeApi.create(api, dto),
+    mutationFn: (dto) => contentFormApi.create(api, dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["content-types"] });
+      queryClient.invalidateQueries({ queryKey: ["content-forms"] });
     },
   });
 }
@@ -902,10 +917,13 @@ function App() {
       {/* 보호된 라우트 — AdminLayout (Sidebar + Header + Outlet) */}
       <Route path="/" element={<AuthGuard><AdminLayout /></AuthGuard>}>
         <Route index element={<Dashboard />} />
-        <Route path="content-types" element={<ContentTypeRouter />}>
-          <Route index element={<ContentTypeList />} />
+        <Route path="form-categories" element={<FormCategoryRouter />}>
+          <Route index element={<FormCategoryList />} />
         </Route>
-        <Route path="contents/:contentTypeSlug" element={<ContentRouter />}>
+        <Route path="content-forms" element={<ContentFormRouter />}>
+          <Route index element={<ContentFormList />} />
+        </Route>
+        <Route path="contents/:contentFormSlug" element={<ContentRouter />}>
           <Route index element={<ContentList />} />
         </Route>
         <Route path="media" element={<MediaRouter />}>
@@ -926,21 +944,22 @@ function App() {
 1. **공개 라우트**: `/login` - 로그인 페이지 (누구나 접근 가능)
 2. **보호된 라우트**: `AuthGuard` + `AdminLayout`으로 감싸진 nested routes
    - `/` - 대시보드
-   - `/content-types` - 콘텐츠 타입 관리
-   - `/contents/:contentTypeSlug` - 동적 콘텐츠 목록 (GlobalContext의 contentTypes 기반)
+   - `/form-categories` - 콘텐츠 폼 카테고리 관리 (FormCategory CRUD)
+   - `/content-forms` - 콘텐츠 폼 관리 (이전 명칭: 콘텐츠 타입)
+   - `/contents/:contentFormSlug` - 동적 콘텐츠 목록 (GlobalContext의 contentForms 기반)
    - `/media` - 미디어 관리
    - `/roles` - 역할/권한 관리
 3. **Catch-all**: `*` → `/`로 리다이렉트
 
 **AdminLayout 구조:**
 - 헤더(AppHeader): 브레드크럼 + 모바일 햄버거 메뉴
-- 사이드바(AppSidebar): 고정 메뉴 + 동적 콘텐츠 메뉴 (contentTypes에서 생성)
+- 사이드바(AppSidebar): 고정 메뉴 + 동적 콘텐츠 메뉴 (contentForms를 formCategories 기준으로 서브그룹 렌더링, 독립 토글, order 정렬)
 - 메인 콘텐츠: `<Outlet />`으로 자식 라우트 렌더링
 - 모바일: 사이드바가 오른쪽 오버레이로 표시 (GlobalContext의 isMobile/sidebarOpen 제어)
 
 **에디션별 라우트 제어 (향후):**
 에디션에 따라 메뉴와 라우트를 동적으로 표시/숨김:
-- `Starter`: 대시보드, 콘텐츠 타입, 콘텐츠, 미디어, 역할/권한
+- `Starter`: 대시보드, 콘텐츠 폼 카테고리, 콘텐츠 폼, 콘텐츠, 미디어, 역할/권한
 - `Business`: + 페이지 관리, 템플릿, 컴포넌트
 - `Enterprise`: + 워크플로우, 감사 로그 대시보드, 멀티사이트
 
@@ -1088,13 +1107,13 @@ export function DataTable<T>({
 
 ## 8. 콘텐츠 렌더링 (범용 데이터 렌더링)
 
-백엔드의 콘텐츠는 **ContentType의 fields 배열**로 정의됩니다.
+백엔드의 콘텐츠는 **ContentForm의 fields 배열**로 정의됩니다.
 프론트엔드는 ComponentNode 트리가 아닌, **필드 타입별 렌더러 컴포넌트**를 사용하여 콘텐츠를 동적으로 렌더링합니다.
 
 ### 아키텍처 개요
 
 ```
-백엔드 ContentType
+백엔드 ContentForm
 └── fields: [{ name, type, label, required, options }, ...]
 
 프론트엔드 렌더링
@@ -1131,7 +1150,7 @@ export function DataTable<T>({
 
 ### 동적 폼 렌더링 (Admin)
 
-콘텐츠 타입의 `fields` 배열을 순회하며, 각 필드의 `type`에 따라 적절한 입력 컴포넌트를 렌더링합니다.
+콘텐츠 폼의 `fields` 배열을 순회하며, 각 필드의 `type`에 따라 적절한 입력 컴포넌트를 렌더링합니다.
 
 ```javascript
 // src/features/content/components/DynamicForm.jsx
@@ -1150,12 +1169,12 @@ const fieldEditors = {
   // ... 기타 타입
 };
 
-export function DynamicForm({ contentType, initialData, onSubmit }) {
+export function DynamicForm({ contentForm, initialData, onSubmit }) {
   const form = useForm({ defaultValues: initialData ?? {} });
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
-      {contentType.fields.map((field) => {
+      {contentForm.fields.map((field) => {
         const Editor = fieldEditors[field.type];
         if (!Editor) return null; // 지원하지 않는 타입 건너뛰기
 
@@ -1198,10 +1217,10 @@ const fieldRenderers = {
   // ... 기타 타입
 };
 
-export function DynamicRenderer({ contentType, content }) {
+export function DynamicRenderer({ contentForm, content }) {
   return (
     <article>
-      {contentType.fields.map((field) => {
+      {contentForm.fields.map((field) => {
         const Renderer = fieldRenderers[field.type];
         if (!Renderer) return null;
         return (
@@ -1290,20 +1309,20 @@ export function ContentForm({
 }
 ```
 
-### 동적 폼 (콘텐츠 타입 기반)
+### 동적 폼 (콘텐츠 폼 기반)
 
 ```typescript
 // src/features/content/components/DynamicForm.tsx
 import { useForm, Controller } from 'react-hook-form';
 
 interface DynamicFormProps {
-  contentType: ContentType;
+  contentForm: ContentForm;
   initialData?: Record<string, unknown>;
   onSubmit: (data: Record<string, unknown>) => void;
 }
 
 export function DynamicForm({
-  contentType,
+  contentForm,
   initialData,
   onSubmit
 }: DynamicFormProps) {
@@ -1364,7 +1383,7 @@ export function DynamicForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
-      {contentType.fields.map((field) => (
+      {contentForm.fields.map((field) => (
         <div key={field.name}>
           <label>{field.label}</label>
           {renderField(field)}

@@ -859,3 +859,22 @@ YYYY.MM.DD HH:MM
         - i18n, SEO → Business 에디션으로 이동
         - 콘텐츠 보관, API 가이드, WebSocket 알림 등 신규 기능 반영
     - Starter 에디션 완료 (17/17 핵심 기능 구현)
+
+## 2026-04-20 — 콘텐츠 폼 카테고리 도입 + ContentType → ContentForm 전수 리네이밍
+
+### 기능 추가
+- FormCategory 엔티티로 콘텐츠 폼(이전 ContentType)을 그룹핑
+- 사이드바에서 카테고리별 서브그룹 렌더링 (독립 토글, order 정렬)
+- 콘텐츠 폼에 카테고리 드롭다운 + 목록 배지 컬럼
+
+### 내부 리네이밍 (breaking)
+- Prisma: model ContentType → ContentForm, @@map("content_forms")
+- API: /content-types → /content-forms, /public/content-types → /public/content-forms
+- 권한: content-type:* → content-form:*
+- 코드 심볼 전수: ContentType/contentType/contentTypeId/contentTypeSlug → ContentForm/contentForm/contentFormId/contentFormSlug
+- Starter 미배포 상태라 DB 리셋 + seed 재실행으로 전환
+
+### 설계 결정
+- 카테고리 권한은 별도 신설 없이 content-form:create/update/delete와 1:1 매핑
+- FormCategory 삭제 시 소속 콘텐츠 폼의 categoryId는 SetNull (폼 자체는 유지)
+- shadcn Select는 controlled 모드에서 reset 후 빈 문자열 덮어쓰기 이슈 → defaultValue 방식으로 해결
