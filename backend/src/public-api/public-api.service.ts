@@ -11,10 +11,10 @@ export class PublicApiService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * 콘텐츠 타입 목록 (공개)
+   * 콘텐츠 폼 목록 (공개)
    */
-  async listContentTypes() {
-    return this.prisma.contentType.findMany({
+  async listContentForms() {
+    return this.prisma.contentForm.findMany({
       select: {
         id: true,
         name: true,
@@ -27,10 +27,10 @@ export class PublicApiService {
   }
 
   /**
-   * 콘텐츠 타입 단건 조회 (slug)
+   * 콘텐츠 폼 단건 조회 (slug)
    */
-  async getContentType(slug: string) {
-    const ct = await this.prisma.contentType.findUnique({
+  async getContentForm(slug: string) {
+    const ct = await this.prisma.contentForm.findUnique({
       where: { slug },
       select: {
         id: true,
@@ -40,7 +40,7 @@ export class PublicApiService {
         fields: true,
       },
     });
-    if (!ct) throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!ct) throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     return ct;
   }
 
@@ -48,14 +48,14 @@ export class PublicApiService {
    * 발행된 콘텐츠 목록 (공개) — 커스텀 필드 필터링 지원
    *
    * 쿼리 파라미터:
-   * - contentTypeSlug: 콘텐츠 타입 슬러그 (필수)
+   * - contentFormSlug: 콘텐츠 폼 슬러그 (필수)
    * - page, limit: 페이지네이션
    * - sort: createdAt | updatedAt | publishedAt (기본: publishedAt)
    * - order: asc | desc (기본: desc)
    * - filter[필드명]: 동적 필드 필터링 (예: filter[category]=tech)
    */
   async listContents(query: {
-    contentTypeSlug: string;
+    contentFormSlug: string;
     page?: number;
     limit?: number;
     sort?: string;
@@ -63,15 +63,15 @@ export class PublicApiService {
     filter?: Record<string, any>;
     search?: string;
   }) {
-    if (!query.contentTypeSlug) {
-      throw new BadRequestException('contentTypeSlug가 필요합니다');
+    if (!query.contentFormSlug) {
+      throw new BadRequestException('contentFormSlug가 필요합니다');
     }
 
-    const contentType = await this.prisma.contentType.findUnique({
-      where: { slug: query.contentTypeSlug },
+    const contentForm = await this.prisma.contentForm.findUnique({
+      where: { slug: query.contentFormSlug },
     });
-    if (!contentType) {
-      throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!contentForm) {
+      throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     }
 
     const page = Math.max(query.page || 1, 1);
@@ -79,7 +79,7 @@ export class PublicApiService {
     const skip = (page - 1) * limit;
 
     const where: any = {
-      contentTypeId: contentType.id,
+      contentFormId: contentForm.id,
       status: ContentStatus.PUBLISHED,
       deletedAt: null,
       isPrivate: false, // 비밀글은 Public API에서 제외
@@ -99,9 +99,9 @@ export class PublicApiService {
 
     // 동적 필드 필터링: filter[fieldName]=value → data->>'fieldName' = value
     if (query.filter && typeof query.filter === 'object') {
-      // 콘텐츠 타입의 정의된 필드만 허용 (필드 인젝션 방지)
-      const allowedFields = Array.isArray(contentType.fields)
-        ? (contentType.fields as any[]).map((f) => f.name)
+      // 콘텐츠 폼의 정의된 필드만 허용 (필드 인젝션 방지)
+      const allowedFields = Array.isArray(contentForm.fields)
+        ? (contentForm.fields as any[]).map((f) => f.name)
         : [];
 
       for (const [key, value] of Object.entries(query.filter)) {
@@ -159,17 +159,17 @@ export class PublicApiService {
   /**
    * 발행된 콘텐츠 단건 조회 (slug)
    */
-  async getContentBySlug(contentTypeSlug: string, slug: string) {
-    const contentType = await this.prisma.contentType.findUnique({
-      where: { slug: contentTypeSlug },
+  async getContentBySlug(contentFormSlug: string, slug: string) {
+    const contentForm = await this.prisma.contentForm.findUnique({
+      where: { slug: contentFormSlug },
     });
-    if (!contentType) {
-      throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!contentForm) {
+      throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     }
 
     const content = await this.prisma.content.findFirst({
       where: {
-        contentTypeId: contentType.id,
+        contentFormId: contentForm.id,
         slug,
         status: ContentStatus.PUBLISHED,
         deletedAt: null,

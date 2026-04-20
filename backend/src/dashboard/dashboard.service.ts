@@ -8,15 +8,15 @@ export class DashboardService {
 
   async getStats() {
     const [
-      contentTypeCount,
+      contentFormCount,
       contentCounts,
       mediaCount,
       mediaTotalSize,
       userCount,
       recentContents,
     ] = await Promise.all([
-      // 콘텐츠 타입 수
-      this.prisma.contentType.count(),
+      // 콘텐츠 폼 수
+      this.prisma.contentForm.count(),
 
       // 상태별 콘텐츠 수
       this.prisma.content.groupBy({
@@ -48,7 +48,7 @@ export class DashboardService {
           slug: true,
           status: true,
           updatedAt: true,
-          contentType: { select: { name: true, slug: true } },
+          contentForm: { select: { name: true, slug: true } },
           updatedBy: { select: { name: true } },
         },
       }),
@@ -70,7 +70,7 @@ export class DashboardService {
     }
 
     return {
-      contentTypes: contentTypeCount,
+      contentForms: contentFormCount,
       contents: {
         total: totalContent,
         byStatus: statusCounts,

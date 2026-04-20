@@ -5,7 +5,7 @@
     gap: 1rem;
 }
 
-/* ContentType 옵션 체크박스 */
+/* ContentForm 옵션 체크박스 */
 .ctOptionRow {
     display: flex;
     align-items: flex-start;

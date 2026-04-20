@@ -12,8 +12,8 @@ function SearchResultItem({ item }) {
     const canUpdate = hasPermission('content:update');
 
     const handleClick = () => {
-        if (item.contentTypeSlug) {
-            navigate(`/contents/${item.contentTypeSlug}/${item.id}/${canUpdate ? 'edit' : 'view'}`);
+        if (item.contentFormSlug) {
+            navigate(`/contents/${item.contentFormSlug}/${item.id}/${canUpdate ? 'edit' : 'view'}`);
         }
     };
 
@@ -36,7 +36,7 @@ function SearchResultItem({ item }) {
                     }}
                 />
                 <span className="searchResultMeta">
-                    {item.contentTypeName}
+                    {item.contentFormName}
                     {item.status && ` · ${STATUS_LABELS[item.status] || item.status}`}
                 </span>
             </div>

@@ -4,10 +4,10 @@ import DOMPurify from 'isomorphic-dompurify';
  * HTML Sanitize 유틸리티
  *
  * richtext 필드에 포함된 HTML에서 XSS 위험 요소를 제거한다.
- * ContentType의 fields 정의에서 type이 'richtext'인 필드만 대상으로 처리한다.
+ * ContentForm의 fields 정의에서 type이 'richtext'인 필드만 대상으로 처리한다.
  *
  * @param data - 콘텐츠 데이터 객체 (예: { title: "...", content: "<p>...</p>" })
- * @param fields - ContentType의 필드 정의 배열 (예: [{ name: "content", type: "richtext", ... }])
+ * @param fields - ContentForm의 필드 정의 배열 (예: [{ name: "content", type: "richtext", ... }])
  * @returns sanitize 처리된 데이터 객체 (원본 객체를 변경하지 않고 새 객체 반환)
  */
 export function sanitizeContentData(

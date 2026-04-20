@@ -21,21 +21,21 @@ export class ContentService {
   ) {}
 
   async create(createContentDto: CreateContentDto, userId: string) {
-    const { contentTypeId, slug, status, scheduledAt, ...rest } =
+    const { contentFormId, slug, status, scheduledAt, ...rest } =
       createContentDto;
 
-    // ContentType 존재 확인
-    const contentType = await this.prisma.contentType.findUnique({
-      where: { id: contentTypeId },
+    // ContentForm 존재 확인
+    const contentForm = await this.prisma.contentForm.findUnique({
+      where: { id: contentFormId },
     });
-    if (!contentType) {
-      throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!contentForm) {
+      throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     }
 
-    // slug 중복 확인 (같은 contentType 내에서)
+    // slug 중복 확인 (같은 contentForm 내에서)
     const existing = await this.prisma.content.findFirst({
       where: {
-        contentTypeId,
+        contentFormId,
         slug,
         deletedAt: null,
       },
@@ -53,10 +53,10 @@ export class ContentService {
 
     // richtext 필드 XSS sanitize 처리
     const sanitizedRest = { ...rest };
-    if (sanitizedRest.data && contentType.fields) {
+    if (sanitizedRest.data && contentForm.fields) {
       sanitizedRest.data = sanitizeContentData(
         sanitizedRest.data as Record<string, any>,
-        contentType.fields as any[],
+        contentForm.fields as any[],
       );
     }
 
@@ -64,7 +64,7 @@ export class ContentService {
     const content = await this.prisma.content.create({
       data: {
         ...sanitizedRest,
-        contentTypeId,
+        contentFormId,
         slug,
         status: status || ContentStatus.DRAFT,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
@@ -72,7 +72,7 @@ export class ContentService {
         updatedById: userId,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -101,7 +101,7 @@ export class ContentService {
   }
 
   async findAll(query?: {
-    contentTypeId?: string;
+    contentFormId?: string;
     status?: ContentStatus;
     search?: string;
     page?: number;
@@ -109,7 +109,7 @@ export class ContentService {
     filter?: Record<string, any>;
   }) {
     const {
-      contentTypeId,
+      contentFormId,
       status,
       search,
       page: rawPage = 1,
@@ -124,8 +124,8 @@ export class ContentService {
       deletedAt: null,
     };
 
-    if (contentTypeId) {
-      where.contentTypeId = contentTypeId;
+    if (contentFormId) {
+      where.contentFormId = contentFormId;
     }
 
     if (status) {
@@ -164,7 +164,7 @@ export class ContentService {
       this.prisma.content.findMany({
         where,
         include: {
-          contentType: true,
+          contentForm: true,
           createdBy: {
             select: { id: true, name: true, email: true },
           },
@@ -225,7 +225,7 @@ export class ContentService {
     const content = await this.prisma.content.findFirst({
       where: { id, deletedAt: null },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -255,7 +255,7 @@ export class ContentService {
     const [prevContent, nextContent] = await Promise.all([
       this.prisma.content.findFirst({
         where: {
-          contentTypeId: content.contentTypeId,
+          contentFormId: content.contentFormId,
           deletedAt: null,
           createdAt: { lt: content.createdAt },
         },
@@ -264,7 +264,7 @@ export class ContentService {
       }),
       this.prisma.content.findFirst({
         where: {
-          contentTypeId: content.contentTypeId,
+          contentFormId: content.contentFormId,
           deletedAt: null,
           createdAt: { gt: content.createdAt },
         },
@@ -280,15 +280,15 @@ export class ContentService {
     };
   }
 
-  async findBySlug(contentTypeId: string, slug: string) {
+  async findBySlug(contentFormId: string, slug: string) {
     const content = await this.prisma.content.findFirst({
       where: {
-        contentTypeId,
+        contentFormId,
         slug,
         deletedAt: null,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -308,13 +308,13 @@ export class ContentService {
   async update(id: string, updateContentDto: UpdateContentDto, userId: string) {
     const existing = await this.findOne(id);
 
-    const { slug, contentTypeId, scheduledAt, ...rest } = updateContentDto;
+    const { slug, contentFormId, scheduledAt, ...rest } = updateContentDto;
 
     // slug 변경 시 중복 확인
     if (slug && slug !== existing.slug) {
       const duplicate = await this.prisma.content.findFirst({
         where: {
-          contentTypeId: existing.contentTypeId,
+          contentFormId: existing.contentFormId,
           slug,
           deletedAt: null,
           NOT: { id },
@@ -325,21 +325,21 @@ export class ContentService {
       }
     }
 
-    // contentTypeId 변경은 불가
-    if (contentTypeId && contentTypeId !== existing.contentTypeId) {
-      throw new BadRequestException('콘텐츠 타입은 변경할 수 없습니다');
+    // contentFormId 변경은 불가
+    if (contentFormId && contentFormId !== existing.contentFormId) {
+      throw new BadRequestException('콘텐츠 폼은 변경할 수 없습니다');
     }
 
     // richtext 필드 XSS sanitize 처리
     const sanitizedRest = { ...rest };
     if (sanitizedRest.data) {
-      const contentType = await this.prisma.contentType.findUnique({
-        where: { id: existing.contentTypeId },
+      const contentForm = await this.prisma.contentForm.findUnique({
+        where: { id: existing.contentFormId },
       });
-      if (contentType?.fields) {
+      if (contentForm?.fields) {
         sanitizedRest.data = sanitizeContentData(
           sanitizedRest.data as Record<string, any>,
-          contentType.fields as any[],
+          contentForm.fields as any[],
         );
       }
     }
@@ -355,7 +355,7 @@ export class ContentService {
         version: { increment: 1 },
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -418,7 +418,7 @@ export class ContentService {
         updatedById: userId,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -449,7 +449,7 @@ export class ContentService {
         updatedById: userId,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -480,7 +480,7 @@ export class ContentService {
         updatedById: userId,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: { select: { id: true, name: true, email: true } },
         updatedBy: { select: { id: true, name: true, email: true } },
       },
@@ -504,7 +504,7 @@ export class ContentService {
         updatedById: userId,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: { select: { id: true, name: true, email: true } },
         updatedBy: { select: { id: true, name: true, email: true } },
       },
@@ -548,7 +548,7 @@ export class ContentService {
         version: { increment: 1 },
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: {
           select: { id: true, name: true, email: true },
         },
@@ -588,7 +588,7 @@ export class ContentService {
         inquiryStatus,
       },
       include: {
-        contentType: true,
+        contentForm: true,
         createdBy: { select: { id: true, name: true, email: true } },
         adminReplyBy: { select: { id: true, name: true, email: true } },
       },

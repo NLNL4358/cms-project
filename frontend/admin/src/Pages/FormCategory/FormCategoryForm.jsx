@@ -87,7 +87,7 @@ function FormCategoryForm() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['form-categories'] });
-            queryClient.invalidateQueries({ queryKey: ['content-types'] });
+            queryClient.invalidateQueries({ queryKey: ['content-forms'] });
             navigate('/form-categories');
         },
         onError: (error) => {

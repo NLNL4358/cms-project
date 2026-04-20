@@ -85,7 +85,7 @@ export class AuditLogInterceptor implements NestInterceptor {
       '/audit-logs',
       '/notifications',
       '/public/auth',
-      '/public/content-types',
+      '/public/content-forms',
       '/public/contents',
     ];
     if (excludePaths.some((p) => url.startsWith(p))) {
@@ -153,7 +153,7 @@ export class AuditLogInterceptor implements NestInterceptor {
       PUBLISH: '발행', UNPUBLISH: '미발행', ARCHIVE: '보관', UNARCHIVE: '보관 해제', RESTORE: '복원',
     };
     const ENTITY_LABELS: Record<string, string> = {
-      content: '콘텐츠', 'content-type': '콘텐츠 타입',
+      content: '콘텐츠', 'content-form': '콘텐츠 폼',
       media: '파일', user: '사용자', role: '역할',
     };
 
@@ -174,7 +174,7 @@ export class AuditLogInterceptor implements NestInterceptor {
       type: NotificationType.SYSTEM,
       title: `${entityLabel} ${actionLabel}`,
       message,
-      link: entity === 'content' && data?.id ? `/contents/${data.contentTypeId || ''}` : undefined,
+      link: entity === 'content' && data?.id ? `/contents/${data.contentFormId || ''}` : undefined,
     });
   }
 }

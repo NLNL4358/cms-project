@@ -34,13 +34,13 @@ const PERMISSION_GROUPS = [
         ],
     },
     {
-        resource: 'content-type',
+        resource: 'content-form',
         label: '콘텐츠 폼',
         actions: [
-            { value: 'content-type:read', label: '조회' },
-            { value: 'content-type:create', label: '생성' },
-            { value: 'content-type:update', label: '수정' },
-            { value: 'content-type:delete', label: '삭제' },
+            { value: 'content-form:read', label: '조회' },
+            { value: 'content-form:create', label: '생성' },
+            { value: 'content-form:update', label: '수정' },
+            { value: 'content-form:delete', label: '삭제' },
         ],
     },
     {

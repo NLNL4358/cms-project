@@ -81,7 +81,7 @@ const fieldSchema = z.object({
     options: z.array(z.string()).optional(),
 });
 
-const contentTypeSchema = z.object({
+const contentFormSchema = z.object({
     name: z.string().min(1, '이름을 입력하세요'),
     slug: z
         .string()
@@ -93,11 +93,11 @@ const contentTypeSchema = z.object({
 });
 
 /**
- * 콘텐츠 타입 생성/수정 폼
+ * 콘텐츠 폼 생성/수정 폼
  *
  * URL에 :id가 있으면 수정 모드, 없으면 생성 모드로 동작한다.
  */
-function ContentTypeForm() {
+function ContentFormForm() {
     const api = useAPI();
     const { formCategories = [] } = useGlobal();
     const navigate = useNavigate();
@@ -117,7 +117,7 @@ function ContentTypeForm() {
         reset,
         formState: { errors },
     } = useForm({
-        resolver: zodResolver(contentTypeSchema),
+        resolver: zodResolver(contentFormSchema),
         defaultValues: {
             name: '',
             slug: '',
@@ -161,8 +161,8 @@ function ContentTypeForm() {
 
     // 수정 모드: 기존 데이터 로드
     const { data: existingData, isLoading: isLoadingData } = useQuery({
-        queryKey: ['content-types', id],
-        queryFn: () => api.get(`/content-types/${id}`).then((r) => r.data),
+        queryKey: ['content-forms', id],
+        queryFn: () => api.get(`/content-forms/${id}`).then((r) => r.data),
         enabled: isEdit,
     });
 
@@ -226,13 +226,13 @@ function ContentTypeForm() {
     const saveMutation = useMutation({
         mutationFn: (data) => {
             if (isEdit) {
-                return api.patch(`/content-types/${id}`, data);
+                return api.patch(`/content-forms/${id}`, data);
             }
-            return api.post('/content-types', data);
+            return api.post('/content-forms', data);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['content-types'] });
-            navigate('/content-types');
+            queryClient.invalidateQueries({ queryKey: ['content-forms'] });
+            navigate('/content-forms');
         },
         onError: (error) => {
             const message =
@@ -279,7 +279,7 @@ function ContentTypeForm() {
                         variant="ghost"
                         size="icon-sm"
                         className="backButton"
-                        onClick={() => navigate('/content-types')}
+                        onClick={() => navigate('/content-forms')}
                     >
                         <ArrowLeft className="size-4" />
                     </Button>
@@ -572,7 +572,7 @@ function ContentTypeForm() {
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => navigate('/content-types')}
+                        onClick={() => navigate('/content-forms')}
                     >
                         취소
                     </Button>
@@ -592,4 +592,4 @@ function ContentTypeForm() {
     );
 }
 
-export default ContentTypeForm;
+export default ContentFormForm;

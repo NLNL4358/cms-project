@@ -13,11 +13,11 @@ import { ContentStatus } from '@prisma/client';
 export class CreateContentDto {
   @ApiProperty({
     example: 'cmkqmfvs30000rcui4qbx7jlb',
-    description: '콘텐츠 타입 ID',
+    description: '콘텐츠 폼 ID',
   })
   @IsString()
   @IsNotEmpty()
-  contentTypeId: string;
+  contentFormId: string;
 
   @ApiProperty({
     example: '첫 번째 블로그 포스트',
@@ -46,7 +46,7 @@ export class CreateContentDto {
       tags: ['개발', '블로그'],
     },
     description:
-      '콘텐츠 데이터 (ContentType의 fields 정의에 따라 동적으로 구성)',
+      '콘텐츠 데이터 (ContentForm의 fields 정의에 따라 동적으로 구성)',
   })
   @IsObject()
   @IsNotEmpty()

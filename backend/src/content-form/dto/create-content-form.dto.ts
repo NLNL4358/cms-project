@@ -8,10 +8,10 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateContentTypeDto {
+export class CreateContentFormDto {
   @ApiProperty({
     example: '블로그 포스트',
-    description: '콘텐츠 타입 이름',
+    description: '콘텐츠 폼 이름',
   })
   @IsString()
   @IsNotEmpty()
@@ -30,8 +30,8 @@ export class CreateContentTypeDto {
   slug: string;
 
   @ApiProperty({
-    example: '블로그 게시글 타입',
-    description: '콘텐츠 타입 설명',
+    example: '블로그 게시글 폼',
+    description: '콘텐츠 폼 설명',
     required: false,
   })
   @IsString()
@@ -44,7 +44,7 @@ export class CreateContentTypeDto {
       { name: 'content', type: 'richtext', label: '내용', required: true },
       { name: 'thumbnail', type: 'image', label: '썸네일', required: false },
     ],
-    description: '콘텐츠 타입의 필드 정의 (배열)',
+    description: '콘텐츠 폼의 필드 정의 (배열)',
   })
   @IsArray()
   @IsNotEmpty()
@@ -52,7 +52,7 @@ export class CreateContentTypeDto {
 
   @ApiProperty({
     example: { icon: 'article', color: '#3b82f6' },
-    description: '콘텐츠 타입의 추가 옵션',
+    description: '콘텐츠 폼의 추가 옵션',
     required: false,
   })
   @IsObject()

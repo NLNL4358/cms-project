@@ -1,7 +1,7 @@
 /**
  * @description
  * 일반 회원(MEMBER)이 콘텐츠를 작성/수정/삭제하는 API
- * 콘텐츠 타입의 options.memberWritable이 true인 경우만 허용
+ * 콘텐츠 폼의 options.memberWritable이 true인 경우만 허용
  * 본인이 작성한 콘텐츠만 수정/삭제 가능
  */
 import {
@@ -40,7 +40,7 @@ export class MemberContentController {
   @Get('my')
   async listMine(
     @CurrentUser('id') userId: string,
-    @Query('contentTypeSlug') contentTypeSlug?: string,
+    @Query('contentFormSlug') contentFormSlug?: string,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ) {
@@ -52,11 +52,11 @@ export class MemberContentController {
       deletedAt: null,
     };
 
-    if (contentTypeSlug) {
-      const ct = await this.prisma.contentType.findUnique({
-        where: { slug: contentTypeSlug },
+    if (contentFormSlug) {
+      const ct = await this.prisma.contentForm.findUnique({
+        where: { slug: contentFormSlug },
       });
-      if (ct) where.contentTypeId = ct.id;
+      if (ct) where.contentFormId = ct.id;
     }
 
     const [data, total] = await Promise.all([
@@ -84,32 +84,32 @@ export class MemberContentController {
     };
   }
 
-  /** 콘텐츠 작성 (콘텐츠 타입의 memberWritable이 true여야 함) */
-  @Post(':contentTypeSlug')
+  /** 콘텐츠 작성 (콘텐츠 폼의 memberWritable이 true여야 함) */
+  @Post(':contentFormSlug')
   async create(
-    @Param('contentTypeSlug') contentTypeSlug: string,
+    @Param('contentFormSlug') contentFormSlug: string,
     @Body() body: { title: string; slug: string; data?: any },
     @CurrentUser('id') userId: string,
   ) {
-    const contentType = await this.prisma.contentType.findUnique({
-      where: { slug: contentTypeSlug },
+    const contentForm = await this.prisma.contentForm.findUnique({
+      where: { slug: contentFormSlug },
     });
-    if (!contentType) {
-      throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!contentForm) {
+      throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     }
 
     // 멤버 쓰기 권한 확인
-    const options = (contentType.options || {}) as any;
+    const options = (contentForm.options || {}) as any;
     if (!options.memberWritable) {
-      throw new ForbiddenException('이 콘텐츠 타입은 회원이 작성할 수 없습니다');
+      throw new ForbiddenException('이 콘텐츠 폼은 회원이 작성할 수 없습니다');
     }
 
     if (!body.title?.trim() || !body.slug?.trim()) {
       throw new BadRequestException('제목과 고유주소는 필수입니다');
     }
 
-    // 콘텐츠 타입 정의 기반 필수 필드 검증
-    const fields = Array.isArray(contentType.fields) ? contentType.fields : [];
+    // 콘텐츠 폼 정의 기반 필수 필드 검증
+    const fields = Array.isArray(contentForm.fields) ? contentForm.fields : [];
     const requiredFields = (fields as any[]).filter((f) => f.required);
     for (const field of requiredFields) {
       const value = body.data?.[field.name];
@@ -120,7 +120,7 @@ export class MemberContentController {
 
     // slug 중복 체크
     const existing = await this.prisma.content.findFirst({
-      where: { contentTypeId: contentType.id, slug: body.slug, deletedAt: null },
+      where: { contentFormId: contentForm.id, slug: body.slug, deletedAt: null },
     });
     if (existing) {
       throw new ConflictException('이미 사용 중인 고유주소입니다');
@@ -128,7 +128,7 @@ export class MemberContentController {
 
     // 데이터 sanitize
     const sanitizedData = body.data
-      ? sanitizeContentData(body.data, contentType.fields as any[])
+      ? sanitizeContentData(body.data, contentForm.fields as any[])
       : {};
 
     // 자동 발행 여부 (옵션)
@@ -136,7 +136,7 @@ export class MemberContentController {
 
     const content = await this.prisma.content.create({
       data: {
-        contentTypeId: contentType.id,
+        contentFormId: contentForm.id,
         title: body.title,
         slug: body.slug,
         data: sanitizedData,
@@ -168,7 +168,7 @@ export class MemberContentController {
   ) {
     const content = await this.prisma.content.findUnique({
       where: { id },
-      include: { contentType: true },
+      include: { contentForm: true },
     });
     if (!content || content.deletedAt) {
       throw new NotFoundException('콘텐츠를 찾을 수 없습니다');
@@ -180,7 +180,7 @@ export class MemberContentController {
     const data: any = { updatedById: userId };
     if (body.title !== undefined) data.title = body.title;
     if (body.data !== undefined) {
-      data.data = sanitizeContentData(body.data, content.contentType.fields as any[]);
+      data.data = sanitizeContentData(body.data, content.contentForm.fields as any[]);
     }
 
     const updated = await this.prisma.content.update({

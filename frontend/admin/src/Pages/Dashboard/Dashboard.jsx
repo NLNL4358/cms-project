@@ -71,11 +71,11 @@ function Dashboard() {
             icon: FileText,
             desc: `발행 ${stats.contents.byStatus.PUBLISHED || 0}건`,
         },
-        hasPermission('content-type:read') && {
+        hasPermission('content-form:read') && {
             title: '콘텐츠 폼',
-            value: stats.contentTypes,
+            value: stats.contentForms,
             icon: Layers,
-            onClick: () => navigate('/content-types'),
+            onClick: () => navigate('/content-forms'),
         },
         hasPermission('media:read') && {
             title: '파일',
@@ -175,7 +175,7 @@ function Dashboard() {
                             <div className="dashboardEmpty">
                                 <FileText className="size-10 text-muted-foreground" />
                                 <p>아직 콘텐츠가 없습니다</p>
-                                <Button onClick={() => navigate('/content-types')}>
+                                <Button onClick={() => navigate('/content-forms')}>
                                     콘텐츠 폼 만들기
                                 </Button>
                             </div>
@@ -204,7 +204,7 @@ function Dashboard() {
                                                     className="dashboardTableRow"
                                                     onClick={() =>
                                                         navigate(
-                                                            `/contents/${item.contentType.slug}/${item.id}/edit`,
+                                                            `/contents/${item.contentForm.slug}/${item.id}/edit`,
                                                         )
                                                     }
                                                 >
@@ -213,7 +213,7 @@ function Dashboard() {
                                                     </td>
                                                     <td>
                                                         <Badge variant="outline">
-                                                            {item.contentType.name}
+                                                            {item.contentForm.name}
                                                         </Badge>
                                                     </td>
                                                     <td>

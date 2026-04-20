@@ -24,12 +24,12 @@ export class ImportExportController {
   @UseGuards(PermissionsGuard)
   @Permissions('content:read', '*')
   async exportJson(
-    @Query('contentTypeId') contentTypeId: string,
+    @Query('contentFormId') contentFormId: string,
     @Query('status') status: string,
     @Res() res: Response,
   ) {
-    const data = await this.service.exportJson(contentTypeId, { status });
-    const filename = `export-${data.contentType.slug}-${Date.now()}.json`;
+    const data = await this.service.exportJson(contentFormId, { status });
+    const filename = `export-${data.contentForm.slug}-${Date.now()}.json`;
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -41,11 +41,11 @@ export class ImportExportController {
   @UseGuards(PermissionsGuard)
   @Permissions('content:read', '*')
   async exportCsv(
-    @Query('contentTypeId') contentTypeId: string,
+    @Query('contentFormId') contentFormId: string,
     @Query('status') status: string,
     @Res() res: Response,
   ) {
-    const csv = await this.service.exportCsv(contentTypeId, { status });
+    const csv = await this.service.exportCsv(contentFormId, { status });
 
     // BOM 추가 (엑셀 한글 깨짐 방지)
     const bom = '\uFEFF';
@@ -59,9 +59,9 @@ export class ImportExportController {
   @UseGuards(PermissionsGuard)
   @Permissions('content:create', '*')
   importPreview(
-    @Body() body: { contentTypeId: string; items: any[] },
+    @Body() body: { contentFormId: string; items: any[] },
   ) {
-    return this.service.importPreview(body.contentTypeId, body.items);
+    return this.service.importPreview(body.contentFormId, body.items);
   }
 
   /** 가져오기 실행 */
@@ -69,10 +69,10 @@ export class ImportExportController {
   @UseGuards(PermissionsGuard)
   @Permissions('content:create', '*')
   importExecute(
-    @Body() body: { contentTypeId: string; items: any[]; overwrite?: boolean },
+    @Body() body: { contentFormId: string; items: any[]; overwrite?: boolean },
     @CurrentUser('id') userId: string,
   ) {
-    return this.service.importExecute(body.contentTypeId, userId, body.items, body.overwrite);
+    return this.service.importExecute(body.contentFormId, userId, body.items, body.overwrite);
   }
 
   /** CSV 파싱 (프론트엔드에서 파일 업로드 후 파싱 요청) */

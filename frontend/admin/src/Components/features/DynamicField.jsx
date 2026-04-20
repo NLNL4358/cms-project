@@ -1,6 +1,6 @@
 /**
  * @description
- * ContentType의 필드 정의에 따라 적절한 UI 컴포넌트를 렌더링하는 동적 필드 컴포넌트.
+ * ContentForm의 필드 정의에 따라 적절한 UI 컴포넌트를 렌더링하는 동적 필드 컴포넌트.
  * React Hook Form의 Controller를 통해 폼과 연결됩니다.
  */
 import { Controller } from 'react-hook-form';

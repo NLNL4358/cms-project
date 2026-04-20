@@ -1,7 +1,7 @@
 /**
  * @description
  * 관리자 사이드바 컴포넌트
- * 2뎁스 그룹 메뉴 + 동적 콘텐츠 타입
+ * 2뎁스 그룹 메뉴 + 동적 콘텐츠 폼
  */
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -50,18 +50,18 @@ const menuStructure = [
     {
         type: 'item',
         title: '콘텐츠 폼',
-        path: '/content-types',
+        path: '/content-forms',
         icon: AppWindow,
-        permission: 'content-type:read',
+        permission: 'content-form:read',
     },
     {
         type: 'item',
         title: '카테고리',
         path: '/form-categories',
         icon: Tags,
-        // 라우트/목록 조회는 content-type:read로 열려있음 — 메뉴도 동일 권한으로 노출.
-        // 추가/수정/삭제 버튼은 FormCategoryList 내부에서 content-type:update로 분기.
-        permission: 'content-type:read',
+        // 라우트/목록 조회는 content-form:read로 열려있음 — 메뉴도 동일 권한으로 노출.
+        // 추가/수정/삭제 버튼은 FormCategoryList 내부에서 content-form:update로 분기.
+        permission: 'content-form:read',
     },
     {
         type: 'item',
@@ -126,7 +126,7 @@ const UNCATEGORIZED_KEY = '__uncategorized__';
 
 function AppSidebar() {
     const { user, logout, hasPermission } = useUser();
-    const { contentTypes, formCategories, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
+    const { contentForms, formCategories, settings, isMobile, setSidebarOpen, sidebarOpen } = useGlobal();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -202,7 +202,7 @@ function AppSidebar() {
 
     /** 콘텐츠 폼을 카테고리별로 그룹핑 */
     const buildContentGroups = () => {
-        if (contentTypes.length === 0) return [];
+        if (contentForms.length === 0) return [];
 
         // 카테고리 메타 맵
         const categoryMap = new Map(
@@ -211,7 +211,7 @@ function AppSidebar() {
 
         // categoryId -> { category, items[] }
         const groups = new Map();
-        contentTypes.forEach((ct) => {
+        contentForms.forEach((ct) => {
             const key = ct.categoryId || UNCATEGORIZED_KEY;
             if (!groups.has(key)) {
                 const category =
@@ -233,7 +233,7 @@ function AppSidebar() {
     };
 
     /** 개별 콘텐츠 폼 링크 렌더링 */
-    const renderContentTypeLink = (ct) => (
+    const renderContentFormLink = (ct) => (
         <li key={ct.id}>
             <a
                 href={`/contents/${ct.slug}`}
@@ -258,7 +258,7 @@ function AppSidebar() {
         const onlyUncategorized =
             groups.length === 1 && groups[0].key === UNCATEGORIZED_KEY;
         if (onlyUncategorized) {
-            return groups[0].items.map(renderContentTypeLink);
+            return groups[0].items.map(renderContentFormLink);
         }
 
         return groups.map(({ key, category, items }) => {
@@ -281,7 +281,7 @@ function AppSidebar() {
                     </button>
                     <div className={`menuSubGroupCollapse ${isCollapsed ? '' : 'open'}`}>
                         <ul className="menuSubGroupList">
-                            {items.map(renderContentTypeLink)}
+                            {items.map(renderContentFormLink)}
                         </ul>
                     </div>
                 </li>
@@ -336,7 +336,7 @@ function AppSidebar() {
                         const hasOnlyDynamic = visibleChildren.every(
                             (c) => c.type === 'dynamic-contents',
                         );
-                        if (hasOnlyDynamic && contentTypes.length === 0) return null;
+                        if (hasOnlyDynamic && contentForms.length === 0) return null;
 
                         // 표시할 하위 메뉴가 없으면 그룹 자체 숨김
                         if (visibleChildren.length === 0) return null;

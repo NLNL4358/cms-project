@@ -22,7 +22,7 @@ import '@/CSS/local/api-guide.css';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /** 전체 API 카테고리 정의 */
-function buildApiSections(contentTypes, selectedType) {
+function buildApiSections(contentForms, selectedType) {
     const sections = [];
 
     // ─── Public API (외부 통합용) ───
@@ -32,17 +32,17 @@ function buildApiSections(contentTypes, selectedType) {
         title: 'Public API',
         endpoints: [
             {
-                id: 'pub-types', group: '콘텐츠 폼', method: 'GET', path: '/public/content-types',
-                title: '콘텐츠 폼 목록', desc: '발행된 콘텐츠 폼(ContentType) 목록 (외부 앱용)',
+                id: 'pub-types', group: '콘텐츠 폼', method: 'GET', path: '/public/content-forms',
+                title: '콘텐츠 폼 목록', desc: '발행된 콘텐츠 폼(ContentForm) 목록 (외부 앱용)',
                 authNote: 'API 키 필요: Authorization: Bearer sk_live_xxxxx',
             },
             {
-                id: 'pub-type-detail', group: '콘텐츠 폼', method: 'GET', path: '/public/content-types/:slug',
-                title: '콘텐츠 폼 상세', desc: 'slug로 콘텐츠 폼(ContentType) 조회',
+                id: 'pub-type-detail', group: '콘텐츠 폼', method: 'GET', path: '/public/content-forms/:slug',
+                title: '콘텐츠 폼 상세', desc: 'slug로 콘텐츠 폼(ContentForm) 조회',
                 authNote: 'API 키 필요',
             },
             {
-                id: 'pub-list', group: '콘텐츠', method: 'GET', path: '/public/contents/:contentTypeSlug',
+                id: 'pub-list', group: '콘텐츠', method: 'GET', path: '/public/contents/:contentFormSlug',
                 title: '발행된 콘텐츠 목록', desc: '발행된 콘텐츠만 반환합니다. 동적 필드 필터링 지원',
                 authNote: 'API 키 필요',
                 params: [
@@ -51,11 +51,11 @@ function buildApiSections(contentTypes, selectedType) {
                     { name: 'sort', type: 'string', desc: 'createdAt | updatedAt | publishedAt' },
                     { name: 'order', type: 'string', desc: 'asc | desc (기본: desc)' },
                     { name: 'search', type: 'string', desc: '제목/슬러그 검색' },
-                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링. 콘텐츠 폼(ContentType)에 정의된 필드만 허용 (정의되지 않은 필드는 무시됨). 예: filter[category]=tech' },
+                    { name: 'filter[필드명]', type: 'any', desc: '동적 필드 필터링. 콘텐츠 폼(ContentForm)에 정의된 필드만 허용 (정의되지 않은 필드는 무시됨). 예: filter[category]=tech' },
                 ],
             },
             {
-                id: 'pub-detail', group: '콘텐츠', method: 'GET', path: '/public/contents/:contentTypeSlug/:slug',
+                id: 'pub-detail', group: '콘텐츠', method: 'GET', path: '/public/contents/:contentFormSlug/:slug',
                 title: '발행된 콘텐츠 상세', desc: 'slug로 단건 조회 (발행된 것만)',
                 authNote: 'API 키 필요',
             },
@@ -128,14 +128,14 @@ function buildApiSections(contentTypes, selectedType) {
                 id: 'mc-mine', group: '조회', method: 'GET', path: '/public/member/contents/my',
                 title: '내가 작성한 글 목록', desc: '본인이 작성한 콘텐츠 목록 (모든 상태 포함)', auth: true,
                 params: [
-                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 폼(ContentType)의 슬러그 (선택)' },
+                    { name: 'contentFormSlug', type: 'string', desc: '콘텐츠 폼(ContentForm)의 슬러그 (선택)' },
                     { name: 'page', type: 'number', desc: '페이지 번호' },
                     { name: 'limit', type: 'number', desc: '페이지당 개수' },
                 ],
             },
             {
-                id: 'mc-create', group: '작성', method: 'POST', path: '/public/member/contents/:contentTypeSlug',
-                title: '글 작성', desc: '회원이 글을 작성합니다. 콘텐츠 폼(ContentType)의 "회원 작성 가능" 옵션이 켜져있어야 합니다',
+                id: 'mc-create', group: '작성', method: 'POST', path: '/public/member/contents/:contentFormSlug',
+                title: '글 작성', desc: '회원이 글을 작성합니다. 콘텐츠 폼(ContentForm)의 "회원 작성 가능" 옵션이 켜져있어야 합니다',
                 auth: true,
                 body: json({ title: '내 글 제목', slug: 'my-post', data: { content: '<p>본문</p>' } }),
             },
@@ -235,25 +235,25 @@ function buildApiSections(contentTypes, selectedType) {
         ],
     });
 
-    // ─── 콘텐츠 폼 (ContentType) ───
+    // ─── 콘텐츠 폼 (ContentForm) ───
     sections.push({
-        id: 'content-types',
+        id: 'content-forms',
         category: 'admin',
-        title: '콘텐츠 폼 (ContentType)',
+        title: '콘텐츠 폼 (ContentForm)',
         endpoints: [
             {
-                id: 'ct-list', group: '조회', method: 'GET', path: '/content-types',
+                id: 'ct-list', group: '조회', method: 'GET', path: '/content-forms',
                 title: '목록 조회', desc: '모든 콘텐츠 폼을 조회합니다. 카테고리 필터 지원', auth: true,
                 params: [
                     { name: 'categoryId', type: 'string', desc: '카테고리 ID로 필터링 (없음 필터는 "null" 전달)' },
                 ],
             },
             {
-                id: 'ct-detail', group: '조회', method: 'GET', path: '/content-types/:id',
+                id: 'ct-detail', group: '조회', method: 'GET', path: '/content-forms/:id',
                 title: '상세 조회', desc: 'ID 또는 slug로 조회합니다 (응답에 소속 category 포함)', auth: true,
             },
             {
-                id: 'ct-create', group: '생성', method: 'POST', path: '/content-types',
+                id: 'ct-create', group: '생성', method: 'POST', path: '/content-forms',
                 title: '생성', desc: '새 콘텐츠 폼을 생성합니다. categoryId는 선택 항목', auth: true,
                 body: json({
                     name: '게시판', slug: 'board',
@@ -266,12 +266,12 @@ function buildApiSections(contentTypes, selectedType) {
                 }),
             },
             {
-                id: 'ct-update', group: '수정', method: 'PATCH', path: '/content-types/:id',
+                id: 'ct-update', group: '수정', method: 'PATCH', path: '/content-forms/:id',
                 title: '수정', desc: '콘텐츠 폼을 수정합니다. categoryId를 null로 보내면 카테고리 해제', auth: true,
                 body: json({ name: '수정된 이름', description: '수정된 설명', categoryId: null }),
             },
             {
-                id: 'ct-delete', group: '삭제', method: 'DELETE', path: '/content-types/:id',
+                id: 'ct-delete', group: '삭제', method: 'DELETE', path: '/content-forms/:id',
                 title: '삭제', desc: '콘텐츠 폼을 삭제합니다 (하위 콘텐츠도 삭제)', auth: true,
             },
         ],
@@ -330,7 +330,7 @@ function buildApiSections(contentTypes, selectedType) {
         contentEndpoints.push(
             {
                 id: 'c-list', group: '조회', method: 'GET',
-                path: `/contents?contentTypeId=${selectedType.id}`,
+                path: `/contents?contentFormId=${selectedType.id}`,
                 title: `${selectedType.name} 목록 조회`, auth: true,
                 desc: '페이지네이션, 검색, 상태 필터, 동적 필드 필터 지원',
                 params: [
@@ -348,7 +348,7 @@ function buildApiSections(contentTypes, selectedType) {
             {
                 id: 'c-create', group: '생성', method: 'POST', path: '/contents',
                 title: `${selectedType.name} 생성`, auth: true, desc: '새 콘텐츠를 생성합니다',
-                body: json({ contentTypeId: selectedType.id, title: '제목', slug: 'example-slug', data: dataExample }),
+                body: json({ contentFormId: selectedType.id, title: '제목', slug: 'example-slug', data: dataExample }),
             },
             {
                 id: 'c-update', group: '수정', method: 'PATCH', path: '/contents/:id',
@@ -385,7 +385,7 @@ function buildApiSections(contentTypes, selectedType) {
             },
             {
                 id: 'c-by-slug', method: 'GET', path: `/contents/${selectedType?.id}/slug/:slug`,
-                title: 'slug로 조회', auth: true, desc: '콘텐츠 폼(ContentType) ID + slug로 단건 조회합니다',
+                title: 'slug로 조회', auth: true, desc: '콘텐츠 폼(ContentForm) ID + slug로 단건 조회합니다',
             },
             // 게시판 확장
             {
@@ -548,7 +548,7 @@ function buildApiSections(contentTypes, selectedType) {
                 title: '통합 검색', auth: true, desc: 'MeiliSearch 기반 콘텐츠 통합 검색',
                 params: [
                     { name: 'q', type: 'string', desc: '검색어 (필수)' },
-                    { name: 'contentTypeSlug', type: 'string', desc: '콘텐츠 폼(ContentType) 필터' },
+                    { name: 'contentFormSlug', type: 'string', desc: '콘텐츠 폼(ContentForm) 필터' },
                     { name: 'status', type: 'string', desc: '상태 필터' },
                     { name: 'page', type: 'number', desc: '페이지 번호' },
                     { name: 'limit', type: 'number', desc: '페이지당 개수' },
@@ -611,22 +611,22 @@ function buildApiSections(contentTypes, selectedType) {
             {
                 id: 'ie-json', method: 'GET', path: '/import-export/export/json',
                 title: 'JSON 내보내기', auth: true, desc: '콘텐츠를 JSON으로 내보냅니다',
-                params: [{ name: 'contentTypeId', type: 'string', desc: '콘텐츠 폼(ContentType) ID (필수)' }, { name: 'status', type: 'string', desc: '상태 필터' }],
+                params: [{ name: 'contentFormId', type: 'string', desc: '콘텐츠 폼(ContentForm) ID (필수)' }, { name: 'status', type: 'string', desc: '상태 필터' }],
             },
             {
                 id: 'ie-csv', method: 'GET', path: '/import-export/export/csv',
                 title: 'CSV 내보내기', auth: true, desc: '콘텐츠를 CSV로 내보냅니다 (엑셀 호환)',
-                params: [{ name: 'contentTypeId', type: 'string', desc: '콘텐츠 폼(ContentType) ID (필수)' }],
+                params: [{ name: 'contentFormId', type: 'string', desc: '콘텐츠 폼(ContentForm) ID (필수)' }],
             },
             {
                 id: 'ie-preview', method: 'POST', path: '/import-export/import/preview',
                 title: '가져오기 미리보기', auth: true, desc: '유효성 검사 결과를 확인합니다',
-                body: json({ contentTypeId: 'content-type-id', items: [{ title: '제목', slug: 'slug', data: {} }] }),
+                body: json({ contentFormId: 'content-form-id', items: [{ title: '제목', slug: 'slug', data: {} }] }),
             },
             {
                 id: 'ie-execute', method: 'POST', path: '/import-export/import/execute',
                 title: '가져오기 실행', auth: true, desc: '콘텐츠를 대량 생성합니다. overwrite: true면 동일 slug 덮어쓰기',
-                body: json({ contentTypeId: 'content-type-id', items: [{ title: '제목', slug: 'slug', data: {} }], overwrite: false }),
+                body: json({ contentFormId: 'content-form-id', items: [{ title: '제목', slug: 'slug', data: {} }], overwrite: false }),
             },
             {
                 id: 'ie-parse', method: 'POST', path: '/import-export/parse/csv',
@@ -713,8 +713,8 @@ function extractUrlParams(path) {
 const URL_PARAM_DESCRIPTIONS = {
     id: '리소스의 고유 ID (cuid 형식)',
     slug: '리소스의 고유 주소 (소문자/숫자/하이픈)',
-    contentTypeId: '콘텐츠 폼(ContentType)의 ID',
-    contentTypeSlug: '콘텐츠 폼(ContentType)의 고유 주소 (예: blog)',
+    contentFormId: '콘텐츠 폼(ContentForm)의 ID',
+    contentFormSlug: '콘텐츠 폼(ContentForm)의 고유 주소 (예: blog)',
     version: '버전 번호 (정수)',
     filename: '백업 파일명',
     userId: '사용자 ID',
@@ -723,7 +723,7 @@ const URL_PARAM_DESCRIPTIONS = {
 };
 
 function ApiGuidePage() {
-    const { contentTypes } = useGlobal();
+    const { contentForms } = useGlobal();
     const { makePopup, closePopup } = usePopup();
     const [activeCategory, setActiveCategory] = useState('public');
     const [activeSection, setActiveSection] = useState('public-api');
@@ -775,7 +775,7 @@ const res = await fetch('${API_BASE}/contents', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    contentTypeId: 'cmnf12abc...',
+    contentFormId: 'cmnf12abc...',
     title: '제목',
     slug: 'my-post',
     data: {},
@@ -806,8 +806,8 @@ const res = await fetch('${API_BASE}/contents', {
         );
     };
 
-    const selectedType = contentTypes.find((ct) => ct.slug === selectedSlug);
-    const allSections = buildApiSections(contentTypes, selectedType);
+    const selectedType = contentForms.find((ct) => ct.slug === selectedSlug);
+    const allSections = buildApiSections(contentForms, selectedType);
     const sections = allSections.filter((s) => s.category === activeCategory);
     const currentSection = sections.find((s) => s.id === activeSection) || sections[0];
 
@@ -964,7 +964,7 @@ const res = await fetch('${API_BASE}/contents', {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="none">콘텐츠 폼을 선택하세요</SelectItem>
-                                    {contentTypes.map((ct) => (
+                                    {contentForms.map((ct) => (
                                         <SelectItem key={ct.slug} value={ct.slug}>{ct.name}</SelectItem>
                                     ))}
                                 </SelectContent>

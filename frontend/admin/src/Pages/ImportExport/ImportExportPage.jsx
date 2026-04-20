@@ -34,7 +34,7 @@ import '@/CSS/local/import-export.css';
 
 function ImportExportPage() {
     const api = useAPI();
-    const { contentTypes } = useGlobal();
+    const { contentForms } = useGlobal();
     const { makePopup, closePopup } = usePopup();
 
     const [activeTab, setActiveTab] = useState('export');
@@ -77,14 +77,14 @@ function ImportExportPage() {
             {activeTab === 'export' ? (
                 <ExportSection
                     api={api}
-                    contentTypes={contentTypes}
+                    contentForms={contentForms}
                     makePopup={makePopup}
                     closePopup={closePopup}
                 />
             ) : (
                 <ImportSection
                     api={api}
-                    contentTypes={contentTypes}
+                    contentForms={contentForms}
                     makePopup={makePopup}
                     closePopup={closePopup}
                 />
@@ -94,14 +94,14 @@ function ImportExportPage() {
 }
 
 /** 내보내기 섹션 */
-function ExportSection({ api, contentTypes, makePopup, closePopup }) {
-    const [contentTypeId, setContentTypeId] = useState('');
+function ExportSection({ api, contentForms, makePopup, closePopup }) {
+    const [contentFormId, setContentFormId] = useState('');
     const [format, setFormat] = useState('json');
     const [status, setStatus] = useState('');
     const [isExporting, setIsExporting] = useState(false);
 
     const handleExport = async () => {
-        if (!contentTypeId) {
+        if (!contentFormId) {
             makePopup(
                 <AlertPopup
                     title="선택 필요"
@@ -115,7 +115,7 @@ function ExportSection({ api, contentTypes, makePopup, closePopup }) {
         setIsExporting(true);
         try {
             const params = new URLSearchParams();
-            params.set('contentTypeId', contentTypeId);
+            params.set('contentFormId', contentFormId);
             if (status) params.set('status', status);
 
             const response = await api.get(
@@ -163,14 +163,14 @@ function ExportSection({ api, contentTypes, makePopup, closePopup }) {
                     <div className="flex flex-col flex-1">
                         <Label>콘텐츠 폼</Label>
                         <Select
-                            value={contentTypeId}
-                            onValueChange={setContentTypeId}
+                            value={contentFormId}
+                            onValueChange={setContentFormId}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="콘텐츠 폼 선택" />
                             </SelectTrigger>
                             <SelectContent>
-                                {contentTypes.map((ct) => (
+                                {contentForms.map((ct) => (
                                     <SelectItem key={ct.id} value={ct.id}>
                                         {ct.name}
                                     </SelectItem>
@@ -235,8 +235,8 @@ function ExportSection({ api, contentTypes, makePopup, closePopup }) {
 }
 
 /** 가져오기 섹션 */
-function ImportSection({ api, contentTypes, makePopup, closePopup }) {
-    const [contentTypeId, setContentTypeId] = useState('');
+function ImportSection({ api, contentForms, makePopup, closePopup }) {
+    const [contentFormId, setContentFormId] = useState('');
     const [parsedData, setParsedData] = useState(null);
     const [previewResult, setPreviewResult] = useState(null);
     const [fileName, setFileName] = useState('');
@@ -290,7 +290,7 @@ function ImportSection({ api, contentTypes, makePopup, closePopup }) {
 
     // 미리보기
     const handlePreview = async () => {
-        if (!contentTypeId) {
+        if (!contentFormId) {
             makePopup(
                 <AlertPopup
                     title="선택 필요"
@@ -304,7 +304,7 @@ function ImportSection({ api, contentTypes, makePopup, closePopup }) {
 
         try {
             const res = await api.post('/import-export/import/preview', {
-                contentTypeId,
+                contentFormId,
                 items: parsedData,
             });
             setPreviewResult(res.data);
@@ -324,7 +324,7 @@ function ImportSection({ api, contentTypes, makePopup, closePopup }) {
         mutationFn: () =>
             api
                 .post('/import-export/import/execute', {
-                    contentTypeId,
+                    contentFormId,
                     items: parsedData,
                     overwrite,
                 })
@@ -358,14 +358,14 @@ function ImportSection({ api, contentTypes, makePopup, closePopup }) {
                     <div className="flex flex-col">
                         <Label>콘텐츠 폼</Label>
                         <Select
-                            value={contentTypeId}
-                            onValueChange={setContentTypeId}
+                            value={contentFormId}
+                            onValueChange={setContentFormId}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="콘텐츠 폼 선택" />
                             </SelectTrigger>
                             <SelectContent>
-                                {contentTypes.map((ct) => (
+                                {contentForms.map((ct) => (
                                     <SelectItem key={ct.id} value={ct.id}>
                                         {ct.name}
                                     </SelectItem>

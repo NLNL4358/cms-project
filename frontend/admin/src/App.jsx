@@ -6,8 +6,8 @@ import AdminLayout from '@/Components/layout/AdminLayout.jsx';
 /* Pages */
 import Login from '@pages/System/Login.jsx';
 import Dashboard from '@pages/Dashboard/Dashboard.jsx';
-import ContentTypeList from '@pages/ContentType/ContentTypeList.jsx';
-import ContentTypeForm from '@pages/ContentType/ContentTypeForm.jsx';
+import ContentFormList from '@pages/ContentForm/ContentFormList.jsx';
+import ContentFormForm from '@pages/ContentForm/ContentFormForm.jsx';
 import FormCategoryList from '@pages/FormCategory/FormCategoryList.jsx';
 import FormCategoryForm from '@pages/FormCategory/FormCategoryForm.jsx';
 import ContentList from '@pages/Content/ContentList.jsx';
@@ -27,7 +27,7 @@ import ApiKeyList from '@pages/ApiKey/ApiKeyList.jsx';
 import BackupList from '@pages/Backup/BackupList.jsx';
 
 /* Routers */
-import ContentTypeRouter from '@pages/Router/ContentTypeRouter.jsx';
+import ContentFormRouter from '@pages/Router/ContentFormRouter.jsx';
 import ContentRouter from '@pages/Router/ContentRouter.jsx';
 import MediaRouter from '@pages/Router/MediaRouter.jsx';
 import RoleRouter from '@pages/Router/RoleRouter.jsx';
@@ -62,22 +62,22 @@ function App() {
                 {/* 대시보드 — 항상 접근 가능 */}
                 <Route index element={<Dashboard />} />
 
-                {/* 콘텐츠 타입 */}
-                <Route path="content-types" element={<P permission="content-type:read"><ContentTypeRouter /></P>}>
-                    <Route index element={<ContentTypeList />} />
-                    <Route path="new" element={<P permission="content-type:create"><ContentTypeForm /></P>} />
-                    <Route path=":id/edit" element={<P permission="content-type:update"><ContentTypeForm /></P>} />
+                {/* 콘텐츠 폼 */}
+                <Route path="content-forms" element={<P permission="content-form:read"><ContentFormRouter /></P>}>
+                    <Route index element={<ContentFormList />} />
+                    <Route path="new" element={<P permission="content-form:create"><ContentFormForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content-form:update"><ContentFormForm /></P>} />
                 </Route>
 
                 {/* 콘텐츠 폼 카테고리 */}
-                <Route path="form-categories" element={<P permission="content-type:read"><FormCategoryRouter /></P>}>
+                <Route path="form-categories" element={<P permission="content-form:read"><FormCategoryRouter /></P>}>
                     <Route index element={<FormCategoryList />} />
-                    <Route path="new" element={<P permission="content-type:update"><FormCategoryForm /></P>} />
-                    <Route path=":id/edit" element={<P permission="content-type:update"><FormCategoryForm /></P>} />
+                    <Route path="new" element={<P permission="content-form:update"><FormCategoryForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content-form:update"><FormCategoryForm /></P>} />
                 </Route>
 
                 {/* 콘텐츠 */}
-                <Route path="contents/:contentTypeSlug" element={<P permission="content:read"><ContentRouter /></P>}>
+                <Route path="contents/:contentFormSlug" element={<P permission="content:read"><ContentRouter /></P>}>
                     <Route index element={<ContentList />} />
                     <Route path="new" element={<P permission="content:create"><ContentForm /></P>} />
                     <Route path=":id/edit" element={<P permission="content:update"><ContentForm /></P>} />

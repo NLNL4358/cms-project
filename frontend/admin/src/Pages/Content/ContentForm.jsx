@@ -1,9 +1,9 @@
 /**
  * @description
  * 콘텐츠 생성/수정 폼 페이지.
- * URL의 :contentTypeSlug로 콘텐츠 타입을 식별하고,
+ * URL의 :contentFormSlug로 콘텐츠 타입을 식별하고,
  * :id가 있으면 수정 모드, 없으면 생성 모드로 동작합니다.
- * ContentType.fields에 따라 동적으로 폼 필드를 렌더링합니다.
+ * ContentForm.fields에 따라 동적으로 폼 필드를 렌더링합니다.
  *
  * Phase 3 추가:
  * - 상태 관리 버튼 (초안 저장 / 발행 / 미발행 전환)
@@ -65,16 +65,16 @@ function ContentForm({ readOnly = false }) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { makePopup, closePopup } = usePopup();
-    const { contentTypeSlug, id } = useParams();
-    const { contentTypes } = useGlobal();
+    const { contentFormSlug, id } = useParams();
+    const { contentForms } = useGlobal();
     const isEdit = Boolean(id);
 
     // slug로 콘텐츠 타입 조회
-    const contentType = contentTypes.find((ct) => ct.slug === contentTypeSlug);
-    const fields = contentType?.fields || [];
+    const contentForm = contentForms.find((ct) => ct.slug === contentFormSlug);
+    const fields = contentForm?.fields || [];
 
     // 동적 Zod 스키마
-    const useSlugOption = contentType?.options?.useSlug !== false;
+    const useSlugOption = contentForm?.options?.useSlug !== false;
     const schema = useMemo(() => buildContentSchema(fields, { useSlug: useSlugOption }), [fields, useSlugOption]);
 
     // 슬러그 수동 편집 여부
@@ -164,7 +164,7 @@ function ContentForm({ readOnly = false }) {
                 ? formData.slug
                 : formData.slug || `auto-${Date.now()}`;
             const payload = {
-                contentTypeId: contentType.id,
+                contentFormId: contentForm.id,
                 title: formData.title,
                 slug,
                 data: formData.data,
@@ -176,7 +176,7 @@ function ContentForm({ readOnly = false }) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contents'] });
-            navigate(`/contents/${contentTypeSlug}`);
+            navigate(`/contents/${contentFormSlug}`);
         },
         onError: (error) => {
             const message =
@@ -198,7 +198,7 @@ function ContentForm({ readOnly = false }) {
                 ? formData.slug
                 : formData.slug || `auto-${Date.now()}`;
             const payload = {
-                contentTypeId: contentType.id,
+                contentFormId: contentForm.id,
                 title: formData.title,
                 slug,
                 data: formData.data,
@@ -219,7 +219,7 @@ function ContentForm({ readOnly = false }) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contents'] });
-            navigate(`/contents/${contentTypeSlug}`);
+            navigate(`/contents/${contentFormSlug}`);
         },
         onError: (error) => {
             const message =
@@ -410,11 +410,11 @@ function ContentForm({ readOnly = false }) {
         unarchiveMutation.isPending;
 
     // 콘텐츠 타입 로딩 대기
-    if (!contentType) {
+    if (!contentForm) {
         return (
             <div className="p-6">
                 <div className="text-muted-foreground">
-                    {contentTypes.length === 0
+                    {contentForms.length === 0
                         ? '불러오는 중...'
                         : '콘텐츠 폼을 찾을 수 없습니다.'}
                 </div>
@@ -440,16 +440,16 @@ function ContentForm({ readOnly = false }) {
                         variant="ghost"
                         size="icon-sm"
                         className="backButton"
-                        onClick={() => navigate(`/contents/${contentTypeSlug}`)}
+                        onClick={() => navigate(`/contents/${contentFormSlug}`)}
                     >
                         <ArrowLeft className="size-4" />
                     </Button>
                     <h2 className="text-2xl font-bold">
                         {readOnly
-                            ? `${contentType.name} 상세`
+                            ? `${contentForm.name} 상세`
                             : isEdit
-                              ? `${contentType.name} 수정`
-                              : `새 ${contentType.name}`}
+                              ? `${contentForm.name} 수정`
+                              : `새 ${contentForm.name}`}
                     </h2>
                     {/* 수정 모드: 현재 상태 배지 + 버전 */}
                     {isEdit && existingContent && (
@@ -466,10 +466,10 @@ function ContentForm({ readOnly = false }) {
                 <div>
                     <p className="pageDescription">
                         {readOnly
-                            ? `${contentType.name} 콘텐츠 상세 보기`
+                            ? `${contentForm.name} 콘텐츠 상세 보기`
                             : isEdit
-                              ? `${contentType.name} 콘텐츠를 수정합니다`
-                              : `새 ${contentType.name} 콘텐츠를 생성합니다`}
+                              ? `${contentForm.name} 콘텐츠를 수정합니다`
+                              : `새 ${contentForm.name} 콘텐츠를 생성합니다`}
                     </p>
                 </div>
             </div>
@@ -505,7 +505,7 @@ function ContentForm({ readOnly = false }) {
                         </div>
 
                         {/* 고유주소 (useSlug 옵션에 따라 표시) */}
-                        {contentType?.options?.useSlug !== false && (
+                        {contentForm?.options?.useSlug !== false && (
                             <div className="flex flex-col">
                                 <Label htmlFor="slug">
                                     고유주소{' '}
@@ -699,7 +699,7 @@ function ContentForm({ readOnly = false }) {
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => navigate(`/contents/${contentTypeSlug}`)}
+                        onClick={() => navigate(`/contents/${contentFormSlug}`)}
                     >
                         {readOnly ? '목록으로' : '취소'}
                     </Button>
@@ -779,7 +779,7 @@ function ContentForm({ readOnly = false }) {
             </form>
 
             {/* 처리 상태 + 관리자 답변 (useInquiry 옵션 활성화 시) */}
-            {isEdit && existingContent && contentType?.options?.useInquiry && (
+            {isEdit && existingContent && contentForm?.options?.useInquiry && (
                 <div className="sectionBox" style={{ marginTop: '1rem' }}>
                     <div className="sectionTitle">
                         <div className="sectionTitleBar" />
@@ -856,7 +856,7 @@ function ContentForm({ readOnly = false }) {
                         <button
                             type="button"
                             className="text-sm text-muted-foreground hover:text-foreground"
-                            onClick={() => navigate(`/contents/${contentTypeSlug}/${existingContent.prevContent.id}/${readOnly ? 'view' : 'edit'}`)}
+                            onClick={() => navigate(`/contents/${contentFormSlug}/${existingContent.prevContent.id}/${readOnly ? 'view' : 'edit'}`)}
                         >
                             ← {existingContent.prevContent.title}
                         </button>
@@ -865,7 +865,7 @@ function ContentForm({ readOnly = false }) {
                         <button
                             type="button"
                             className="text-sm text-muted-foreground hover:text-foreground"
-                            onClick={() => navigate(`/contents/${contentTypeSlug}/${existingContent.nextContent.id}/${readOnly ? 'view' : 'edit'}`)}
+                            onClick={() => navigate(`/contents/${contentFormSlug}/${existingContent.nextContent.id}/${readOnly ? 'view' : 'edit'}`)}
                         >
                             {existingContent.nextContent.title} →
                         </button>

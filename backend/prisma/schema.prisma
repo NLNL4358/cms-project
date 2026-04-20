@@ -106,10 +106,10 @@ model RefreshToken {
 }
 
 // =============================================
-// 콘텐츠 타입 시스템
+// 콘텐츠 폼 시스템
 // =============================================
 
-model ContentType {
+model ContentForm {
   id          String   @id @default(cuid())
   name        String
   slug        String   @unique
@@ -127,10 +127,10 @@ model ContentType {
   contents Content[]
 
   @@index([categoryId])
-  @@map("content_types")
+  @@map("content_forms")
 }
 
-// 콘텐츠 폼(ContentType)을 묶는 카테고리
+// 콘텐츠 폼(ContentForm)을 묶는 카테고리
 model FormCategory {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -139,7 +139,7 @@ model FormCategory {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  contentTypes ContentType[]
+  contentForms ContentForm[]
 
   @@map("form_categories")
 }
@@ -150,7 +150,7 @@ model FormCategory {
 
 model Content {
   id              String        @id @default(cuid())
-  contentTypeId   String
+  contentFormId   String
   title           String
   slug            String
   data            Json          @default("{}") // 동적 필드 데이터
@@ -174,7 +174,7 @@ model Content {
   adminReplyById  String?       // 답변 작성자
 
   // Relations
-  contentType     ContentType      @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  contentForm     ContentForm      @relation(fields: [contentFormId], references: [id], onDelete: Cascade)
   createdBy       User             @relation("ContentCreator", fields: [createdById], references: [id])
   updatedBy       User             @relation("ContentUpdater", fields: [updatedById], references: [id])
   adminReplyBy    User?            @relation("ContentReplier", fields: [adminReplyById], references: [id])
@@ -182,8 +182,8 @@ model Content {
   comments        Comment[]
   workflowActions WorkflowAction[]
 
-  @@unique([contentTypeId, slug])
-  @@index([contentTypeId])
+  @@unique([contentFormId, slug])
+  @@index([contentFormId])
   @@index([status])
   @@index([deletedAt])
   @@index([isPinned])

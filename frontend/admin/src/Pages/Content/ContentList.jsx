@@ -1,7 +1,7 @@
 /**
  * @description
  * 콘텐츠 목록 페이지.
- * URL 파라미터의 contentTypeSlug로 해당 콘텐츠 타입의 콘텐츠를 표시합니다.
+ * URL 파라미터의 contentFormSlug로 해당 콘텐츠 타입의 콘텐츠를 표시합니다.
  * 동적 컬럼, 서버 페이지네이션, 검색, 상태 필터를 지원합니다.
  */
 import { useState, useEffect } from 'react';
@@ -106,14 +106,14 @@ function ContentList() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { makePopup, closePopup } = usePopup();
-    const { contentTypeSlug } = useParams();
+    const { contentFormSlug } = useParams();
     const canUpdate = hasPermission('content:update');
     const canCreate = hasPermission('content:create');
     const canDelete = hasPermission('content:delete');
-    const { contentTypes } = useGlobal();
+    const { contentForms } = useGlobal();
 
     // slug로 콘텐츠 타입 조회
-    const contentType = contentTypes.find((ct) => ct.slug === contentTypeSlug);
+    const contentForm = contentForms.find((ct) => ct.slug === contentFormSlug);
 
     // 필터 상태
     const [page, setPage] = useState(1);
@@ -121,27 +121,27 @@ function ContentList() {
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
 
-    // contentTypeSlug 변경 시 필터 초기화
+    // contentFormSlug 변경 시 필터 초기화
     useEffect(() => {
         setPage(1);
         setStatusFilter('');
         setSearchInput('');
         setSearch('');
-    }, [contentTypeSlug]);
+    }, [contentFormSlug]);
 
     // 콘텐츠 목록 조회
     const { data: response, isLoading } = useQuery({
-        queryKey: ['contents', contentType?.id, page, statusFilter, search],
+        queryKey: ['contents', contentForm?.id, page, statusFilter, search],
         queryFn: () => {
             const params = new URLSearchParams();
-            params.set('contentTypeId', contentType.id);
+            params.set('contentFormId', contentForm.id);
             params.set('page', String(page));
             params.set('limit', String(LIMIT));
             if (statusFilter) params.set('status', statusFilter);
             if (search) params.set('search', search);
             return api.get(`/contents?${params}`).then((r) => r.data);
         },
-        enabled: !!contentType?.id,
+        enabled: !!contentForm?.id,
     });
 
     const contents = response?.data || [];
@@ -182,7 +182,7 @@ function ContentList() {
     };
 
     // 동적 컬럼 생성
-    const fields = contentType?.fields || [];
+    const fields = contentForm?.fields || [];
     const displayFields = fields.slice(0, 2);
 
     const columns = [
@@ -198,7 +198,7 @@ function ContentList() {
             ),
         },
         // slug 컬럼 (useSlug 옵션 활성화 시에만 표시)
-        ...(contentType?.options?.useSlug !== false ? [{
+        ...(contentForm?.options?.useSlug !== false ? [{
             accessorKey: 'slug',
             header: '고유주소',
             cell: ({ row }) => (
@@ -251,7 +251,7 @@ function ContentList() {
                     onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                            `/contents/${contentTypeSlug}/${row.original.id}/edit`,
+                            `/contents/${contentFormSlug}/${row.original.id}/edit`,
                         );
                     }}
                 >
@@ -308,11 +308,11 @@ function ContentList() {
     const colWidths = [...baseColWidths, ...dynamicColWidths, ...fixedColWidths];
 
     // 콘텐츠 타입 로딩 대기
-    if (!contentType) {
+    if (!contentForm) {
         return (
             <div className="pageInner">
                 <div className="text-muted-foreground">
-                    {contentTypes.length === 0
+                    {contentForms.length === 0
                         ? '불러오는 중...'
                         : '콘텐츠 폼을 찾을 수 없습니다.'}
                 </div>
@@ -325,16 +325,16 @@ function ContentList() {
             {/* 페이지 헤더 */}
             <div className="pageHeadWrap flex items-end justify-between">
                 <div className="pageTitle">
-                    <h2 className="pageHead">{contentType.name}</h2>
+                    <h2 className="pageHead">{contentForm.name}</h2>
                     <p className="pageDescription">
-                        {contentType.description ||
-                            `${contentType.name} 콘텐츠를 관리합니다`}
+                        {contentForm.description ||
+                            `${contentForm.name} 콘텐츠를 관리합니다`}
                     </p>
                 </div>
                 {canCreate && (
                     <Button
                         className="contentPlus"
-                        onClick={() => navigate(`/contents/${contentTypeSlug}/new`)}
+                        onClick={() => navigate(`/contents/${contentFormSlug}/new`)}
                     >
                         <Plus className="size-5" />
                         콘텐츠 추가
@@ -392,7 +392,7 @@ function ContentList() {
                     emptyMessage="등록된 콘텐츠가 없습니다. 새 콘텐츠를 생성해보세요."
                     onRowClick={(row) =>
                         navigate(
-                            `/contents/${contentTypeSlug}/${row.id}/${canUpdate ? 'edit' : 'view'}`,
+                            `/contents/${contentFormSlug}/${row.id}/${canUpdate ? 'edit' : 'view'}`,
                         )
                     }
                 />

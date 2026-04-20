@@ -2,7 +2,7 @@
  * @description
  * 콘텐츠 폼 카테고리 목록 페이지
  * 등록된 카테고리를 테이블로 표시하고 생성/편집/삭제 기능을 제공합니다.
- * 카테고리는 콘텐츠 폼(ContentType)을 그룹핑하는 상위 엔티티입니다.
+ * 카테고리는 콘텐츠 폼(ContentForm)을 그룹핑하는 상위 엔티티입니다.
  */
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -26,10 +26,10 @@ function FormCategoryList() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    // 카테고리 권한은 콘텐츠 폼(ContentType)의 각 CRUD 권한과 1:1 매핑
-    const canCreate = hasPermission('content-type:create');
-    const canUpdate = hasPermission('content-type:update');
-    const canDelete = hasPermission('content-type:delete');
+    // 카테고리 권한은 콘텐츠 폼(ContentForm)의 각 CRUD 권한과 1:1 매핑
+    const canCreate = hasPermission('content-form:create');
+    const canUpdate = hasPermission('content-form:update');
+    const canDelete = hasPermission('content-form:delete');
 
     const { data: categories = [], isLoading } = useQuery({
         queryKey: ['form-categories'],
@@ -40,7 +40,7 @@ function FormCategoryList() {
         mutationFn: (id) => api.delete(`/form-categories/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['form-categories'] });
-            queryClient.invalidateQueries({ queryKey: ['content-types'] });
+            queryClient.invalidateQueries({ queryKey: ['content-forms'] });
             closePopup();
             makePopup(
                 <AlertPopup
@@ -65,7 +65,7 @@ function FormCategoryList() {
     });
 
     const handleDelete = (row) => {
-        const formCount = row._count?.contentTypes || 0;
+        const formCount = row._count?.contentForms || 0;
         makePopup(
             <YesNoPopup
                 title="카테고리 삭제"
@@ -114,7 +114,7 @@ function FormCategoryList() {
             id: 'formCount',
             header: '소속 콘텐츠 폼',
             cell: ({ row }) => {
-                const count = row.original._count?.contentTypes || 0;
+                const count = row.original._count?.contentForms || 0;
                 return <span>{count}개</span>;
             },
         },

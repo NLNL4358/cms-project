@@ -1,7 +1,7 @@
 /**
  * @description
  * 서버로부터 받아온 전역 데이터를 관리하는 Context.
- * 콘텐츠 타입 목록 등 앱 전체에서 공유되는 서버 데이터를 제공합니다.
+ * 콘텐츠 폼 목록 등 앱 전체에서 공유되는 서버 데이터를 제공합니다.
  */
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -36,21 +36,21 @@ export function GlobalProvider({ children }) {
     if (!isMobile) setSidebarOpen(false);
   }, [isMobile]);
 
-  // 콘텐츠 타입 목록은 콘텐츠 조회에도 필요 (사이드바 동적 메뉴)
-  const canReadContentTypes = hasPermission('content-type:read') || hasPermission('content:read');
+  // 콘텐츠 폼 목록은 콘텐츠 조회에도 필요 (사이드바 동적 메뉴)
+  const canReadContentForms = hasPermission('content-form:read') || hasPermission('content:read');
   const canReadSettings = hasPermission('settings:read');
 
-  const { data: contentTypes = [] } = useQuery({
-    queryKey: ["content-types"],
-    queryFn: () => api.get("/content-types").then((r) => r.data),
-    enabled: !!user && !!accessToken && canReadContentTypes,
+  const { data: contentForms = [] } = useQuery({
+    queryKey: ["content-forms"],
+    queryFn: () => api.get("/content-forms").then((r) => r.data),
+    enabled: !!user && !!accessToken && canReadContentForms,
   });
 
   /** 콘텐츠 폼 카테고리 — 사이드바 그룹핑 및 폼 드롭다운용 */
   const { data: formCategories = [] } = useQuery({
     queryKey: ["form-categories"],
     queryFn: () => api.get("/form-categories").then((r) => r.data),
-    enabled: !!user && !!accessToken && canReadContentTypes,
+    enabled: !!user && !!accessToken && canReadContentForms,
   });
 
   /** 시스템 설정 */
@@ -78,7 +78,7 @@ export function GlobalProvider({ children }) {
   }, [settings.faviconUrl]);
 
   return (
-    <GlobalContext.Provider value={{ contentTypes, formCategories, settings, isMobile, sidebarOpen, setSidebarOpen }}>
+    <GlobalContext.Provider value={{ contentForms, formCategories, settings, isMobile, sidebarOpen, setSidebarOpen }}>
       {children}
     </GlobalContext.Provider>
   );

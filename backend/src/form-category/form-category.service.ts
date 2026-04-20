@@ -11,7 +11,7 @@ export class FormCategoryService {
     return this.prisma.formCategory.findMany({
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
       include: {
-        _count: { select: { contentTypes: true } },
+        _count: { select: { contentForms: true } },
       },
     });
   }
@@ -20,7 +20,7 @@ export class FormCategoryService {
     const category = await this.prisma.formCategory.findUnique({
       where: { id },
       include: {
-        contentTypes: {
+        contentForms: {
           select: { id: true, name: true, slug: true },
         },
       },
@@ -61,7 +61,7 @@ export class FormCategoryService {
 
   async remove(id: string) {
     await this.findOne(id);
-    // onDelete: SetNull에 의해 소속 ContentType.categoryId가 자동 NULL 처리됨
+    // onDelete: SetNull에 의해 소속 ContentForm.categoryId가 자동 NULL 처리됨
     await this.prisma.formCategory.delete({ where: { id } });
     return { message: '카테고리가 삭제되었습니다' };
   }

@@ -27,26 +27,26 @@ import '@/CSS/local/search.css';
 
 function SearchPage() {
     const api = useAPI();
-    const { contentTypes } = useGlobal();
+    const { contentForms } = useGlobal();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const initialQuery = searchParams.get('q') || '';
     const [searchInput, setSearchInput] = useState(initialQuery);
     const [query, setQuery] = useState(initialQuery);
     const [page, setPage] = useState(1);
-    const [contentTypeSlug, setContentTypeSlug] = useState('');
+    const [contentFormSlug, setContentFormSlug] = useState('');
     const [status, setStatus] = useState('');
 
     const limit = 20;
 
     const { data, isLoading } = useQuery({
-        queryKey: ['search-results', query, page, contentTypeSlug, status],
+        queryKey: ['search-results', query, page, contentFormSlug, status],
         queryFn: () => {
             const params = new URLSearchParams();
             params.set('q', query);
             params.set('page', String(page));
             params.set('limit', String(limit));
-            if (contentTypeSlug) params.set('contentTypeSlug', contentTypeSlug);
+            if (contentFormSlug) params.set('contentFormSlug', contentFormSlug);
             if (status) params.set('status', status);
             return api.get(`/search?${params}`).then((r) => r.data);
         },
@@ -93,9 +93,9 @@ function SearchPage() {
                 </div>
                 <div className="searchFilterRow">
                     <Select
-                        value={contentTypeSlug || 'all'}
+                        value={contentFormSlug || 'all'}
                         onValueChange={(v) => {
-                            setContentTypeSlug(v === 'all' ? '' : v);
+                            setContentFormSlug(v === 'all' ? '' : v);
                             setPage(1);
                         }}
                     >
@@ -104,7 +104,7 @@ function SearchPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">콘텐츠 폼 전체</SelectItem>
-                            {contentTypes.map((ct) => (
+                            {contentForms.map((ct) => (
                                 <SelectItem key={ct.slug} value={ct.slug}>
                                     {ct.name}
                                 </SelectItem>

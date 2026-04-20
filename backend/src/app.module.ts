@@ -7,7 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { ContentTypeModule } from './content-type/content-type.module';
+import { ContentFormModule } from './content-form/content-form.module';
 import { FormCategoryModule } from './form-category/form-category.module';
 import { ContentModule } from './content/content.module';
 import { MediaModule } from './media/media.module';
@@ -52,8 +52,8 @@ import { EmailModule } from './email/email.module';
     PrismaModule,
     // 인증 모듈
     AuthModule,
-    // 콘텐츠 타입 모듈
-    ContentTypeModule,
+    // 콘텐츠 폼 모듈
+    ContentFormModule,
     // 콘텐츠 폼 카테고리 모듈
     FormCategoryModule,
     // 콘텐츠 모듈

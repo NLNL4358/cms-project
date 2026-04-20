@@ -19,22 +19,22 @@ import { ApiKeyGuard } from '../api-key/api-key.guard';
 export class PublicApiController {
   constructor(private readonly service: PublicApiService) {}
 
-  /** 콘텐츠 타입 목록 */
-  @Get('content-types')
-  listContentTypes() {
-    return this.service.listContentTypes();
+  /** 콘텐츠 폼 목록 */
+  @Get('content-forms')
+  listContentForms() {
+    return this.service.listContentForms();
   }
 
-  /** 콘텐츠 타입 단건 조회 */
-  @Get('content-types/:slug')
-  getContentType(@Param('slug') slug: string) {
-    return this.service.getContentType(slug);
+  /** 콘텐츠 폼 단건 조회 */
+  @Get('content-forms/:slug')
+  getContentForm(@Param('slug') slug: string) {
+    return this.service.getContentForm(slug);
   }
 
   /** 발행된 콘텐츠 목록 (필터링/페이지네이션) */
-  @Get('contents/:contentTypeSlug')
+  @Get('contents/:contentFormSlug')
   listContents(
-    @Param('contentTypeSlug') contentTypeSlug: string,
+    @Param('contentFormSlug') contentFormSlug: string,
     @Query() query: any,
   ) {
     // filter[fieldName]=value 파싱
@@ -47,7 +47,7 @@ export class PublicApiController {
     }
 
     return this.service.listContents({
-      contentTypeSlug,
+      contentFormSlug,
       page: query.page ? parseInt(query.page) : undefined,
       limit: query.limit ? parseInt(query.limit) : undefined,
       sort: query.sort,
@@ -58,11 +58,11 @@ export class PublicApiController {
   }
 
   /** 발행된 콘텐츠 단건 조회 (slug) */
-  @Get('contents/:contentTypeSlug/:slug')
+  @Get('contents/:contentFormSlug/:slug')
   getContentBySlug(
-    @Param('contentTypeSlug') contentTypeSlug: string,
+    @Param('contentFormSlug') contentFormSlug: string,
     @Param('slug') slug: string,
   ) {
-    return this.service.getContentBySlug(contentTypeSlug, slug);
+    return this.service.getContentBySlug(contentFormSlug, slug);
   }
 }

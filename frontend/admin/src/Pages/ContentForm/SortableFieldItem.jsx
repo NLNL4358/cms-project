@@ -1,7 +1,7 @@
 /**
  * @description
  * 드래그 앤 드롭으로 순서 변경이 가능한 필드 아이템 카드.
- * ContentTypeForm의 useFieldArray 항목을 렌더링한다.
+ * ContentFormForm의 useFieldArray 항목을 렌더링한다.
  */
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/Select.jsx';
-import { FIELD_TYPES, FIELD_TYPE_MAP } from './ContentTypeForm.jsx';
+import { FIELD_TYPES, FIELD_TYPE_MAP } from './ContentFormForm.jsx';
 
 function SortableFieldItem({
     id,

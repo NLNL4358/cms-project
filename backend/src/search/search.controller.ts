@@ -11,13 +11,13 @@ export class SearchController {
   @Get()
   search(
     @Query('q') q: string,
-    @Query('contentTypeSlug') contentTypeSlug?: string,
+    @Query('contentFormSlug') contentFormSlug?: string,
     @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.searchService.search(q || '', {
-      contentTypeSlug,
+      contentFormSlug,
       status,
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,

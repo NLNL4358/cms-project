@@ -13,7 +13,7 @@ import NotificationBell from '@/Components/layout/NotificationBell.jsx';
 
 /** 경로 → 브레드크럼 라벨 매핑 */
 const pathLabels = {
-    'content-types': '콘텐츠 폼',
+    'content-forms': '콘텐츠 폼',
     'form-categories': '카테고리',
     contents: '콘텐츠',
     media: '파일 관리',
@@ -33,7 +33,7 @@ const pathLabels = {
 };
 
 function AppHeader() {
-    const { contentTypes, isMobile, setSidebarOpen } = useGlobal();
+    const { contentForms, isMobile, setSidebarOpen } = useGlobal();
     const { hasPermission } = useUser();
     const location = useLocation();
     const navigate = useNavigate();
@@ -52,9 +52,9 @@ function AppHeader() {
 
             let label = pathLabels[segment] || segment;
 
-            // contents/:slug 의 slug 부분을 contentType 이름으로 변환
-            if (segments[i - 1] === 'contents' && contentTypes.length > 0) {
-                const ct = contentTypes.find((c) => c.slug === segment);
+            // contents/:slug 의 slug 부분을 contentForm 이름으로 변환
+            if (segments[i - 1] === 'contents' && contentForms.length > 0) {
+                const ct = contentForms.find((c) => c.slug === segment);
                 if (ct) label = ct.name;
             }
 

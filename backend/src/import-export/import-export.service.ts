@@ -13,9 +13,9 @@ export class ImportExportService {
   /**
    * 콘텐츠 내보내기 (JSON)
    */
-  async exportJson(contentTypeId: string, filters?: { status?: string }) {
-    const contentType = await this.getContentType(contentTypeId);
-    const where = this.buildExportWhere(contentTypeId, filters);
+  async exportJson(contentFormId: string, filters?: { status?: string }) {
+    const contentForm = await this.getContentForm(contentFormId);
+    const where = this.buildExportWhere(contentFormId, filters);
 
     const contents = await this.prisma.content.findMany({
       where,
@@ -32,10 +32,10 @@ export class ImportExportService {
     });
 
     return {
-      contentType: {
-        name: contentType.name,
-        slug: contentType.slug,
-        fields: contentType.fields,
+      contentForm: {
+        name: contentForm.name,
+        slug: contentForm.slug,
+        fields: contentForm.fields,
       },
       exportedAt: new Date().toISOString(),
       count: contents.length,
@@ -46,9 +46,9 @@ export class ImportExportService {
   /**
    * 콘텐츠 내보내기 (CSV)
    */
-  async exportCsv(contentTypeId: string, filters?: { status?: string }) {
-    const contentType = await this.getContentType(contentTypeId);
-    const where = this.buildExportWhere(contentTypeId, filters);
+  async exportCsv(contentFormId: string, filters?: { status?: string }) {
+    const contentForm = await this.getContentForm(contentFormId);
+    const where = this.buildExportWhere(contentFormId, filters);
 
     const contents = await this.prisma.content.findMany({
       where,
@@ -64,7 +64,7 @@ export class ImportExportService {
     });
 
     // 동적 필드 키 수집 (data: 접두사로 시스템 필드와 구분)
-    const fields = Array.isArray(contentType.fields) ? contentType.fields : [];
+    const fields = Array.isArray(contentForm.fields) ? contentForm.fields : [];
     const dynamicKeys = fields.map((f: any) => f.name);
 
     // CSV 헤더 — 동적 필드는 "data:필드명" 형식
@@ -94,14 +94,14 @@ export class ImportExportService {
    * 콘텐츠 가져오기 미리보기 (유효성 검사)
    */
   async importPreview(
-    contentTypeId: string,
+    contentFormId: string,
     items: Array<{ title: string; slug: string; data?: any }>,
   ) {
-    const contentType = await this.getContentType(contentTypeId);
+    const contentForm = await this.getContentForm(contentFormId);
 
     // 기존 slug 조회 (중복 체크용)
     const existingSlugs = await this.prisma.content.findMany({
-      where: { contentTypeId, deletedAt: null },
+      where: { contentFormId, deletedAt: null },
       select: { slug: true },
     });
     const slugSet = new Set(existingSlugs.map((c) => c.slug));
@@ -139,12 +139,12 @@ export class ImportExportService {
    * 콘텐츠 가져오기 실행
    */
   async importExecute(
-    contentTypeId: string,
+    contentFormId: string,
     userId: string,
     items: Array<{ title: string; slug: string; data?: any; status?: string }>,
     overwrite = false,
   ) {
-    await this.getContentType(contentTypeId);
+    await this.getContentForm(contentFormId);
 
     let created = 0;
     let updated = 0;
@@ -161,7 +161,7 @@ export class ImportExportService {
 
         // slug 중복 체크 (활성 레코드)
         const existing = await this.prisma.content.findFirst({
-          where: { contentTypeId, slug: item.slug, deletedAt: null },
+          where: { contentFormId, slug: item.slug, deletedAt: null },
         });
 
         if (existing) {
@@ -186,7 +186,7 @@ export class ImportExportService {
 
         // soft-deleted 레코드가 있으면 복원 (unique 제약 우회)
         const softDeleted = await this.prisma.content.findFirst({
-          where: { contentTypeId, slug: item.slug, deletedAt: { not: null } },
+          where: { contentFormId, slug: item.slug, deletedAt: { not: null } },
         });
 
         if (softDeleted) {
@@ -203,7 +203,7 @@ export class ImportExportService {
         } else {
           await this.prisma.content.create({
             data: {
-              contentTypeId,
+              contentFormId,
               title: item.title,
               slug: item.slug,
               data: item.data || {},
@@ -288,16 +288,16 @@ export class ImportExportService {
     return valid.includes(status as ContentStatus) ? (status as ContentStatus) : null;
   }
 
-  private async getContentType(contentTypeId: string) {
-    const ct = await this.prisma.contentType.findUnique({
-      where: { id: contentTypeId },
+  private async getContentForm(contentFormId: string) {
+    const ct = await this.prisma.contentForm.findUnique({
+      where: { id: contentFormId },
     });
-    if (!ct) throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!ct) throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     return ct;
   }
 
-  private buildExportWhere(contentTypeId: string, filters?: { status?: string }) {
-    const where: any = { contentTypeId, deletedAt: null };
+  private buildExportWhere(contentFormId: string, filters?: { status?: string }) {
+    const where: any = { contentFormId, deletedAt: null };
     if (filters?.status) {
       where.status = filters.status;
     }

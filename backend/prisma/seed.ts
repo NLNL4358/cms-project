@@ -29,7 +29,7 @@ async function main() {
       slug: 'admin',
       description: '콘텐츠, 미디어, 사용자 관리 + 운영 기능 (백업/API키 제외)',
       permissions: [
-        'content-type:*',
+        'content-form:*',
         'content:*',
         'media:*',
         'user:read',
@@ -51,7 +51,7 @@ async function main() {
         'content:read',
         'content:create',
         'content:update',
-        'content-type:read',
+        'content-form:read',
         'media:read',
         'media:create',
         'media:update',
@@ -61,7 +61,7 @@ async function main() {
       name: '뷰어',
       slug: 'viewer',
       description: '읽기 전용 권한',
-      permissions: ['content:read', 'content-type:read', 'media:read'],
+      permissions: ['content:read', 'content-form:read', 'media:read'],
     },
   ];
 

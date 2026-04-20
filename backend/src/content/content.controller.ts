@@ -43,7 +43,7 @@ export class ContentController {
     description: '새로운 콘텐츠를 생성합니다',
   })
   @ApiResponse({ status: 201, description: '콘텐츠 생성 성공' })
-  @ApiResponse({ status: 404, description: '콘텐츠 타입을 찾을 수 없음' })
+  @ApiResponse({ status: 404, description: '콘텐츠 폼을 찾을 수 없음' })
   @ApiResponse({ status: 409, description: '이미 사용 중인 고유주소' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -61,9 +61,9 @@ export class ContentController {
     description: '모든 콘텐츠를 조회합니다 (필터링, 페이지네이션 지원)',
   })
   @ApiQuery({
-    name: 'contentTypeId',
+    name: 'contentFormId',
     required: false,
-    description: '콘텐츠 타입 ID로 필터링',
+    description: '콘텐츠 폼 ID로 필터링',
   })
   @ApiQuery({
     name: 'status',
@@ -95,7 +95,7 @@ export class ContentController {
     }
 
     return this.contentService.findAll({
-      contentTypeId: query.contentTypeId,
+      contentFormId: query.contentFormId,
       status: query.status,
       search: query.search,
       page: query.page ? parseInt(query.page) : undefined,
@@ -119,21 +119,21 @@ export class ContentController {
     return this.contentService.findOne(id, { incrementView: true, ip });
   }
 
-  @Get(':contentTypeId/slug/:slug')
+  @Get(':contentFormId/slug/:slug')
   @Permissions('content:read', 'content:*', '*')
   @ApiOperation({
     summary: 'slug로 콘텐츠 조회',
-    description: 'ContentType ID와 slug로 콘텐츠를 조회합니다',
+    description: 'ContentForm ID와 slug로 콘텐츠를 조회합니다',
   })
   @ApiResponse({ status: 200, description: '조회 성공' })
   @ApiResponse({ status: 404, description: '콘텐츠를 찾을 수 없음' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 403, description: '권한 없음' })
   findBySlug(
-    @Param('contentTypeId') contentTypeId: string,
+    @Param('contentFormId') contentFormId: string,
     @Param('slug') slug: string,
   ) {
-    return this.contentService.findBySlug(contentTypeId, slug);
+    return this.contentService.findBySlug(contentFormId, slug);
   }
 
   @Patch(':id')

@@ -39,12 +39,12 @@ export class SearchService implements OnModuleInit {
 
     // 검색 대상 필드 설정
     await this.client.index(CONTENT_INDEX).updateSearchableAttributes([
-      'title', 'slug', 'contentTypeName', 'dataText',
+      'title', 'slug', 'contentFormName', 'dataText',
     ]);
 
     // 필터 가능 필드
     await this.client.index(CONTENT_INDEX).updateFilterableAttributes([
-      'contentTypeId', 'contentTypeSlug', 'status',
+      'contentFormId', 'contentFormSlug', 'status',
     ]);
 
     // 정렬 가능 필드
@@ -58,7 +58,7 @@ export class SearchService implements OnModuleInit {
     const contents = await this.prisma.content.findMany({
       where: { deletedAt: null },
       include: {
-        contentType: { select: { name: true, slug: true } },
+        contentForm: { select: { name: true, slug: true } },
       },
     });
 
@@ -76,7 +76,7 @@ export class SearchService implements OnModuleInit {
       const content = await this.prisma.content.findUnique({
         where: { id: contentId },
         include: {
-          contentType: { select: { name: true, slug: true } },
+          contentForm: { select: { name: true, slug: true } },
         },
       });
 
@@ -104,7 +104,7 @@ export class SearchService implements OnModuleInit {
 
   /** 통합 검색 */
   async search(query: string, options?: {
-    contentTypeSlug?: string;
+    contentFormSlug?: string;
     status?: string;
     page?: number;
     limit?: number;
@@ -113,8 +113,8 @@ export class SearchService implements OnModuleInit {
     const limit = options?.limit || 20;
 
     const filter: string[] = [];
-    if (options?.contentTypeSlug) {
-      filter.push(`contentTypeSlug = "${options.contentTypeSlug}"`);
+    if (options?.contentFormSlug) {
+      filter.push(`contentFormSlug = "${options.contentFormSlug}"`);
     }
     if (options?.status) {
       filter.push(`status = "${options.status}"`);
@@ -149,7 +149,7 @@ export class SearchService implements OnModuleInit {
 
   /** MeiliSearch 장애 시 DB 직접 검색 (폴백) */
   private async fallbackSearch(query: string, options?: {
-    contentTypeSlug?: string;
+    contentFormSlug?: string;
     status?: string;
     page?: number;
     limit?: number;
@@ -164,8 +164,8 @@ export class SearchService implements OnModuleInit {
       ],
     };
 
-    if (options?.contentTypeSlug) {
-      where.contentType = { slug: options.contentTypeSlug };
+    if (options?.contentFormSlug) {
+      where.contentForm = { slug: options.contentFormSlug };
     }
     if (options?.status) {
       where.status = options.status;
@@ -174,7 +174,7 @@ export class SearchService implements OnModuleInit {
     const [data, total] = await Promise.all([
       this.prisma.content.findMany({
         where,
-        include: { contentType: { select: { name: true, slug: true } } },
+        include: { contentForm: { select: { name: true, slug: true } } },
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { updatedAt: 'desc' },
@@ -198,9 +198,9 @@ export class SearchService implements OnModuleInit {
       title: content.title,
       slug: content.slug,
       status: content.status,
-      contentTypeId: content.contentTypeId,
-      contentTypeName: content.contentType?.name || '',
-      contentTypeSlug: content.contentType?.slug || '',
+      contentFormId: content.contentFormId,
+      contentFormName: content.contentForm?.name || '',
+      contentFormSlug: content.contentForm?.slug || '',
       dataText,
       createdAt: new Date(content.createdAt).getTime(),
       updatedAt: new Date(content.updatedAt).getTime(),

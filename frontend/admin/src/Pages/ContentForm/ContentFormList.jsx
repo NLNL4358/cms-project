@@ -14,28 +14,28 @@ import YesNoPopup from '@/Components/common/YesNoPopup';
 import AlertPopup from '@/Components/common/AlertPopup';
 
 /**
- * 콘텐츠 타입 목록 페이지
+ * 콘텐츠 폼 목록 페이지
  *
  * 등록된 콘텐츠 타입을 테이블로 표시한다.
  * 생성/편집/삭제 기능을 제공한다.
  */
-function ContentTypeList() {
+function ContentFormList() {
     const api = useAPI();
     const { makePopup, closePopup } = usePopup();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    // 콘텐츠 타입 목록 조회
-    const { data: contentTypes = [], isLoading } = useQuery({
-        queryKey: ['content-types'],
-        queryFn: () => api.get('/content-types').then((r) => r.data),
+    // 콘텐츠 폼 목록 조회
+    const { data: contentForms = [], isLoading } = useQuery({
+        queryKey: ['content-forms'],
+        queryFn: () => api.get('/content-forms').then((r) => r.data),
     });
 
     // 콘텐츠 타입 삭제 뮤테이션
     const deleteMutation = useMutation({
-        mutationFn: (id) => api.delete(`/content-types/${id}`),
+        mutationFn: (id) => api.delete(`/content-forms/${id}`),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['content-types'] });
+            queryClient.invalidateQueries({ queryKey: ['content-forms'] });
             closePopup();
             makePopup(
                 <AlertPopup
@@ -117,7 +117,7 @@ function ContentTypeList() {
                     size="icon-sm"
                     onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/content-types/${row.original.id}/edit`);
+                        navigate(`/content-forms/${row.original.id}/edit`);
                     }}
                 >
                     <Pencil className="size-4" />
@@ -189,7 +189,7 @@ function ContentTypeList() {
                 </div>
                 <Button
                     className="contentPlus"
-                    onClick={() => navigate('/content-types/new')}
+                    onClick={() => navigate('/content-forms/new')}
                 >
                     <Plus className="size-5" />
                     콘텐츠 폼 추가
@@ -201,11 +201,11 @@ function ContentTypeList() {
                 <DataTable
                     columns={columns}
                     colWidths={colWidths}
-                    data={contentTypes}
+                    data={contentForms}
                     isLoading={isLoading}
                     emptyMessage="등록된 콘텐츠 폼이 없습니다. 새 콘텐츠 폼을 생성해보세요."
                     onRowClick={(row) =>
-                        navigate(`/content-types/${row.id}/edit`)
+                        navigate(`/content-forms/${row.id}/edit`)
                     }
                 />
             </div>
@@ -213,4 +213,4 @@ function ContentTypeList() {
     );
 }
 
-export default ContentTypeList;
+export default ContentFormList;

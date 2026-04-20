@@ -4,20 +4,20 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateContentTypeDto } from './dto/create-content-type.dto';
-import { UpdateContentTypeDto } from './dto/update-content-type.dto';
+import { CreateContentFormDto } from './dto/create-content-form.dto';
+import { UpdateContentFormDto } from './dto/update-content-form.dto';
 
 @Injectable()
-export class ContentTypeService {
+export class ContentFormService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createContentTypeDto: CreateContentTypeDto) {
+  async create(createContentFormDto: CreateContentFormDto) {
     // 빈 문자열 categoryId는 null로 정규화 ("카테고리 없음" 표현 통일)
-    const data = { ...createContentTypeDto };
+    const data = { ...createContentFormDto };
     if (data.categoryId === '') data.categoryId = null;
 
     // slug 중복 확인
-    const existing = await this.prisma.contentType.findUnique({
+    const existing = await this.prisma.contentForm.findUnique({
       where: { slug: data.slug },
     });
 
@@ -35,7 +35,7 @@ export class ContentTypeService {
       }
     }
 
-    return this.prisma.contentType.create({
+    return this.prisma.contentForm.create({
       data,
       include: {
         category: {
@@ -53,7 +53,7 @@ export class ContentTypeService {
           ? { categoryId: null }
           : { categoryId };
 
-    return this.prisma.contentType.findMany({
+    return this.prisma.contentForm.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -68,8 +68,8 @@ export class ContentTypeService {
     // CUID 형식 확인 (c로 시작하고 25자 정도)
     const isCuid = /^c[a-z0-9]{24,25}$/i.test(idOrSlug);
 
-    const contentType = isCuid
-      ? await this.prisma.contentType.findUnique({
+    const contentForm = isCuid
+      ? await this.prisma.contentForm.findUnique({
           where: { id: idOrSlug },
           include: {
             category: {
@@ -77,7 +77,7 @@ export class ContentTypeService {
             },
           },
         })
-      : await this.prisma.contentType.findUnique({
+      : await this.prisma.contentForm.findUnique({
           where: { slug: idOrSlug },
           include: {
             category: {
@@ -86,39 +86,39 @@ export class ContentTypeService {
           },
         });
 
-    if (!contentType) {
-      throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!contentForm) {
+      throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     }
 
-    return contentType;
+    return contentForm;
   }
 
   async findBySlug(slug: string) {
-    const contentType = await this.prisma.contentType.findUnique({
+    const contentForm = await this.prisma.contentForm.findUnique({
       where: { slug },
     });
 
-    if (!contentType) {
-      throw new NotFoundException('콘텐츠 타입을 찾을 수 없습니다');
+    if (!contentForm) {
+      throw new NotFoundException('콘텐츠 폼을 찾을 수 없습니다');
     }
 
-    return contentType;
+    return contentForm;
   }
 
-  async update(idOrSlug: string, updateContentTypeDto: UpdateContentTypeDto) {
+  async update(idOrSlug: string, updateContentFormDto: UpdateContentFormDto) {
     // 존재 여부 확인 및 실제 ID 가져오기
-    const contentType = await this.findOne(idOrSlug);
+    const contentForm = await this.findOne(idOrSlug);
 
     // 빈 문자열 categoryId는 null로 정규화 ("카테고리 없음" 선택 시 FK 에러 방지)
-    const data = { ...updateContentTypeDto };
+    const data = { ...updateContentFormDto };
     if (data.categoryId === '') data.categoryId = null;
 
     // slug 변경 시 중복 확인
     if (data.slug) {
-      const existing = await this.prisma.contentType.findFirst({
+      const existing = await this.prisma.contentForm.findFirst({
         where: {
           slug: data.slug,
-          NOT: { id: contentType.id },
+          NOT: { id: contentForm.id },
         },
       });
 
@@ -137,8 +137,8 @@ export class ContentTypeService {
       }
     }
 
-    return this.prisma.contentType.update({
-      where: { id: contentType.id },
+    return this.prisma.contentForm.update({
+      where: { id: contentForm.id },
       data,
       include: {
         category: {
@@ -150,23 +150,23 @@ export class ContentTypeService {
 
   async remove(idOrSlug: string) {
     // 존재 여부 확인 및 실제 ID 가져오기
-    const contentType = await this.findOne(idOrSlug);
+    const contentForm = await this.findOne(idOrSlug);
 
-    // 이 콘텐츠 타입을 사용하는 콘텐츠가 있는지 확인
+    // 이 콘텐츠 폼을 사용하는 콘텐츠가 있는지 확인
     const contentsCount = await this.prisma.content.count({
-      where: { contentTypeId: contentType.id },
+      where: { contentFormId: contentForm.id },
     });
 
     if (contentsCount > 0) {
       throw new ConflictException(
-        `이 콘텐츠 타입을 사용하는 콘텐츠가 ${contentsCount}개 있습니다. 먼저 콘텐츠를 삭제해주세요.`,
+        `이 콘텐츠 폼을 사용하는 콘텐츠가 ${contentsCount}개 있습니다. 먼저 콘텐츠를 삭제해주세요.`,
       );
     }
 
-    await this.prisma.contentType.delete({
-      where: { id: contentType.id },
+    await this.prisma.contentForm.delete({
+      where: { id: contentForm.id },
     });
 
-    return { message: '콘텐츠 타입이 삭제되었습니다' };
+    return { message: '콘텐츠 폼이 삭제되었습니다' };
   }
 }

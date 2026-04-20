@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * ContentType의 fields 배열로 Zod 검증 스키마를 동적으로 생성합니다.
+ * ContentForm의 fields 배열로 Zod 검증 스키마를 동적으로 생성합니다.
  * @param {Array} fields - [{ name, label, type, required }]
  * @returns {z.ZodObject} - { title, slug, data: { ...dynamicFields } } 스키마
  */

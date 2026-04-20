@@ -276,7 +276,7 @@
     border-bottom: 2px solid var(--primary);
 }
 
-/* 콘텐츠 타입 선택 */
+/* 콘텐츠 폼 선택 */
 .apiTypeSelect {
     display: flex;
     flex-direction: column;
