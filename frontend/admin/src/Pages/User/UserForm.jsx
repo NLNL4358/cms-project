@@ -57,22 +57,6 @@ function UserForm() {
     const [isActive, setIsActive] = useState(true);
     const [selectedRoleIds, setSelectedRoleIds] = useState([]);
 
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        reset,
-        formState: { errors },
-    } = useForm({
-        resolver: zodResolver(isEdit ? editSchema : createSchema),
-        defaultValues: {
-            email: '',
-            password: '',
-            name: '',
-            type: 'ADMIN',
-        },
-    });
-
     // 역할 목록
     const { data: allRoles = [] } = useQuery({
         queryKey: ['roles'],
@@ -86,20 +70,37 @@ function UserForm() {
         enabled: isEdit,
     });
 
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        formState: { errors },
+    } = useForm({
+        resolver: zodResolver(isEdit ? editSchema : createSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+            name: '',
+            type: 'ADMIN',
+        },
+        // values 옵션: existingData 도착 시 rhf가 안전하게 동기화. 사용자 입력은 유지됨.
+        values: existingData
+            ? {
+                  email: existingData.email,
+                  password: '',
+                  name: existingData.name,
+                  type: existingData.type,
+              }
+            : undefined,
+    });
+
+    // isActive, selectedRoleIds는 rhf 외부 state라 별도 동기화
     useEffect(() => {
         if (existingData) {
-            reset({
-                email: existingData.email,
-                password: '',
-                name: existingData.name,
-                type: existingData.type,
-            });
             setIsActive(existingData.isActive);
-            setSelectedRoleIds(
-                (existingData.roles || []).map((r) => r.id),
-            );
+            setSelectedRoleIds((existingData.roles || []).map((r) => r.id));
         }
-    }, [existingData, reset]);
+    }, [existingData]);
 
     // 역할 토글
     const toggleRole = (roleId) => {

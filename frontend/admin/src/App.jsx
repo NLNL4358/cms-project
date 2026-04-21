@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthGuard } from '@/Components/features/AuthGuard.jsx';
 import { PermissionGuard } from '@/Components/features/PermissionGuard.jsx';
 import AdminLayout from '@/Components/layout/AdminLayout.jsx';
+import ContentHubLayout from '@/Components/layout/ContentHubLayout.jsx';
 
 /* Pages */
 import Login from '@pages/System/Login.jsx';
@@ -39,6 +40,9 @@ import '@/CSS/reset.css';
 import '@/CSS/index.css';
 import '@/CSS/component.css';
 
+/** 콘텐츠 허브 진입 권한 — 관련 권한 중 하나라도 있으면 허용 */
+const CONTENT_HUB_PERMISSION = ['content-form:read', 'content:read', 'media:read', 'content:create'];
+
 /** 권한 래핑 헬퍼 */
 function P({ permission, children }) {
     return <PermissionGuard permission={permission}>{children}</PermissionGuard>;
@@ -50,7 +54,7 @@ function App() {
             {/* 공개 라우트 */}
             <Route path="/login" element={<Login />} />
 
-            {/* 보호된 라우트 — AdminLayout */}
+            {/* 루트 허브 — AdminLayout (대시보드 + 관리 메뉴) */}
             <Route
                 path="/"
                 element={
@@ -61,33 +65,6 @@ function App() {
             >
                 {/* 대시보드 — 항상 접근 가능 */}
                 <Route index element={<Dashboard />} />
-
-                {/* 콘텐츠 폼 */}
-                <Route path="content-forms" element={<P permission="content-form:read"><ContentFormRouter /></P>}>
-                    <Route index element={<ContentFormList />} />
-                    <Route path="new" element={<P permission="content-form:create"><ContentFormForm /></P>} />
-                    <Route path=":id/edit" element={<P permission="content-form:update"><ContentFormForm /></P>} />
-                </Route>
-
-                {/* 콘텐츠 폼 카테고리 */}
-                <Route path="form-categories" element={<P permission="content-form:read"><FormCategoryRouter /></P>}>
-                    <Route index element={<FormCategoryList />} />
-                    <Route path="new" element={<P permission="content-form:update"><FormCategoryForm /></P>} />
-                    <Route path=":id/edit" element={<P permission="content-form:update"><FormCategoryForm /></P>} />
-                </Route>
-
-                {/* 콘텐츠 */}
-                <Route path="contents/:contentFormSlug" element={<P permission="content:read"><ContentRouter /></P>}>
-                    <Route index element={<ContentList />} />
-                    <Route path="new" element={<P permission="content:create"><ContentForm /></P>} />
-                    <Route path=":id/edit" element={<P permission="content:update"><ContentForm /></P>} />
-                    <Route path=":id/view" element={<P permission="content:read"><ContentForm readOnly /></P>} />
-                </Route>
-
-                {/* 파일 관리 */}
-                <Route path="media" element={<P permission="media:read"><MediaRouter /></P>}>
-                    <Route index element={<MediaList />} />
-                </Route>
 
                 {/* 역할/권한 */}
                 <Route path="roles" element={<P permission="role:read"><RoleRouter /></P>}>
@@ -112,9 +89,6 @@ function App() {
                 {/* Webhook */}
                 <Route path="webhooks" element={<P permission="webhook:read"><WebhookList /></P>} />
 
-                {/* Import/Export — 콘텐츠 생성 권한 필요 */}
-                <Route path="import-export" element={<P permission="content:create"><ImportExportPage /></P>} />
-
                 {/* 백업/복원 — 슈퍼관리자 전용 */}
                 <Route path="backups" element={<P permission="*"><BackupList /></P>} />
 
@@ -126,6 +100,47 @@ function App() {
 
                 {/* API 키 관리 — 슈퍼관리자 전용 */}
                 <Route path="api-keys" element={<P permission="*"><ApiKeyList /></P>} />
+            </Route>
+
+            {/* 콘텐츠 관리 허브 — ContentHubLayout */}
+            <Route
+                element={
+                    <AuthGuard>
+                        <P permission={CONTENT_HUB_PERMISSION}>
+                            <ContentHubLayout />
+                        </P>
+                    </AuthGuard>
+                }
+            >
+                {/* 콘텐츠 폼 */}
+                <Route path="/content-forms" element={<P permission="content-form:read"><ContentFormRouter /></P>}>
+                    <Route index element={<ContentFormList />} />
+                    <Route path="new" element={<P permission="content-form:create"><ContentFormForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content-form:update"><ContentFormForm /></P>} />
+                </Route>
+
+                {/* 콘텐츠 폼 카테고리 */}
+                <Route path="/form-categories" element={<P permission="content-form:read"><FormCategoryRouter /></P>}>
+                    <Route index element={<FormCategoryList />} />
+                    <Route path="new" element={<P permission="content-form:update"><FormCategoryForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content-form:update"><FormCategoryForm /></P>} />
+                </Route>
+
+                {/* 콘텐츠 */}
+                <Route path="/contents/:contentFormSlug" element={<P permission="content:read"><ContentRouter /></P>}>
+                    <Route index element={<ContentList />} />
+                    <Route path="new" element={<P permission="content:create"><ContentForm /></P>} />
+                    <Route path=":id/edit" element={<P permission="content:update"><ContentForm /></P>} />
+                    <Route path=":id/view" element={<P permission="content:read"><ContentForm readOnly /></P>} />
+                </Route>
+
+                {/* 파일 관리 */}
+                <Route path="/media" element={<P permission="media:read"><MediaRouter /></P>}>
+                    <Route index element={<MediaList />} />
+                </Route>
+
+                {/* Import/Export — 콘텐츠 생성 권한 필요 */}
+                <Route path="/import-export" element={<P permission="content:create"><ImportExportPage /></P>} />
             </Route>
 
             {/* 기본 리다이렉트 */}

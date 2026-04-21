@@ -565,6 +565,36 @@ table {
     border-bottom: 1px solid var(--sidebar-border);
 }
 
+/* 콘텐츠 허브 — 루트로 돌아가기 버튼 (사이드바 상단) */
+.hubBackToRoot {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 12px 8px 12px;
+    padding: 8px 12px;
+    background: none;
+    border: 1px solid var(--sidebar-border);
+    border-radius: var(--radius-md);
+    color: var(--sidebar-foreground);
+    font-size: var(--label-size);
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+    text-align: left;
+}
+
+.hubBackToRoot:hover {
+    background-color: oklch(from var(--sidebar-foreground) l c h / 0.06);
+    border-color: oklch(from var(--sidebar-foreground) l c h / 0.2);
+}
+
+.hubBackToRootIcon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
 .sidebarLogoIcon {
     width: 28px;
     height: 28px;
