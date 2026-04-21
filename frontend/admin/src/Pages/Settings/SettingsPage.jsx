@@ -57,6 +57,12 @@ function SettingsPage() {
     const queryClient = useQueryClient();
     const { makePopup, closePopup } = usePopup();
 
+    // 설정 불러오기
+    const { data: settings, isLoading } = useQuery({
+        queryKey: ['settings'],
+        queryFn: () => api.get('/settings').then((r) => r.data),
+    });
+
     const { register, handleSubmit, reset, setValue, watch, control } = useForm({
         defaultValues: {
             siteName: '',
@@ -79,6 +85,29 @@ function SettingsPage() {
             fromName: '',
             fromEmail: '',
         },
+        // values 옵션: settings 도착 시 rhf가 안전하게 동기화
+        values: settings
+            ? {
+                  siteName: toStr(settings.siteName),
+                  siteDescription: toStr(settings.siteDescription),
+                  siteUrl: toStr(settings.siteUrl),
+                  adminEmail: toStr(settings.adminEmail),
+                  logoUrl: toStr(settings.logoUrl),
+                  faviconUrl: toStr(settings.faviconUrl),
+                  timezone: toStr(settings.timezone, 'Asia/Seoul'),
+                  dateFormat: toStr(settings.dateFormat, 'YYYY-MM-DD'),
+                  postsPerPage: settings.postsPerPage ?? 10,
+                  maintenanceMode: Boolean(settings.maintenanceMode),
+                  emailEnabled: Boolean(settings.emailEnabled),
+                  smtpHost: toStr(settings.smtpHost),
+                  smtpPort: settings.smtpPort ?? 587,
+                  smtpUser: toStr(settings.smtpUser),
+                  smtpPassword: '',
+                  smtpSecure: Boolean(settings.smtpSecure),
+                  fromName: toStr(settings.fromName),
+                  fromEmail: toStr(settings.fromEmail),
+              }
+            : undefined,
     });
 
     const logoUrl = watch('logoUrl');
@@ -87,38 +116,6 @@ function SettingsPage() {
     const emailEnabled = watch('emailEnabled');
     const smtpSecure = watch('smtpSecure');
     const adminEmail = watch('adminEmail');
-
-    // 설정 불러오기
-    const { data: settings, isLoading } = useQuery({
-        queryKey: ['settings'],
-        queryFn: () => api.get('/settings').then((r) => r.data),
-    });
-
-    // 설정값으로 폼 초기화
-    useEffect(() => {
-        if (settings) {
-            reset({
-                siteName: toStr(settings.siteName),
-                siteDescription: toStr(settings.siteDescription),
-                siteUrl: toStr(settings.siteUrl),
-                adminEmail: toStr(settings.adminEmail),
-                logoUrl: toStr(settings.logoUrl),
-                faviconUrl: toStr(settings.faviconUrl),
-                timezone: toStr(settings.timezone, 'Asia/Seoul'),
-                dateFormat: toStr(settings.dateFormat, 'YYYY-MM-DD'),
-                postsPerPage: settings.postsPerPage ?? 10,
-                maintenanceMode: Boolean(settings.maintenanceMode),
-                emailEnabled: Boolean(settings.emailEnabled),
-                smtpHost: toStr(settings.smtpHost),
-                smtpPort: settings.smtpPort ?? 587,
-                smtpUser: toStr(settings.smtpUser),
-                smtpPassword: '', // 마스킹된 값 표시 안 함, 비워두면 기존 값 유지
-                smtpSecure: Boolean(settings.smtpSecure),
-                fromName: toStr(settings.fromName),
-                fromEmail: toStr(settings.fromEmail),
-            });
-        }
-    }, [settings, reset]);
 
     // 저장
     const saveMutation = useMutation({

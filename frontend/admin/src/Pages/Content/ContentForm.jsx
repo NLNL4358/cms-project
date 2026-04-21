@@ -114,10 +114,13 @@ function ContentForm({ readOnly = false }) {
     });
 
     // 수정 모드: 기존 데이터 로드
+    // 동적 필드 편집 중 refetch로 사용자 입력이 덮어쓰이지 않도록 캐시 고정
     const { data: existingContent, isLoading: isLoadingContent } = useQuery({
         queryKey: ['contents', id],
         queryFn: () => api.get(`/contents/${id}`).then((r) => r.data),
         enabled: isEdit,
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
     });
 
     // 버전 히스토리 조회 (수정 모드에서만)

@@ -122,12 +122,18 @@ function RoleForm() {
     const [superAdmin, setSuperAdmin] = useState(false);
     const [selectedPermissions, setSelectedPermissions] = useState([]);
 
+    // 수정 모드: 기존 데이터 로드
+    const { data: existingData, isLoading: isLoadingData } = useQuery({
+        queryKey: ['roles', id],
+        queryFn: () => api.get(`/roles/${id}`).then((r) => r.data),
+        enabled: isEdit,
+    });
+
     const {
         register,
         handleSubmit,
         watch,
         setValue,
-        reset,
         formState: { errors },
     } = useForm({
         resolver: zodResolver(roleSchema),
@@ -136,32 +142,26 @@ function RoleForm() {
             slug: '',
             description: '',
         },
+        // values 옵션: existingData 도착 시 rhf가 안전하게 동기화
+        values: existingData
+            ? {
+                  name: existingData.name,
+                  slug: existingData.slug,
+                  description: existingData.description || '',
+              }
+            : undefined,
     });
 
     const nameValue = watch('name');
     const slugValue = watch('slug');
 
-    // 수정 모드: 기존 데이터 로드
-    const { data: existingData, isLoading: isLoadingData } = useQuery({
-        queryKey: ['roles', id],
-        queryFn: () => api.get(`/roles/${id}`).then((r) => r.data),
-        enabled: isEdit,
-    });
-
-    // 기존 데이터로 폼 초기화
+    // 수정 모드 진입 시 슬러그 자동생성 끄기 + 권한 상태 동기화 (rhf 외부 state)
     useEffect(() => {
         if (existingData) {
-            reset({
-                name: existingData.name,
-                slug: existingData.slug,
-                description: existingData.description || '',
-            });
             setSlugManuallyEdited(true);
-
             const perms = Array.isArray(existingData.permissions)
                 ? existingData.permissions
                 : [];
-
             if (perms.includes('*')) {
                 setSuperAdmin(true);
                 setSelectedPermissions([]);
@@ -170,7 +170,7 @@ function RoleForm() {
                 setSelectedPermissions(perms);
             }
         }
-    }, [existingData, reset]);
+    }, [existingData]);
 
     // 이름 → 슬러그 자동 생성
     useEffect(() => {

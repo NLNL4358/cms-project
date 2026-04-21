@@ -160,10 +160,13 @@ function ContentFormForm() {
     };
 
     // 수정 모드: 기존 데이터 로드
+    // useFieldArray가 있어 values 패턴을 쓰지 않음. 대신 refetch를 막아 reset이 한 번만 실행되도록 보장.
     const { data: existingData, isLoading: isLoadingData } = useQuery({
         queryKey: ['content-forms', id],
         queryFn: () => api.get(`/content-forms/${id}`).then((r) => r.data),
         enabled: isEdit,
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
     });
 
     // 기존 데이터로 폼 초기화
