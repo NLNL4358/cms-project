@@ -106,6 +106,15 @@ export class ImportExportService {
     });
     const slugSet = new Set(existingSlugs.map((c) => c.slug));
 
+    // 대상 폼의 필드 정의 파싱
+    const targetFields = Array.isArray(contentForm.fields)
+      ? (contentForm.fields as any[])
+      : [];
+    const allowedKeys = new Set(targetFields.map((f) => f.name));
+    const requiredKeys = targetFields
+      .filter((f) => f.required)
+      .map((f) => f.name);
+
     const results = items.map((item, index) => {
       const errors: string[] = [];
 
@@ -116,6 +125,27 @@ export class ImportExportService {
         errors.push('고유주소가 비어있습니다');
       } else if (slugSet.has(item.slug)) {
         errors.push(`고유주소 "${item.slug}"가 이미 존재합니다`);
+      }
+
+      // data 필드 스키마 검증 — 대상 폼의 필드 정의와 호환성
+      const data = (item.data && typeof item.data === 'object') ? item.data : {};
+      const dataKeys = Object.keys(data);
+
+      // 1) 대상 폼에 정의되지 않은 키가 포함되어 있는지
+      const unknownKeys = dataKeys.filter((k) => !allowedKeys.has(k));
+      if (unknownKeys.length > 0) {
+        errors.push(
+          `대상 콘텐츠 폼에 정의되지 않은 필드가 포함되어 있습니다: ${unknownKeys.join(', ')}`,
+        );
+      }
+
+      // 2) 필수 필드 누락
+      const missingRequired = requiredKeys.filter((k) => {
+        const v = data[k];
+        return v === undefined || v === null || v === '';
+      });
+      if (missingRequired.length > 0) {
+        errors.push(`필수 필드가 비어있습니다: ${missingRequired.join(', ')}`);
       }
 
       return {
@@ -144,7 +174,16 @@ export class ImportExportService {
     items: Array<{ title: string; slug: string; data?: any; status?: string }>,
     overwrite = false,
   ) {
-    await this.getContentForm(contentFormId);
+    const contentForm = await this.getContentForm(contentFormId);
+
+    // 대상 폼의 필드 정의 (스키마 검증용)
+    const targetFields = Array.isArray(contentForm.fields)
+      ? (contentForm.fields as any[])
+      : [];
+    const allowedKeys = new Set(targetFields.map((f) => f.name));
+    const requiredKeys = targetFields
+      .filter((f) => f.required)
+      .map((f) => f.name);
 
     let created = 0;
     let updated = 0;
@@ -156,6 +195,30 @@ export class ImportExportService {
       try {
         if (!item.title?.trim() || !item.slug?.trim()) {
           skipped++;
+          continue;
+        }
+
+        // 스키마 검증 — 잘못된 폼으로 import하는 것 차단
+        const data = (item.data && typeof item.data === 'object') ? item.data : {};
+        const unknownKeys = Object.keys(data).filter((k) => !allowedKeys.has(k));
+        if (unknownKeys.length > 0) {
+          skipped++;
+          errors.push({
+            row: i + 1,
+            error: `대상 콘텐츠 폼에 정의되지 않은 필드: ${unknownKeys.join(', ')}`,
+          });
+          continue;
+        }
+        const missingRequired = requiredKeys.filter((k) => {
+          const v = data[k];
+          return v === undefined || v === null || v === '';
+        });
+        if (missingRequired.length > 0) {
+          skipped++;
+          errors.push({
+            row: i + 1,
+            error: `필수 필드 누락: ${missingRequired.join(', ')}`,
+          });
           continue;
         }
 
