@@ -878,3 +878,39 @@ YYYY.MM.DD HH:MM
 - 카테고리 권한은 별도 신설 없이 content-form:create/update/delete와 1:1 매핑
 - FormCategory 삭제 시 소속 콘텐츠 폼의 categoryId는 SetNull (폼 자체는 유지)
 - shadcn Select는 controlled 모드에서 reset 후 빈 문자열 덮어쓰기 이슈 → defaultValue 방식으로 해결
+
+## 2026-04-21 — 콘텐츠 관리 허브 분리 + 폼 안정화 + Import 스키마 검증
+
+### 기능 추가 — 콘텐츠 관리 허브 레이아웃 분리
+- 어드민을 2개 레이아웃으로 분리
+  - 루트 AdminLayout: 대시보드, 사용자/권한, 외부 연동, 운영/데이터, 시스템 설정
+  - ContentHubLayout: 콘텐츠 폼, 카테고리, 콘텐츠(동적 그룹), 파일 관리, Import/Export
+- 신규 ContentHubSidebar 상단에 "관리자 홈" 복귀 버튼
+- PermissionGuard 배열 권한(OR 조건) 지원 확장
+- URL 경로는 기존 유지, 레이아웃만 교체 방식 (기존 링크/북마크 영향 없음)
+- 허브 첫 페이지는 Phase X로 /content-forms. Phase Y(허브 전용 대시보드)는 보류 판단
+
+### 버그 수정 — 수정 폼 입력 덮어쓰기
+- 증상: UserForm에서 이메일 변경 저장 시 옛 값이 전송됨 → 실제 반영 안 됨
+- 원인: useEffect + reset 패턴이 useQuery refetch 타이밍에 사용자 입력을 덮어씀
+  (FormCategoryForm에서 먼저 발견한 것과 동일 패턴)
+- 조치
+  - 단순 폼(UserForm, RoleForm, SettingsPage): useForm({ values }) 패턴 전환
+  - useFieldArray가 있는 폼(ContentFormForm, Content/ContentForm): 전체 덮어쓰기 리스크로
+    values 대신 useQuery에 staleTime: Infinity + refetchOnWindowFocus: false 추가해
+    reset이 최초 1회만 실행되도록 보장
+
+### 버그 수정 — Import 스키마 검증
+- 증상: A폼에서 export한 JSON을 B폼으로 import해도 "유효함"으로 통과
+- 원인: importPreview/importExecute가 title/slug 유무·중복만 체크하고 data의 키가
+  대상 폼 fields 정의와 맞는지 검증하지 않았음
+- 조치: 대상 폼 fields 기준으로 item.data 키를 검증 — 정의되지 않은 필드가 있으면 error,
+  필수 필드 누락도 error. preview/execute 양쪽에 동일 검증 적용(우회 방지)
+
+### 설계 결정
+- 콘텐츠 관리 허브 랜딩은 /content-forms(목록)로 시작. 허브 전용 대시보드는 필요성 재검토 후 진행
+- Phase X에서 발견한 "어드민 URL 리네이밍 보류" 결정은 같은 세션에 일괄 완료(직전 ContentType→ContentForm 커밋에 포함)
+
+### Starter 에디션 완성 상태
+- 기획문서 Starter 기능 16/16 구현 완료
+- 이번 세션에서 추가된 안정화 커밋: 허브 분리 / 폼 values 패턴 / Import 스키마 검증
