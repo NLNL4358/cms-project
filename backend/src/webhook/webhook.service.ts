@@ -68,7 +68,7 @@ export class WebhookService {
       matching.map((wh) => this.send(wh, event, payload)),
     );
 
-    return results.map((r, i) => ({
+    return results.map((r: PromiseSettledResult<any>, i: number) => ({
       webhookId: matching[i].id,
       status: r.status,
       error: r.status === 'rejected' ? (r as any).reason?.message : undefined,
